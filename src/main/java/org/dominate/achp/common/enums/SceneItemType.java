@@ -12,6 +12,10 @@ import org.dominate.achp.entity.dto.SceneItemSelectDTO;
  * @since 2023-04-04
  */
 public enum SceneItemType {
+
+    /**
+     * 场景类型项
+     */
     UNDEFINED("未定义", 0, new SceneItemBaseDTO()),
 
     INPUT("输入框", 1, new SceneItemInputDTO()),

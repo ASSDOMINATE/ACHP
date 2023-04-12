@@ -17,4 +17,5 @@ import java.util.List;
 public interface IChatSceneRelateService extends IService<ChatSceneRelate> {
 
     List<Integer> getSceneIdList(int categoryId, PageReq page);
+
 }

@@ -39,13 +39,17 @@ public class SceneServiceImpl implements SceneService {
     public SceneDetailDTO getSceneDetail(int sceneId) {
         ChatScene scene = chatSceneService.getById(sceneId);
         SceneDetailDTO detail = SceneWrapper.build().entityDetailDTO(scene);
-        ContentDTO content = ChatWrapper.build().entityDTO(chatContentService.getById(scene.getContentId()));
-        detail.setContents(new ContentDTO[]{content});
+        if (0 != scene.getContentId()) {
+            ContentDTO content = ChatWrapper.build().entityDTO(chatContentService.getById(scene.getContentId()));
+            detail.setContents(new ContentDTO[]{content});
+        } else {
+            detail.setContents(new ContentDTO[0]);
+        }
         List<ChatSceneItem> itemList = chatSceneItemService.list(sceneId);
         List<SceneItemBaseDTO> items = new ArrayList<>(itemList.size());
         for (ChatSceneItem item : itemList) {
             SceneItemType itemType = SceneItemType.getValueByCode(item.getType());
-            SceneItemBaseDTO baseItem = itemType.getItem().parseJson(item.getContent(), itemType, item.getId());
+            SceneItemBaseDTO baseItem = itemType.getItem().parseJson(item.getContent(), itemType, item.getTitle(), item.getId());
             items.add(baseItem);
         }
         detail.setItems(items.toArray(new SceneItemBaseDTO[0]));

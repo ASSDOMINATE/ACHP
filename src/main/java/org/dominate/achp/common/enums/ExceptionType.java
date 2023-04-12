@@ -20,9 +20,9 @@ public enum ExceptionType {
 
     ERROR(ResponseType.ERROR.getCode(), "请求异常"),
 
-    HAS_CARD_BINDING(ResponseType.ERROR.getCode(), "存在已绑定的卡密"),
-    NOT_FOUND_CARD(ResponseType.ERROR.getCode(), "无效的卡密"),
-    NOT_CARD_USING(ResponseType.ERROR.getCode(), "没有生效的卡密"),
+    HAS_CARD_BINDING(ResponseType.ERROR.getCode(), "存在已绑定的会员卡"),
+    NOT_FOUND_CARD(ResponseType.ERROR.getCode(), "无效的会员卡"),
+    NOT_CARD_USING(ResponseType.ERROR.getCode(), "没有生效的会员卡"),
     USER_INFO_EXISTED(ResponseType.ERROR.getCode(), "用户信息已存在"),
     SEND_SMS_ERROR(ResponseType.ERROR.getCode(), "验证码发送失败，可能手机号已到发送限制"),
     NOT_BIND_PHONE(ResponseType.ERROR.getCode(), "未绑定手机号"),

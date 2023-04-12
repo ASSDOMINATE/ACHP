@@ -7,6 +7,7 @@ import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
+import org.junit.Test;
 
 import java.io.Serializable;
 import java.util.Date;
@@ -44,6 +45,9 @@ public class ChatSceneItem implements Serializable {
      */
     @TableField("content")
     private String content;
+
+    @TableField("title")
+    private String title;
 
     /**
      * 排序数

@@ -3,6 +3,7 @@ package org.dominate.achp.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.hwja.tool.utils.SqlUtil;
+import org.dominate.achp.common.helper.CardHelper;
 import org.dominate.achp.entity.BaseConfig;
 import org.dominate.achp.mapper.BaseConfigMapper;
 import org.dominate.achp.service.IBaseConfigService;
@@ -21,10 +22,16 @@ public class BaseConfigServiceImpl extends ServiceImpl<BaseConfigMapper, BaseCon
 
     @Override
     public BaseConfig current() {
+        BaseConfig config = CardHelper.getConfig();
+        if (null != config) {
+            return config;
+        }
         QueryWrapper<BaseConfig> query = new QueryWrapper<>();
         query.lambda().eq(BaseConfig::getDel, false)
                 .orderByDesc(BaseConfig::getId)
                 .last(SqlUtil.limitOne());
-        return getOne(query);
+        config = getOne(query);
+        CardHelper.updateConfig(config);
+        return config;
     }
 }

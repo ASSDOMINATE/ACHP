@@ -37,4 +37,5 @@ public class ChatSceneRelateServiceImpl extends ServiceImpl<ChatSceneRelateMappe
         }
         return sceneIdList;
     }
+
 }

@@ -7,6 +7,7 @@ import org.apache.commons.lang3.time.DateUtils;
 import org.dominate.achp.common.enums.CardRecordState;
 import org.dominate.achp.common.enums.CardType;
 import org.dominate.achp.common.enums.ExceptionType;
+import org.dominate.achp.common.helper.CardHelper;
 import org.dominate.achp.common.utils.UniqueCodeUtil;
 import org.dominate.achp.entity.BaseCard;
 import org.dominate.achp.entity.BaseCardRecord;
@@ -20,6 +21,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * <p>
@@ -53,6 +55,10 @@ public class BaseCardRecordServiceImpl extends ServiceImpl<BaseCardRecordMapper,
 
     @Override
     public CardRecordDTO checkUserRecord(int accountId) throws BusinessException {
+        CardRecordDTO cardRecord = CardHelper.getUsingCard(accountId);
+        if (null != cardRecord) {
+            return cardRecord;
+        }
         QueryWrapper<BaseCardRecord> query = new QueryWrapper<>();
         query.lambda().eq(BaseCardRecord::getAccountId, accountId)
                 .eq(BaseCardRecord::getState, CardRecordState.USING.getCode())
@@ -61,7 +67,9 @@ public class BaseCardRecordServiceImpl extends ServiceImpl<BaseCardRecordMapper,
         if (null == record) {
             throw BusinessException.create(ExceptionType.NOT_CARD_USING);
         }
-        return CardWrapper.build().entityDTO(record);
+        cardRecord = CardWrapper.build().entityDTO(record);
+        CardHelper.saveUsingCard(accountId, cardRecord);
+        return cardRecord;
     }
 
     @Override

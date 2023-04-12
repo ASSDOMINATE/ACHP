@@ -1,6 +1,7 @@
 package org.dominate.achp;
 
 import com.alibaba.fastjson.JSON;
+import com.hwja.tool.utils.DateUtil;
 import com.hwja.tool.utils.RandomUtil;
 import com.theokanning.openai.completion.chat.ChatMessage;
 import org.dominate.achp.common.enums.ChatRoleType;
@@ -13,19 +14,14 @@ import org.junit.Test;
 import org.springframework.util.CollectionUtils;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
 public class DemoTest {
 
 
     @Test
     public void forBigNum() {
-        BigDecimal n = new BigDecimal("2.31210000");
-        String s = n.toString();
-        System.out.println(s.substring(0, s.indexOf(".") + 3));
+        System.out.println(DateUtil.dateToStr(new Date(),"yyyy年M月d日"));
     }
 
     @Test
@@ -58,7 +54,7 @@ public class DemoTest {
     public void testExtend() {
         SceneItemInputDTO input = new SceneItemInputDTO();
         input.setType(SceneItemType.INPUT);
-        input.setLimit(100);
+        input.setValue("asdasda");
         tesItemType(input);
 
         SceneItemSelectDTO multipleSelect = new SceneItemSelectDTO();
@@ -92,7 +88,7 @@ public class DemoTest {
     private static void tesItemType(SceneItemBaseDTO base) {
         String json = base.toJson();
         SceneItemType type = SceneItemType.getValueByCode(base.getTypeCode());
-        SceneItemBaseDTO parseBase = type.getItem().parseJson(json, type, null);
+        SceneItemBaseDTO parseBase = type.getItem().parseJson(json, type, null,null);
         String parseJson = parseBase.toJson();
         assert json.equals(parseJson);
         System.out.println(base.getTypeCode());

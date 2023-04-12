@@ -17,4 +17,5 @@ import java.util.List;
 public interface IChatSceneCategoryService extends IService<ChatSceneCategory> {
 
     List<SceneCategoryDTO> enabledList();
+
 }
