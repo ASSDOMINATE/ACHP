@@ -1,7 +1,6 @@
 package org.dominate.achp.controller;
 
 import lombok.AllArgsConstructor;
-import org.dominate.achp.common.enums.ExceptionType;
 import org.dominate.achp.common.helper.AuthHelper;
 import org.dominate.achp.entity.BaseConfig;
 import org.dominate.achp.entity.dto.ChatDTO;
@@ -9,7 +8,6 @@ import org.dominate.achp.service.CardService;
 import org.dominate.achp.service.ChatService;
 import org.dominate.achp.service.IBaseConfigService;
 import org.dominate.achp.sys.Response;
-import org.dominate.achp.sys.exception.BusinessException;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;

@@ -4,14 +4,12 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.hwja.tool.utils.DateUtil;
 import com.hwja.tool.utils.SqlUtil;
-import org.apache.commons.lang3.time.DateUtils;
 import org.dominate.achp.common.helper.CardHelper;
 import org.dominate.achp.entity.BaseUserRecord;
 import org.dominate.achp.mapper.BaseUserRecordMapper;
 import org.dominate.achp.service.IBaseUserRecordService;
 import org.springframework.stereotype.Service;
 
-import javax.management.Query;
 import java.util.Date;
 
 /**
