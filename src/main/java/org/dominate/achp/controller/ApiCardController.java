@@ -166,9 +166,11 @@ public class ApiCardController {
         if (Optional.ofNullable(record).isEmpty()) {
             throw BusinessException.create(ExceptionType.NOT_FOUND_CARD);
         }
-        if (baseCardRecordService.hasBinding(accountId)) {
-            // TODO 再检查下卡密记录状态
+        try {
+            baseCardRecordService.checkUserRecord(accountId);
             throw BusinessException.create(ExceptionType.HAS_CARD_BINDING);
+        }catch (BusinessException e){
+            // 检查记录状态出现异常代表没有可以用的卡
         }
         BaseCard card = baseCardService.getById(record.getCardId());
         return Response.data(baseCardRecordService.bindRecord(accountId, record.getId(), card));
