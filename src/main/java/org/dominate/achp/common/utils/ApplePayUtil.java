@@ -1,0 +1,69 @@
+package org.dominate.achp.common.utils;
+
+import com.hwja.tool.utils.HttpUtil;
+import com.hwja.tool.utils.JsonUtil;
+import com.hwja.tool.utils.StringUtil;
+import lombok.extern.slf4j.Slf4j;
+import org.dominate.achp.common.enums.ExceptionType;
+import org.dominate.achp.sys.exception.BusinessException;
+
+import java.util.HashMap;
+import java.util.Map;
+
+@Slf4j
+public class ApplePayUtil {
+
+    private static final String VERIFY_URL = "https://buy.itunes.apple.com/verifyReceipt";
+    private static final String VERIFY_URL_SANDBOX = "https://sandbox.itunes.apple.com/verifyReceipt";
+
+    private static final String REQUEST_RECEIPT_DATA = "receipt-data";
+    private static final String[] RESPONSE_STATUS = {"status"};
+    private static final String SUCCESS_STATUS_CODE = "0";
+    private static final String CHECK_ON_SANDBOX_CODE = "21007";
+
+    /**
+     * 苹果支付回调验证
+     * 0 正常
+     * 21000 App Store不能读取你提供的JSON对象
+     * 21002 receipt-data域的数据有问题
+     * 21003 receipt无法通过验证
+     * 21004 提供的shared secret不匹配你账号中的shared secret
+     * 21005 receipt服务器当前不可用
+     * 21006 receipt合法，但是订阅已过期。服务器接收到这个状态码时，receipt数据仍然会解码并一起发送
+     * 21007 receipt是Sandbox receipt，但却发送至生产系统的验证服务
+     * 21008 receipt是生产receipt，但却发送至Sandbox环境的验证服务
+     *
+     * @param receiptDate 数据凭证
+     * @throws BusinessException 未抛出异常代表成功，否则在异常里返回失败原因
+     */
+    public static void verifyPay(String receiptDate) throws BusinessException {
+        //1.发送平台验证
+        String response = ApplePayUtil.sendVerify(receiptDate, false);
+        // 苹果服务器没有返回验证结果
+        if (StringUtil.isEmpty(response)) {
+            log.error("苹果验证失败 支付凭证 {}", receiptDate);
+            throw BusinessException.create(ExceptionType.PAY_NOT_FOUND_ORDER);
+        }
+        // 2.苹果验证 返回结果
+        String states = JsonUtil.parseResponseValueForString(response, RESPONSE_STATUS);
+
+        // 3.沙盒测试
+        if (CHECK_ON_SANDBOX_CODE.equals(states)) {
+            response = ApplePayUtil.sendVerify(receiptDate, true);
+            states = JsonUtil.parseResponseValueForString(response, RESPONSE_STATUS);
+        }
+        // 只有返回状态值为0是成功
+        if (!SUCCESS_STATUS_CODE.equals(states)) {
+            log.error("苹果验证不通过 结果 {} 支付凭证 {}", states, receiptDate);
+            throw BusinessException.create(ExceptionType.PAY_NOT_COMPLETED);
+        }
+    }
+
+
+    private static String sendVerify(String receiptDate, boolean onSandbox) {
+        Map<String, Object> params = new HashMap<>();
+        params.put(REQUEST_RECEIPT_DATA, receiptDate);
+        return HttpUtil.sendPost(onSandbox ? VERIFY_URL_SANDBOX : VERIFY_URL, params, true);
+    }
+
+}

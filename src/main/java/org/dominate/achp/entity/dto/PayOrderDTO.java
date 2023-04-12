@@ -1,0 +1,68 @@
+package org.dominate.achp.entity.dto;
+
+import lombok.Getter;
+import lombok.Setter;
+import lombok.experimental.Accessors;
+import org.dominate.achp.entity.req.PayReq;
+
+import java.io.Serializable;
+
+/**
+ * <p>
+ * 支付订单
+ * </p>
+ *
+ * @author dominate
+ * @since 2023-04-04
+ */
+@Getter
+@Setter
+@Accessors(chain = true)
+public class PayOrderDTO implements Serializable {
+
+    private static final long serialVersionUID = 1L;
+
+    /**
+     * 系统订单号
+     */
+    private String sysOrderCode;
+
+    /**
+     * 三方订单号
+     */
+    private String partyOrderCode;
+
+    /**
+     * 用户ID
+     */
+    private Integer accountId;
+
+    /**
+     * 卡密ID
+     */
+    private Integer cardId;
+
+    /**
+     * 支付类型
+     */
+    private Integer payType;
+
+    /**
+     * 支付凭证
+     */
+    private String auth;
+
+    private Long createTime;
+
+    private Long checkedTime;
+
+    public PayOrderDTO(){}
+
+    public PayOrderDTO(PayReq payReq) {
+        this.partyOrderCode = payReq.getOrderCode();
+        this.cardId = payReq.getCardId();
+        this.payType = payReq.getPayType();
+        this.auth = payReq.getAuth();
+        this.createTime = System.currentTimeMillis();
+    }
+}

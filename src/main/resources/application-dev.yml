@@ -1,0 +1,26 @@
+spring:
+  redis:
+    #redis 单机环境配置
+    host: 127.0.0.1
+    port: 6379
+    password: KIDeq@dw253
+    database: 1
+    ssl: false
+    jedis:
+      pool:
+        max-idle: 20
+        min-idle: 5
+        max-active: 500
+  datasource:
+    url: jdbc:mysql://8.219.111.33:3306/achp?useSSL=false&useUnicode=true&characterEncoding=utf-8&zeroDateTimeBehavior=convertToNull&transformedBitIsBoolean=true&serverTimezone=GMT%2B8&nullCatalogMeansCurrent=true&allowPublicKeyRetrieval=true&allowMultiQueries=true&autoReconnect=true&failOverReadOnly=false
+    username: root
+    password: Doiwq@31283
+jwt:
+  secret: cuAihCz53DZRjZwbsGcZJ2Ai6At+T142uphtJMsk7iQ=
+aliyun:
+  sms:
+    key: LTAI5tMhyGF8d98SMVVdkaJN
+    secret: jGzH1XoytbrufIn3QyGGgLuiVFIVdJ
+    sign: 聚点互动
+    temp:
+      common: SMS_276095238
