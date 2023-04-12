@@ -166,8 +166,7 @@ public class ApiCardController {
         if (Optional.ofNullable(record).isEmpty()) {
             throw BusinessException.create(ExceptionType.NOT_FOUND_CARD);
         }
-        CardRecordDTO userRecord = baseCardRecordService.checkUserRecord(accountId);
-        if (userRecord != null) {
+        if (baseCardRecordService.hasBinding(accountId)) {
             // TODO 再检查下卡密记录状态
             throw BusinessException.create(ExceptionType.HAS_CARD_BINDING);
         }

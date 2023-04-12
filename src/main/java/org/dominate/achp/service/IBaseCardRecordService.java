@@ -5,6 +5,7 @@ import org.dominate.achp.entity.BaseCard;
 import org.dominate.achp.entity.BaseCardRecord;
 import org.dominate.achp.entity.dto.CardRecordDTO;
 import org.dominate.achp.entity.req.PageReq;
+import org.dominate.achp.sys.exception.BusinessException;
 
 import java.util.List;
 
@@ -22,7 +23,9 @@ public interface IBaseCardRecordService extends IService<BaseCardRecord> {
 
     List<CardRecordDTO> cardRecordList(int cardId, PageReq page);
 
-    CardRecordDTO checkUserRecord(int accountId);
+    CardRecordDTO checkUserRecord(int accountId) throws BusinessException;
+
+    boolean hasBinding(int accountId);
 
     boolean bindRecord(int accountId, int id, BaseCard card);
 

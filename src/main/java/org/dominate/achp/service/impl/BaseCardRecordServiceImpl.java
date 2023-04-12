@@ -52,7 +52,7 @@ public class BaseCardRecordServiceImpl extends ServiceImpl<BaseCardRecordMapper,
     }
 
     @Override
-    public CardRecordDTO checkUserRecord(int accountId) {
+    public CardRecordDTO checkUserRecord(int accountId) throws BusinessException {
         QueryWrapper<BaseCardRecord> query = new QueryWrapper<>();
         query.lambda().eq(BaseCardRecord::getAccountId, accountId)
                 .eq(BaseCardRecord::getState, CardRecordState.USING.getCode())
@@ -62,6 +62,14 @@ public class BaseCardRecordServiceImpl extends ServiceImpl<BaseCardRecordMapper,
             throw BusinessException.create(ExceptionType.NOT_CARD_USING);
         }
         return CardWrapper.build().entityDTO(record);
+    }
+
+    @Override
+    public boolean hasBinding(int accountId) {
+        QueryWrapper<BaseCardRecord> query = new QueryWrapper<>();
+        query.lambda().eq(BaseCardRecord::getAccountId, accountId)
+                .eq(BaseCardRecord::getState, CardRecordState.USING.getCode());
+        return count(query) > 0;
     }
 
     @Override

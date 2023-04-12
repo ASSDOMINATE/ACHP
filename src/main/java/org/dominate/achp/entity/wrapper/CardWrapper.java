@@ -1,5 +1,7 @@
 package org.dominate.achp.entity.wrapper;
 
+import com.hwja.tool.utils.DateUtil;
+import com.hwja.tool.utils.StringUtil;
 import org.dominate.achp.common.enums.CardRecordState;
 import org.dominate.achp.common.enums.CardType;
 import org.dominate.achp.entity.BaseCard;
@@ -8,6 +10,7 @@ import org.dominate.achp.entity.dto.CardDTO;
 import org.dominate.achp.entity.dto.CardRecordDTO;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 public class CardWrapper {
@@ -56,6 +59,21 @@ public class CardWrapper {
         CardRecordState recordState = CardRecordState.getValueByCode(entity.getState());
         dto.setStateCode(recordState.getCode());
         dto.setStateName(recordState.getName());
+        if (entity.getAccountId() != 0) {
+            if (CardRecordState.USING == recordState) {
+                switch (cardType) {
+                    case COUNT:
+                        dto.setInfo("剩余次数 " + dto.getRemainCount());
+                        break;
+                    case DAY:
+                        dto.setInfo("剩余天数 " + DateUtil.getRangeDays(entity.getExpireTime(), new Date()));
+                        break;
+                    default:
+                        dto.setInfo(StringUtil.EMPTY);
+                        break;
+                }
+            }
+        }
         return dto;
     }
 
