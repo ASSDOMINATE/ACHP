@@ -13,5 +13,11 @@ import org.dominate.achp.entity.BaseConfig;
  */
 public interface IBaseConfigService extends IService<BaseConfig> {
 
+    /**
+     * 获取当前配置
+     *
+     * 使用静态缓存
+     * @return 配置
+     */
     BaseConfig current();
 }

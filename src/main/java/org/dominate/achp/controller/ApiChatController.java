@@ -1,12 +1,15 @@
 package org.dominate.achp.controller;
 
 import lombok.AllArgsConstructor;
+import org.dominate.achp.common.enums.ExceptionType;
 import org.dominate.achp.common.helper.AuthHelper;
 import org.dominate.achp.entity.BaseConfig;
 import org.dominate.achp.entity.dto.ChatDTO;
+import org.dominate.achp.service.CardService;
 import org.dominate.achp.service.ChatService;
 import org.dominate.achp.service.IBaseConfigService;
 import org.dominate.achp.sys.Response;
+import org.dominate.achp.sys.exception.BusinessException;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
@@ -23,6 +26,7 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 public class ApiChatController {
 
     private final ChatService chatService;
+    private final CardService cardService;
 
     private final IBaseConfigService baseConfigService;
 
@@ -43,11 +47,14 @@ public class ApiChatController {
             @RequestParam(name = "scene_id", required = false, defaultValue = "0") Integer sceneId,
             @RequestParam(name = "sentence") String sentence) {
         int accountId = AuthHelper.parseWithValidForId(token);
+        // 用户发消息已达限制
+        cardService.checkSendLimit(accountId);
         BaseConfig config = baseConfigService.current();
-        // TODO 检查用户请求频率
         ChatDTO chat = new ChatDTO(chatId, sentence, sceneId);
         chat.setAccountId(accountId);
         chat.setModelId(config.getModelId());
+        // 记录请求次数
+        cardService.addUserRequestRecord(accountId);
         return chatService.startChat(chat);
     }
 

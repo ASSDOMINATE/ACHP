@@ -1,10 +1,18 @@
 package org.dominate.achp.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.hwja.tool.utils.DateUtil;
+import com.hwja.tool.utils.SqlUtil;
+import org.apache.commons.lang3.time.DateUtils;
+import org.dominate.achp.common.helper.CardHelper;
 import org.dominate.achp.entity.BaseUserRecord;
 import org.dominate.achp.mapper.BaseUserRecordMapper;
 import org.dominate.achp.service.IBaseUserRecordService;
 import org.springframework.stereotype.Service;
+
+import javax.management.Query;
+import java.util.Date;
 
 /**
  * <p>
@@ -16,5 +24,30 @@ import org.springframework.stereotype.Service;
  */
 @Service
 public class BaseUserRecordServiceImpl extends ServiceImpl<BaseUserRecordMapper, BaseUserRecord> implements IBaseUserRecordService {
+
+    @Override
+    public BaseUserRecord getDailyRecord(int accountId) {
+        BaseUserRecord record = CardHelper.getUserDailyRecord(accountId);
+        if (null != record) {
+            return record;
+        }
+        Date time = new Date();
+        QueryWrapper<BaseUserRecord> query = new QueryWrapper<>();
+        query.lambda().eq(BaseUserRecord::getAccountId, accountId)
+                .between(BaseUserRecord::getCreateTime, DateUtil.getStartDate(time), DateUtil.getFinallyDate(time))
+                .last(SqlUtil.limitOne());
+        // 不存在就创建一条
+        if (0 == count(query)) {
+            record = new BaseUserRecord();
+            record.setAccountId(accountId);
+            record.setLatestRequestTime(time);
+            record.setDailyRequestCount(0);
+            save(record);
+        }
+        record = getOne(query);
+        CardHelper.saveUserRecord(record);
+        return record;
+    }
+
 
 }

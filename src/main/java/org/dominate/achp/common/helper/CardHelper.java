@@ -2,11 +2,14 @@ package org.dominate.achp.common.helper;
 
 import com.hwja.tool.clients.redis.RedisClient;
 import com.hwja.tool.utils.RandomUtil;
+import org.apache.commons.lang3.time.DateUtils;
 import org.dominate.achp.entity.BaseConfig;
 import org.dominate.achp.entity.BaseKey;
+import org.dominate.achp.entity.BaseUserRecord;
 import org.dominate.achp.entity.dto.CardRecordDTO;
 
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 
 public class CardHelper {
@@ -15,46 +18,43 @@ public class CardHelper {
     private static final String TEMP_CARD_KEY_LIST = "temp:card:key:list";
     private static final int[] TEMP_OUT_TIME = {60 * 3, 60 * 6};
 
-    private static final String CACHE_CARD_USER_USING_HASH_KEY = "case:card:user:using:hash";
-    private static final String CACHE_CARD_USER_REQUEST_COUNT_HASH_KEY = "case:card:user:request:count:hash";
-    private static final String CACHE_CARD_USER_DAILY_REQUEST_COUNT_HASH_KEY = "case:card:user:daily:request:count:hash";
+    private static final String CACHE_CARD_USER_USING_HASH_KEY = "cache:card:user:using:hash";
+    private static final String CACHE_USER_DAILY_RECORD_HASH_KEY = "cache:card:user:daily:record:hash";
 
     private static BaseConfig SYS_CONFIG = null;
 
+    /**
+     * 获取基础配置
+     *
+     * @return 基础配置
+     */
     public static BaseConfig getConfig() {
         return SYS_CONFIG;
     }
 
+    /**
+     * 清除配置，记得下次使用从数据库更新
+     */
     public static void clearConfig() {
         SYS_CONFIG = null;
     }
 
+    /**
+     * 更新基础配置
+     *
+     * @param config 基础配置
+     */
     public static void updateConfig(BaseConfig config) {
         SYS_CONFIG = config;
     }
 
 
-    public static int getUserRequestCount(int accountId) {
-        return getUserRequestCount(accountId, CACHE_CARD_USER_REQUEST_COUNT_HASH_KEY);
-    }
-
-    public static void addUserRequestCount(int accountId) {
-        int requestCount = getUserRequestCount(accountId);
-
-    }
-
-    public static int getUserRequestCount(int accountId, String key) {
-        if (!RedisClient.hHasKey(key, String.valueOf(accountId))) {
-            return 0;
-        }
-        return RedisClient.hGet(key, String.valueOf(accountId), Integer.class);
-    }
-
-    public static int getUserDailyRequestCount(int accountId) {
-        return getUserRequestCount(accountId, CACHE_CARD_USER_DAILY_REQUEST_COUNT_HASH_KEY);
-    }
-
-
+    /**
+     * 获取用户当前使用卡密
+     *
+     * @param accountId 用户ID
+     * @return 卡密记录
+     */
     public static CardRecordDTO getUsingCard(int accountId) {
         if (!RedisClient.hHasKey(CACHE_CARD_USER_USING_HASH_KEY, String.valueOf(accountId))) {
             return null;
@@ -62,11 +62,53 @@ public class CardHelper {
         return RedisClient.hGet(CACHE_CARD_USER_USING_HASH_KEY, String.valueOf(accountId), CardRecordDTO.class);
     }
 
+    /**
+     * 保存用户使用卡密
+     *
+     * @param accountId 用户ID
+     * @param card      卡密记录
+     */
     public static void saveUsingCard(int accountId, CardRecordDTO card) {
         RedisClient.hSetPersist(CACHE_CARD_USER_USING_HASH_KEY, String.valueOf(accountId), card);
     }
 
+    public static void removeUsingCard(int accountId) {
+        RedisClient.hRemoveField(CACHE_CARD_USER_USING_HASH_KEY, String.valueOf(accountId));
+    }
 
+    /**
+     * 获取用户每日记录
+     *
+     * @param accountId 账号ID
+     * @return 每日记录
+     */
+    public static BaseUserRecord getUserDailyRecord(int accountId) {
+        if (!RedisClient.hHasKey(CACHE_USER_DAILY_RECORD_HASH_KEY, String.valueOf(accountId))) {
+            return null;
+        }
+        BaseUserRecord userRecord = RedisClient.hGet(CACHE_USER_DAILY_RECORD_HASH_KEY, String.valueOf(accountId),
+                BaseUserRecord.class);
+        if (!DateUtils.isSameDay(new Date(), userRecord.getCreateTime())) {
+            return null;
+        }
+        return userRecord;
+    }
+
+    /**
+     * 保存用户每日记录
+     *
+     * @param userRecord 用户记录
+     */
+    public static void saveUserRecord(BaseUserRecord userRecord) {
+        RedisClient.hSetPersist(CACHE_USER_DAILY_RECORD_HASH_KEY, userRecord.getAccountId().toString(), userRecord);
+    }
+
+
+    /**
+     * 获取缓存中的卡密列表
+     *
+     * @return 卡密列表
+     */
     public static List<BaseKey> getCacheKeyList() {
         if (!RedisClient.hasKey(TEMP_CARD_KEY_LIST)) {
             return Collections.emptyList();
@@ -74,6 +116,11 @@ public class CardHelper {
         return (List<BaseKey>) RedisClient.get(TEMP_CARD_KEY_LIST);
     }
 
+    /**
+     * 保存卡密列表缓存
+     *
+     * @param keyList 卡密列表
+     */
     public static void saveCacheKeyList(List<BaseKey> keyList) {
         RedisClient.set(TEMP_CARD_KEY_LIST, keyList, RandomUtil.getRandNum(TEMP_OUT_TIME[0], TEMP_OUT_TIME[1]));
     }

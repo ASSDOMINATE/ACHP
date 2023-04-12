@@ -23,6 +23,12 @@ public interface IBaseCardRecordService extends IService<BaseCardRecord> {
 
     List<CardRecordDTO> cardRecordList(int cardId, PageReq page);
 
+    /**
+     * 检查获取当前可以用记录
+     *
+     * @param accountId 用户ID
+     * @return 卡密记录
+     */
     CardRecordDTO checkUserRecord(int accountId) throws BusinessException;
 
     boolean hasBinding(int accountId);
@@ -34,4 +40,7 @@ public interface IBaseCardRecordService extends IService<BaseCardRecord> {
     int createRecord(BaseCard card);
 
     BaseCardRecord findActiveRecord(String code);
+
+    boolean setRecordUsed(int accountId, int id, int requestCount, int remainCount);
+
 }

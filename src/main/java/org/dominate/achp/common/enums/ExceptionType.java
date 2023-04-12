@@ -27,6 +27,10 @@ public enum ExceptionType {
     SEND_SMS_ERROR(ResponseType.ERROR.getCode(), "验证码发送失败，可能手机号已到发送限制"),
     NOT_BIND_PHONE(ResponseType.ERROR.getCode(), "未绑定手机号"),
 
+    SEND_FREQ_LIMIT(ResponseType.ERROR.getCode(), "已达到发送频率限制，请稍后再试，或购买会员解除限制"),
+    SEND_COUNT_LIMIT(ResponseType.ERROR.getCode(), "已达到发送次数限制，购买会员可解除限制"),
+    SEND_CARD_LIMIT(ResponseType.ERROR.getCode(), "会员权益已使用完，请购买后再试"),
+
     PAY_ORDER_TYPE_ERROR(ResponseType.ERROR.getCode(), "支付订单对应支付类型错误"),
     PAY_ORDER_NOT_FOUND(ResponseType.ERROR.getCode(), "支付订单号错误"),
     PAY_ORDER_MUST_SAME_USER(ResponseType.ERROR.getCode(), "支付订单号必须是下单用户确认"),

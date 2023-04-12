@@ -57,6 +57,10 @@ public class BaseCardRecordServiceImpl extends ServiceImpl<BaseCardRecordMapper,
     public CardRecordDTO checkUserRecord(int accountId) throws BusinessException {
         CardRecordDTO cardRecord = CardHelper.getUsingCard(accountId);
         if (null != cardRecord) {
+            if (checkRecordUsed(cardRecord.getCardTypeCode(), cardRecord.getExpireTime(), cardRecord.getRemainCount())) {
+                setRecordUsed(accountId, cardRecord.getId(), cardRecord.getRequestCount(), cardRecord.getRemainCount());
+                throw BusinessException.create(ExceptionType.SEND_CARD_LIMIT);
+            }
             return cardRecord;
         }
         QueryWrapper<BaseCardRecord> query = new QueryWrapper<>();
@@ -67,9 +71,26 @@ public class BaseCardRecordServiceImpl extends ServiceImpl<BaseCardRecordMapper,
         if (null == record) {
             throw BusinessException.create(ExceptionType.NOT_CARD_USING);
         }
+        if (checkRecordUsed(record.getCardType(), record.getExpireTime().getTime(), record.getRemainCount())) {
+            setRecordUsed(accountId, record.getId(), record.getRequestCount(), record.getRemainCount());
+            throw BusinessException.create(ExceptionType.SEND_CARD_LIMIT);
+        }
         cardRecord = CardWrapper.build().entityDTO(record);
         CardHelper.saveUsingCard(accountId, cardRecord);
         return cardRecord;
+    }
+
+    private static boolean checkRecordUsed(int cardType, long expireTime, int remainCount) {
+        switch (CardType.getValueByCode(cardType)) {
+            case DAY:
+                // 已过期
+                return expireTime < System.currentTimeMillis();
+            case COUNT:
+                // 次数使用完
+                return remainCount <= 0;
+            default:
+                return true;
+        }
     }
 
     @Override
@@ -100,6 +121,7 @@ public class BaseCardRecordServiceImpl extends ServiceImpl<BaseCardRecordMapper,
                 return false;
         }
         update.setState(CardRecordState.USING.getCode());
+        CardHelper.removeUsingCard(accountId);
         return updateById(update);
     }
 
@@ -134,4 +156,19 @@ public class BaseCardRecordServiceImpl extends ServiceImpl<BaseCardRecordMapper,
                 .last(SqlUtil.limitOne());
         return getOne(query);
     }
+
+    @Override
+    public boolean setRecordUsed(int accountId, int id, int requestCount, int remainCount) {
+        BaseCardRecord update = new BaseCardRecord();
+        update.setId(id);
+        update.setRequestCount(requestCount);
+        update.setRemainCount(remainCount);
+        update.setState(CardRecordState.USED.getCode());
+        if (updateById(update)) {
+            CardHelper.removeUsingCard(accountId);
+            return true;
+        }
+        return false;
+    }
+
 }

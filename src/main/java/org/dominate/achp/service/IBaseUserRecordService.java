@@ -13,4 +13,13 @@ import org.dominate.achp.entity.BaseUserRecord;
  */
 public interface IBaseUserRecordService extends IService<BaseUserRecord> {
 
+    /**
+     * 获取每日记录
+     * 使用缓存
+     *
+     * @param accountId 账号ID
+     * @return 每日记录
+     */
+    BaseUserRecord getDailyRecord(int accountId);
+
 }

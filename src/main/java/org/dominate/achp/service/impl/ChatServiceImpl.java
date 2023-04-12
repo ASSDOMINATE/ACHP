@@ -4,6 +4,7 @@ import com.theokanning.openai.completion.chat.ChatMessage;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.dominate.achp.common.constant.CommonConstant;
 import org.dominate.achp.common.enums.ChatRoleType;
 import org.dominate.achp.common.helper.ChatGptHelper;
 import org.dominate.achp.common.utils.UniqueCodeUtil;
