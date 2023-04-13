@@ -45,7 +45,7 @@ public class ApiChatController {
             @RequestParam(name = "scene_id", required = false, defaultValue = "0") Integer sceneId,
             @RequestParam(name = "sentence") String sentence) {
         int accountId = AuthHelper.parseWithValidForId(token);
-        // 用户发消息已达限制
+        // 用户发消息限制检查
         cardService.checkSendLimit(accountId);
         BaseConfig config = baseConfigService.current();
         ChatDTO chat = new ChatDTO(chatId, sentence, sceneId);

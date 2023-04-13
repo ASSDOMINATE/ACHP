@@ -2,15 +2,14 @@ package org.dominate.achp.common.helper;
 
 import com.hwja.tool.clients.redis.RedisClient;
 import com.hwja.tool.utils.RandomUtil;
+import com.hwja.tool.utils.StringUtil;
 import org.apache.commons.lang3.time.DateUtils;
 import org.dominate.achp.entity.BaseConfig;
 import org.dominate.achp.entity.BaseKey;
 import org.dominate.achp.entity.BaseUserRecord;
 import org.dominate.achp.entity.dto.CardRecordDTO;
 
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 public class CardHelper {
 
@@ -20,6 +19,46 @@ public class CardHelper {
 
     private static final String CACHE_CARD_USER_USING_HASH_KEY = "cache:card:user:using:hash";
     private static final String CACHE_USER_DAILY_RECORD_HASH_KEY = "cache:card:user:daily:record:hash";
+
+    private static final String LIST_UPDATE_USER_USING_ID = "list:update:user:using:id";
+    private static final String LIST_UPDATE_USER_DAILY_RECORD_ID = "list:update:user:daily:record:id";
+
+
+    public static void setUserRecordUpdate(int accountId) {
+        RedisClient.leftPush(LIST_UPDATE_USER_DAILY_RECORD_ID, String.valueOf(accountId));
+    }
+
+    public static BaseUserRecord getUpdateUserRecord() {
+        return getListTarget(LIST_UPDATE_USER_DAILY_RECORD_ID, CACHE_USER_DAILY_RECORD_HASH_KEY, BaseUserRecord.class);
+    }
+
+    public static long getUpdateUserRecordLength() {
+        return RedisClient.listLength(LIST_UPDATE_USER_DAILY_RECORD_ID);
+    }
+
+    public static void setUserUsingUpdate(int accountId) {
+        RedisClient.leftPush(LIST_UPDATE_USER_USING_ID, String.valueOf(accountId));
+    }
+
+    public static CardRecordDTO getUpdateUserUsing() {
+        return getListTarget(LIST_UPDATE_USER_USING_ID, CACHE_CARD_USER_USING_HASH_KEY, CardRecordDTO.class);
+    }
+
+    public static long getUpdateUserUsingLength() {
+        return RedisClient.listLength(CACHE_CARD_USER_USING_HASH_KEY);
+    }
+
+
+    private static <T> T getListTarget(String listKey, String hashTargetKey, Class<T> targetClass) {
+        String field = RedisClient.rightPop(listKey, String.class);
+        if (StringUtil.isEmpty(field)) {
+            return null;
+        }
+        if (!RedisClient.hHasKey(hashTargetKey, field)) {
+            return null;
+        }
+        return RedisClient.hGet(hashTargetKey, field, targetClass);
+    }
 
     private static BaseConfig SYS_CONFIG = null;
 
@@ -76,6 +115,11 @@ public class CardHelper {
         RedisClient.hRemoveField(CACHE_CARD_USER_USING_HASH_KEY, String.valueOf(accountId));
     }
 
+    public static Collection<CardRecordDTO> getUsingList() {
+        Map<String, CardRecordDTO> cardRecordMap = RedisClient.hGetAll(CACHE_CARD_USER_USING_HASH_KEY, CardRecordDTO.class);
+        return cardRecordMap.values();
+    }
+
     /**
      * 获取用户每日记录
      *
@@ -92,6 +136,11 @@ public class CardHelper {
             return null;
         }
         return userRecord;
+    }
+
+    public static Collection<BaseUserRecord> getUserRecordList() {
+        Map<String, BaseUserRecord> userRecordMap = RedisClient.hGetAll(CACHE_USER_DAILY_RECORD_HASH_KEY, BaseUserRecord.class);
+        return userRecordMap.values();
     }
 
     /**

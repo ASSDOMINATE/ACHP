@@ -44,8 +44,9 @@ public final class ChatGptHelper {
         switch (modelId) {
             case DEFAULT_MODEL_ID:
                 return 4096;
+            default:
+                return 4096;
         }
-        return 4096;
     }
 
     public static List<Model> modelList() {

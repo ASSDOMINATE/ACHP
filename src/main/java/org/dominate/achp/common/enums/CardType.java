@@ -1,6 +1,9 @@
 package org.dominate.achp.common.enums;
 
 public enum CardType {
+    /**
+     * 卡密类型
+     */
     DAY("天数限制", 1),
     COUNT("次数限制", 2),
     ;

@@ -61,7 +61,7 @@ public class ApplePayUtil {
 
 
     private static String sendVerify(String receiptDate, boolean onSandbox) {
-        Map<String, Object> params = new HashMap<>();
+        Map<String, Object> params = new HashMap<>(1);
         params.put(REQUEST_RECEIPT_DATA, receiptDate);
         return HttpUtil.sendPost(onSandbox ? VERIFY_URL_SANDBOX : VERIFY_URL, params, true);
     }

@@ -58,6 +58,7 @@ public class CardServiceImpl implements CardService {
         record.setDailyRequestCount(record.getDailyRequestCount() + 1);
         record.setLatestRequestTime(new Date());
         CardHelper.saveUserRecord(record);
+        CardHelper.setUserRecordUpdate(accountId);
         BaseConfig config = baseConfigService.current();
         // 先把免费的次数用完
         if (config.getDailyRequestLimit() >= record.getDailyRequestCount()) {
@@ -71,6 +72,7 @@ public class CardServiceImpl implements CardService {
             cardRecord.setRequestCount(cardRecord.getRequestCount() + 1);
             cardRecord.setRemainCount(cardRecord.getRemainCount() - 1);
             CardHelper.saveUsingCard(accountId, cardRecord);
+            CardHelper.setUserUsingUpdate(accountId);
         } catch (Exception e) {
             log.info("已达请求限制 用户ID {} ", accountId);
         }
