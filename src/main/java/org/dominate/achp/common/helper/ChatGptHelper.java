@@ -9,6 +9,7 @@ import com.theokanning.openai.model.Model;
 import com.theokanning.openai.service.OpenAiService;
 import lombok.extern.slf4j.Slf4j;
 import org.dominate.achp.common.enums.ChatRoleType;
+import org.dominate.achp.common.enums.GptModelType;
 import org.dominate.achp.common.utils.ChatTokenUtil;
 import org.dominate.achp.entity.dto.ChatDTO;
 import org.dominate.achp.entity.dto.ContentDTO;
@@ -40,14 +41,6 @@ public final class ChatGptHelper {
         Locale.setDefault(Locale.CHINA);
     }
 
-    private static int modelLimitTokens(String modelId) {
-        switch (modelId) {
-            case DEFAULT_MODEL_ID:
-                return 4096;
-            default:
-                return 4096;
-        }
-    }
 
     public static List<Model> modelList() {
         return modelList(DEFAULT_API_KEY);
@@ -224,7 +217,7 @@ public final class ChatGptHelper {
         }
         // Tokens 限制检查
         int tokens = ChatTokenUtil.tokens(modelId, messageList);
-        int limitTokens = modelLimitTokens(modelId);
+        int limitTokens = GptModelType.getModelType(modelId).getTokenLimit();
         if (limitTokens >= tokens) {
             return messageList;
         }
@@ -236,8 +229,7 @@ public final class ChatGptHelper {
         int totalTokens = 0;
         while (iterator.hasNext()) {
             ChatMessage message = iterator.next();
-            int tokens = ChatTokenUtil.tokens(modelId, message.getContent());
-            totalTokens += tokens;
+            totalTokens += ChatTokenUtil.token(modelId, message);
             iterator.remove();
             if (totalTokens >= deleteTokens) {
                 return messageList;
@@ -247,7 +239,7 @@ public final class ChatGptHelper {
     }
 
 
-    private static ChatMessage createMessage(String content, boolean forUser) {
+    public static ChatMessage createMessage(String content, boolean forUser) {
         return createMessage(content, forUser ? ChatRoleType.USER : ChatRoleType.AI);
     }
 

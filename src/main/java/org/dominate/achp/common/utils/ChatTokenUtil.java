@@ -6,7 +6,10 @@ import com.knuddels.jtokkit.api.Encoding;
 import com.knuddels.jtokkit.api.EncodingRegistry;
 import com.knuddels.jtokkit.api.ModelType;
 import com.theokanning.openai.completion.chat.ChatMessage;
+import com.theokanning.openai.completion.chat.ChatMessageRole;
 import lombok.extern.slf4j.Slf4j;
+import org.dominate.achp.common.enums.ChatRoleType;
+import org.dominate.achp.common.enums.GptModelType;
 
 import javax.validation.constraints.NotNull;
 import java.util.*;
@@ -27,19 +30,43 @@ public class ChatTokenUtil {
 
 
     /**
-     * 通过模型名称计算messages获取编码数组
+     * 通过模型名称计算 messages Tokens
      * 参考官方的处理逻辑：
      * <a href=https://github.com/openai/openai-cookbook/blob/main/examples/How_to_count_tokens_with_tiktoken.ipynb>https://github.com/openai/openai-cookbook/blob/main/examples/How_to_count_tokens_with_tiktoken.ipynb</a>
      *
      * @param modelId  模型ID
-     * @param messages 消息体
+     * @param messages 消息体列表
      * @return token 数量
      */
     public static int tokens(@NotNull String modelId, @NotNull List<ChatMessage> messages) {
         Encoding encoding = getEncoding(modelId);
+        int baseToken = GptModelType.getModelType(modelId).getTokenNum();
         int sum = 0;
         for (ChatMessage msg : messages) {
-            sum += tokens(encoding, msg.getContent());
+            sum += token(encoding, msg, baseToken);
+        }
+        return sum;
+    }
+
+    /**
+     * 通过模型名称计算 message Tokens
+     *
+     * @param modelId 模型ID
+     * @param message 消息体
+     * @return token 数量
+     */
+    public static int token(@NotNull String modelId, @NotNull ChatMessage message) {
+        Encoding encoding = getEncoding(modelId);
+        int baseToken = GptModelType.getModelType(modelId).getTokenNum();
+        return token(encoding, message, baseToken);
+    }
+
+    private static int token(Encoding encoding, ChatMessage message, int baseToken) {
+        int sum = 0;
+        sum += tokens(encoding, message.getRole());
+        sum += tokens(encoding, message.getContent());
+        if (ChatRoleType.AI.getRole().equals(message.getRole())) {
+            sum += baseToken;
         }
         return sum;
     }
