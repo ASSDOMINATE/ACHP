@@ -15,6 +15,7 @@ public enum ExceptionType {
 
     INVALID_TOKEN(ResponseType.INVALID_TOKEN),
     LOGIN_STATE_ERROR(ResponseType.LOGIN_STATUS_ERROR),
+    NO_PERMISSION(ResponseType.NO_PERMISSION),
 
     PARAM_ERROR(ResponseType.HAS_WRONG_PARAM),
 

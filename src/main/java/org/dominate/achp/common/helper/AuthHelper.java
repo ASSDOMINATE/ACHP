@@ -12,6 +12,7 @@ import org.dominate.achp.common.enums.ExceptionType;
 import org.dominate.achp.entity.UserInfo;
 import org.dominate.achp.entity.dto.UserAuthDTO;
 import org.dominate.achp.sys.exception.BusinessException;
+import org.springframework.util.CollectionUtils;
 
 import java.security.Key;
 import java.util.List;
@@ -86,6 +87,27 @@ public final class AuthHelper {
             throw BusinessException.create(ExceptionType.LOGIN_STATE_ERROR);
         }
         return userAuth;
+    }
+
+    public static UserAuthDTO parseWithValidAdmin(String token) {
+        UserAuthDTO userAuth = parseWithValid(token);
+        if (CollectionUtils.isEmpty(userAuth.getPermissions())) {
+            throw BusinessException.create(ExceptionType.NO_PERMISSION);
+        }
+        return userAuth;
+    }
+
+    public static int parseWithValidAdminForId(String token) {
+        return parseWithValidAdmin(token).getAccountId();
+    }
+
+    public static boolean checkAdminUser(String token) {
+        try {
+            parseWithValidAdmin(token);
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
     }
 
 
@@ -192,6 +214,10 @@ public final class AuthHelper {
      */
     private static void setLogout(int accountId, int platformId) {
         RedisClient.hRemoveField(CACHE_USER_ID_TOKEN_FIELD_KEY, parseUserKey(accountId, platformId));
+    }
+
+    public static void setLogout(int accountId) {
+        setLogout(accountId, 0);
     }
 
     private static void setLogout(int platformId, int... accountIds) {

@@ -22,10 +22,20 @@ public class PageReq {
     @Max(value = 200, message = "分页大小最大 200")
     private Integer size;
 
-    public static PageReq defaultPage(){
+    public static PageReq defaultPage() {
         PageReq page = new PageReq();
         page.setPage(1);
         page.setSize(200);
         return page;
+    }
+
+    public int getIndex() {
+        if (page < 1) {
+            page = 1;
+        }
+        if(size < 1){
+            size = 1;
+        }
+        return (page - 1) * size;
     }
 }

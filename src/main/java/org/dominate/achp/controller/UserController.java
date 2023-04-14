@@ -1,8 +1,17 @@
 package org.dominate.achp.controller;
 
 import lombok.AllArgsConstructor;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.dominate.achp.common.enums.UserState;
+import org.dominate.achp.common.helper.AuthHelper;
+import org.dominate.achp.entity.dto.UserDTO;
+import org.dominate.achp.entity.req.PageReq;
+import org.dominate.achp.service.IUserAccountService;
+import org.dominate.achp.service.IUserInfoService;
+import org.dominate.achp.sys.Response;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 /**
  * @author dominate
@@ -12,5 +21,47 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/admin/user/")
 @AllArgsConstructor
 public class UserController {
+
+    private final IUserInfoService userInfoService;
+    private final IUserAccountService userAccountService;
+
+
+    @GetMapping(path = "list")
+    @ResponseBody
+    public Response<List<UserDTO>> list(
+            @RequestHeader(name = "token", required = false) String token,
+            @Validated PageReq page
+    ) {
+        AuthHelper.checkAdminUser(token);
+        List<UserDTO> userList = userInfoService.getDTOList(page.getIndex(), page.getSize(), false);
+        return Response.data(userList);
+    }
+
+    @GetMapping(path = "search")
+    @ResponseBody
+    public Response<List<UserDTO>> list(
+            @RequestHeader(name = "token", required = false) String token,
+            @RequestParam String keyword
+
+    ) {
+        AuthHelper.checkAdminUser(token);
+        List<UserDTO> userList = userInfoService.search(keyword);
+        return Response.data(userList);
+    }
+
+    @PostMapping(path = "disableUser")
+    @ResponseBody
+    public Response<Boolean> disableUser(
+            @RequestHeader(name = "token", required = false) String token,
+            @RequestBody Integer accountId
+    ) {
+        AuthHelper.checkAdminUser(token);
+        if (!userAccountService.updateState(accountId, UserState.DISABLED)) {
+            return Response.failed();
+        }
+        AuthHelper.setLogout(accountId);
+        return Response.success();
+    }
+
 
 }
