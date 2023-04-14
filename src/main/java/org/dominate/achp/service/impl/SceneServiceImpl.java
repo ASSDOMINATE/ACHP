@@ -1,12 +1,12 @@
 package org.dominate.achp.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.hwja.tool.utils.StringUtil;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.dominate.achp.common.enums.SceneItemType;
-import org.dominate.achp.entity.ChatScene;
-import org.dominate.achp.entity.ChatSceneConf;
-import org.dominate.achp.entity.ChatSceneItem;
+import org.dominate.achp.entity.*;
 import org.dominate.achp.entity.dto.ContentDTO;
 import org.dominate.achp.entity.dto.SceneDetailDTO;
 import org.dominate.achp.entity.dto.SceneItemBaseDTO;
@@ -34,6 +34,8 @@ public class SceneServiceImpl implements SceneService {
     private final IChatSceneService chatSceneService;
     private final IChatSceneItemService chatSceneItemService;
     private final IChatSceneConfService chatSceneConfService;
+    private final IChatSceneRelateService chatSceneRelateService;
+    private final IChatSceneCategoryService chatSceneCategoryService;
 
     @Override
     public SceneDetailDTO getSceneDetail(int sceneId) {
@@ -79,5 +81,52 @@ public class SceneServiceImpl implements SceneService {
             }
         }
         return content.toString();
+    }
+
+    @Override
+    public boolean saveSceneRelate(int sceneId, List<Integer> categoryIdList, int accountId) {
+        List<ChatSceneRelate> oldRelateIdList = chatSceneRelateService.getRelateList(sceneId, true);
+        List<Integer> oldCategoryIdList = new ArrayList<>();
+        for (ChatSceneRelate relate : oldRelateIdList) {
+            oldCategoryIdList.add(relate.getCategoryId());
+        }
+        List<Integer> addCategoryIdList = new ArrayList<>(categoryIdList.size());
+        for (Integer categoryId : categoryIdList) {
+            if (!oldCategoryIdList.contains(categoryId)) {
+                addCategoryIdList.add(categoryId);
+            }
+        }
+        List<ChatSceneCategory> categoryList = chatSceneCategoryService.list(addCategoryIdList);
+        List<ChatSceneRelate> insertList = new ArrayList<>(categoryList.size());
+        for (ChatSceneCategory category : categoryList) {
+            ChatSceneRelate relate = new ChatSceneRelate();
+            relate.setSceneId(sceneId);
+            relate.setCategoryId(category.getId());
+            relate.setCategoryType(category.getType());
+            relate.setCreateBy(accountId);
+            relate.setUpdateBy(accountId);
+            insertList.add(relate);
+        }
+        if (CollectionUtils.isNotEmpty(insertList)) {
+            if (!chatSceneRelateService.saveBatch(insertList)) {
+                return false;
+            }
+        }
+        List<Integer> delCategoryIdList = new ArrayList<>(oldCategoryIdList.size());
+        for (Integer categoryId : oldCategoryIdList) {
+            if (!categoryIdList.contains(categoryId)) {
+                delCategoryIdList.add(categoryId);
+            }
+        }
+        if (CollectionUtils.isEmpty(delCategoryIdList)) {
+            return true;
+        }
+        List<Integer> delIdList = new ArrayList<>(delCategoryIdList.size());
+        for (ChatSceneRelate relate : oldRelateIdList) {
+            if (delCategoryIdList.contains(relate.getCategoryId())) {
+                delIdList.add(relate.getId());
+            }
+        }
+        return chatSceneRelateService.removeByIds(delIdList);
     }
 }

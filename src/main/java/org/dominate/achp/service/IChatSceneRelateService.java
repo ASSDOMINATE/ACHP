@@ -18,4 +18,8 @@ public interface IChatSceneRelateService extends IService<ChatSceneRelate> {
 
     List<Integer> getSceneIdList(int categoryId, PageReq page);
 
+    List<Integer> getCategoryIdList(int sceneId);
+
+    List<ChatSceneRelate> getRelateList(int targetId,boolean forScene);
+
 }

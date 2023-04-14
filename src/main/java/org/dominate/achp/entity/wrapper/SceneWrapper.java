@@ -6,6 +6,7 @@ import org.dominate.achp.entity.ChatSceneCategory;
 import org.dominate.achp.entity.dto.SceneCategoryDTO;
 import org.dominate.achp.entity.dto.SceneDTO;
 import org.dominate.achp.entity.dto.SceneDetailDTO;
+import org.dominate.achp.entity.dto.SceneInfoDTO;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -14,6 +15,13 @@ public class SceneWrapper {
 
     public static SceneWrapper build() {
         return new SceneWrapper();
+    }
+
+    public SceneInfoDTO entityInfoDTO(ChatScene entity){
+        SceneInfoDTO dto = new SceneInfoDTO();
+        setScene(dto, entity);
+        dto.setNotice(entity.getNotice());
+        return dto;
     }
 
     public SceneDTO entityDTO(ChatScene entity) {

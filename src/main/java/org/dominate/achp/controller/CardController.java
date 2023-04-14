@@ -25,7 +25,7 @@ import java.util.List;
  * @since 2023-04-03
  */
 @RestController
-@RequestMapping("/admin/base/")
+@RequestMapping("/admin/card/")
 @AllArgsConstructor
 public class CardController {
 

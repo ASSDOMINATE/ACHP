@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.extension.service.IService;
 import org.dominate.achp.entity.ChatSceneCategory;
 import org.dominate.achp.entity.dto.SceneCategoryDTO;
 
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -17,5 +18,7 @@ import java.util.List;
 public interface IChatSceneCategoryService extends IService<ChatSceneCategory> {
 
     List<SceneCategoryDTO> enabledList();
+
+    List<ChatSceneCategory> list(Collection<Integer> ids);
 
 }

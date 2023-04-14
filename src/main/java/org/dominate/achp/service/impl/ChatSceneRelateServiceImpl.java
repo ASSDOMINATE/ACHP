@@ -29,13 +29,36 @@ public class ChatSceneRelateServiceImpl extends ServiceImpl<ChatSceneRelateMappe
         query.lambda().eq(ChatSceneRelate::getCategoryId, categoryId)
                 .eq(ChatSceneRelate::getDel, false)
                 .select(ChatSceneRelate::getSceneId)
-                .last(SqlUtil.pageLimit(page.getSize(),page.getPage()));
+                .last(SqlUtil.pageLimit(page.getSize(), page.getPage()));
         List<ChatSceneRelate> relateList = list(query);
         List<Integer> sceneIdList = new ArrayList<>(relateList.size());
         for (ChatSceneRelate relate : relateList) {
             sceneIdList.add(relate.getSceneId());
         }
         return sceneIdList;
+    }
+
+    @Override
+    public List<Integer> getCategoryIdList(int sceneId) {
+        QueryWrapper<ChatSceneRelate> query = new QueryWrapper<>();
+        query.lambda().eq(ChatSceneRelate::getSceneId, sceneId)
+                .eq(ChatSceneRelate::getDel, false)
+                .select(ChatSceneRelate::getCategoryId);
+        List<ChatSceneRelate> relateList = list(query);
+        List<Integer> categoryIdList = new ArrayList<>(relateList.size());
+        for (ChatSceneRelate relate : relateList) {
+            categoryIdList.add(relate.getSceneId());
+        }
+        return categoryIdList;
+    }
+
+    @Override
+    public List<ChatSceneRelate> getRelateList(int targetId, boolean forScene) {
+        QueryWrapper<ChatSceneRelate> query = new QueryWrapper<>();
+        query.lambda().eq(forScene, ChatSceneRelate::getSceneId, targetId)
+                .eq(!forScene, ChatSceneRelate::getCategoryId, targetId)
+                .eq(ChatSceneRelate::getDel, false);
+        return list(query);
     }
 
 }

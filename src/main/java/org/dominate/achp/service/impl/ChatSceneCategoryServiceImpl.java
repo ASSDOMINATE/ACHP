@@ -1,6 +1,7 @@
 package org.dominate.achp.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import org.dominate.achp.entity.ChatSceneCategory;
 import org.dominate.achp.entity.dto.SceneCategoryDTO;
@@ -9,6 +10,8 @@ import org.dominate.achp.mapper.ChatSceneCategoryMapper;
 import org.dominate.achp.service.IChatSceneCategoryService;
 import org.springframework.stereotype.Service;
 
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -28,5 +31,16 @@ public class ChatSceneCategoryServiceImpl extends ServiceImpl<ChatSceneCategoryM
         query.lambda().eq(ChatSceneCategory::getDel, false);
         List<ChatSceneCategory> categoryList = list(query);
         return SceneWrapper.build().entityCategoryDTO(categoryList);
+    }
+
+    @Override
+    public List<ChatSceneCategory> list(Collection<Integer> ids) {
+        if (CollectionUtils.isEmpty(ids)) {
+            return Collections.emptyList();
+        }
+        QueryWrapper<ChatSceneCategory> query = new QueryWrapper<>();
+        query.lambda().in(ChatSceneCategory::getId, ids)
+                .eq(ChatSceneCategory::getDel, false);
+        return list(query);
     }
 }
