@@ -59,7 +59,7 @@ public class BaseController {
         insert.setModelId(configReq.getModelId());
         insert.setFreqSecondLimit(configReq.getFreqSecondLimit());
         insert.setDailyRequestLimit(configReq.getDailyRequestLimit());
-        if(baseConfigService.save(insert)){
+        if (baseConfigService.save(insert)) {
             CardHelper.clearConfig();
         }
         return Response.success();
@@ -82,12 +82,14 @@ public class BaseController {
             @RequestHeader(name = "token", required = false) String token,
             @RequestBody @Validated KeyReq keyReq
     ) {
-        AuthHelper.checkAdminUser(token);
+        int accountId = AuthHelper.parseWithValidAdminForId(token);
         BaseKey save = new BaseKey();
         save.setApiKey(keyReq.getApiKey());
         save.setWeight(keyReq.getWeight());
         save.setState(keyReq.getState());
+        save.setUpdateBy(accountId);
         if (null == keyReq.getId()) {
+            save.setCreateBy(accountId);
             return Response.data(baseKeyService.save(save));
         }
         save.setId(keyReq.getId());
