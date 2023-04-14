@@ -51,7 +51,7 @@ public class SceneController {
         QueryWrapper<ChatScene> query = new QueryWrapper<>();
         query.lambda().eq(StringUtil.isNotEmpty(title), ChatScene::getTitle, title)
                 .eq(null != del, ChatScene::getDel, del)
-                .last(SqlUtil.pageLimit(page.getSize(), page.getSize()));
+                .last(SqlUtil.pageLimit(page.getSize(), page.getPage()));
         List<ChatScene> list = chatSceneService.list(query);
         return Response.data(list);
     }
@@ -112,6 +112,49 @@ public class SceneController {
         return Response.success();
     }
 
+
+
+    @GetMapping(path = "category")
+    @ResponseBody
+    public Response<List<ChatSceneCategory>> categoryList(
+            @RequestHeader(name = "token", required = false) String token,
+            @RequestParam(name = "type", required = false) Integer type,
+            @RequestParam(name = "name", required = false) String name,
+            @RequestParam(name = "del", required = false) Boolean del,
+            @Validated PageReq page
+    ) {
+        AuthHelper.checkAdminUser(token);
+        QueryWrapper<ChatSceneCategory> query = new QueryWrapper<>();
+        query.lambda().eq(StringUtil.isNotEmpty(name), ChatSceneCategory::getName, name)
+                .eq(null != type, ChatSceneCategory::getType, type)
+                .eq(null != del, ChatSceneCategory::getDel, del)
+                .last(SqlUtil.pageLimit(page.getSize(), page.getPage()));
+        List<ChatSceneCategory> list = chatSceneCategoryService.list(query);
+        return Response.data(list);
+    }
+
+    @PostMapping(path = "saveCategory")
+    @ResponseBody
+    public Response<Boolean> saveCategory(
+            @RequestHeader(name = "token", required = false) String token,
+            @RequestBody @Validated SceneCategoryReq categoryReq
+    ) {
+        int accountId = AuthHelper.parseWithValidAdminForId(token);
+        ChatSceneCategory save = new ChatSceneCategory();
+        save.setType(categoryReq.getType());
+        save.setName(categoryReq.getName());
+        save.setDesr(categoryReq.getDesr());
+        save.setDel(categoryReq.getDel());
+        save.setUpdateBy(accountId);
+        if (null == categoryReq.getId()) {
+            save.setCreateBy(accountId);
+            return Response.data(chatSceneCategoryService.save(save));
+        }
+        save.setId(categoryReq.getId());
+        return Response.data(chatSceneCategoryService.updateById(save));
+    }
+
+
     private void setItemAndConfigDel(int sceneId, int accountId) {
         ChatSceneItem item = new ChatSceneItem();
         item.setUpdateBy(accountId);
@@ -148,46 +191,6 @@ public class SceneController {
         }
     }
 
-
-    @GetMapping(path = "category")
-    @ResponseBody
-    public Response<List<ChatSceneCategory>> categoryList(
-            @RequestHeader(name = "token", required = false) String token,
-            @RequestParam(name = "type", required = false) Integer type,
-            @RequestParam(name = "name", required = false) String name,
-            @RequestParam(name = "del", required = false) Boolean del,
-            @Validated PageReq page
-    ) {
-        AuthHelper.checkAdminUser(token);
-        QueryWrapper<ChatSceneCategory> query = new QueryWrapper<>();
-        query.lambda().eq(StringUtil.isNotEmpty(name), ChatSceneCategory::getName, name)
-                .eq(null != token, ChatSceneCategory::getType, type)
-                .eq(null != del, ChatSceneCategory::getDel, del)
-                .last(SqlUtil.pageLimit(page.getSize(), page.getSize()));
-        List<ChatSceneCategory> list = chatSceneCategoryService.list(query);
-        return Response.data(list);
-    }
-
-    @PostMapping(path = "saveCategory")
-    @ResponseBody
-    public Response<Boolean> saveCategory(
-            @RequestHeader(name = "token", required = false) String token,
-            @RequestBody @Validated SceneCategoryReq categoryReq
-    ) {
-        int accountId = AuthHelper.parseWithValidAdminForId(token);
-        ChatSceneCategory save = new ChatSceneCategory();
-        save.setType(categoryReq.getType());
-        save.setName(categoryReq.getName());
-        save.setDesr(categoryReq.getDesr());
-        save.setDel(categoryReq.getDel());
-        save.setUpdateBy(accountId);
-        if (null == categoryReq.getId()) {
-            save.setCreateBy(accountId);
-            return Response.data(chatSceneCategoryService.save(save));
-        }
-        save.setId(categoryReq.getId());
-        return Response.data(chatSceneCategoryService.updateById(save));
-    }
 
 
 }

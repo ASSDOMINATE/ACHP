@@ -53,7 +53,7 @@ public class CardController {
         query.lambda().eq(accountId != 0, BasePaymentRecord::getAccountId, accountId)
                 .eq(StringUtil.isNotEmpty(sysCode), BasePaymentRecord::getOrderCode, sysCode)
                 .eq(StringUtil.isNotEmpty(partyCode), BasePaymentRecord::getPartyCode, partyCode)
-                .last(SqlUtil.pageLimit(page.getSize(), page.getSize()));
+                .last(SqlUtil.pageLimit(page.getSize(), page.getPage()));
         List<BasePaymentRecord> recordList = basePaymentRecordService.list(query);
         return Response.data(recordList);
     }

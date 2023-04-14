@@ -108,7 +108,6 @@ public interface IUserInfoService extends IService<UserInfo> {
     List<UserDTO> getDTOList(int index, int size, boolean filterLeave);
 
 
-
     /**
      * 获取用户邮箱
      *
