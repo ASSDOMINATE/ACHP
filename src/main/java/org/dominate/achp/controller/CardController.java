@@ -9,6 +9,7 @@ import org.dominate.achp.entity.BaseCard;
 import org.dominate.achp.entity.BaseCardRecord;
 import org.dominate.achp.entity.BasePaymentRecord;
 import org.dominate.achp.entity.req.CardReq;
+import org.dominate.achp.entity.req.IdReq;
 import org.dominate.achp.entity.req.PageReq;
 import org.dominate.achp.service.IBaseCardRecordService;
 import org.dominate.achp.service.IBaseCardService;
@@ -98,10 +99,10 @@ public class CardController {
     @ResponseBody
     public Response<BaseCardRecord> createCardRecord(
             @RequestHeader(name = "token", required = false) String token,
-            @RequestBody Integer id
+            @RequestBody IdReq idReq
     ) {
         AuthHelper.checkAdminUser(token);
-        BaseCard card = baseCardService.getById(id);
+        BaseCard card = baseCardService.getById(idReq.getId());
         int recordId = baseCardRecordService.createRecord(card);
         return Response.data(baseCardRecordService.getById(recordId));
     }
@@ -111,11 +112,20 @@ public class CardController {
     public Response<List<BaseCardRecord>> cardRecordList(
             @RequestHeader(name = "token", required = false) String token,
             @RequestParam(name = "card_id", required = false) Integer cardId,
+            @RequestParam(name = "exchange_key", required = false) String key,
+            @RequestParam(name = "keyword", required = false) String keyword,
             @Validated PageReq page
     ) {
         AuthHelper.checkAdminUser(token);
+
+        int accountId = 0;
+        if (StringUtil.isNotEmpty(keyword)) {
+            accountId = userInfoService.find(keyword);
+        }
         QueryWrapper<BaseCardRecord> query = new QueryWrapper<>();
         query.lambda().eq(null != cardId, BaseCardRecord::getCardId, cardId)
+                .eq(StringUtil.isNotEmpty(key), BaseCardRecord::getExchangeKey, key)
+                .eq(accountId != 0, BaseCardRecord::getAccountId, accountId)
                 .last(SqlUtil.pageLimit(page.getSize(), page.getPage()))
                 .orderByDesc(BaseCardRecord::getId);
         List<BaseCardRecord> recordList = baseCardRecordService.list(query);

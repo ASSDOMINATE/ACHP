@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import org.dominate.achp.common.enums.UserState;
 import org.dominate.achp.common.helper.AuthHelper;
 import org.dominate.achp.entity.dto.UserDTO;
+import org.dominate.achp.entity.req.IdReq;
 import org.dominate.achp.entity.req.PageReq;
 import org.dominate.achp.service.IUserAccountService;
 import org.dominate.achp.service.IUserInfoService;
@@ -53,13 +54,13 @@ public class UserController {
     @ResponseBody
     public Response<Boolean> disableUser(
             @RequestHeader(name = "token", required = false) String token,
-            @RequestBody Integer accountId
+            @RequestBody IdReq idReq
     ) {
         AuthHelper.checkAdminUser(token);
-        if (!userAccountService.updateState(accountId, UserState.DISABLED)) {
+        if (!userAccountService.updateState(idReq.getId(), UserState.DISABLED)) {
             return Response.failed();
         }
-        AuthHelper.setLogout(accountId);
+        AuthHelper.setLogout(idReq.getId());
         return Response.success();
     }
 

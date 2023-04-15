@@ -101,12 +101,11 @@ public final class AuthHelper {
         return parseWithValidAdmin(token).getAccountId();
     }
 
-    public static boolean checkAdminUser(String token) {
+    public static void checkAdminUser(String token) {
         try {
             parseWithValidAdmin(token);
-            return true;
         } catch (Exception e) {
-            return false;
+            throw BusinessException.create(ExceptionType.NO_PERMISSION);
         }
     }
 

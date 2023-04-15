@@ -3,13 +3,10 @@ package org.dominate.achp.entity.req;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
-import org.dominate.achp.entity.ChatSceneCategory;
 import org.dominate.achp.entity.ChatSceneConf;
 import org.dominate.achp.entity.ChatSceneItem;
-import org.dominate.achp.entity.dto.SceneDTO;
 
 import java.io.Serializable;
-import java.util.List;
 
 /**
  * <p>

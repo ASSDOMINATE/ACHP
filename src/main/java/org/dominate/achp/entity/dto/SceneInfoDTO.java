@@ -3,7 +3,6 @@ package org.dominate.achp.entity.dto;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
-import org.dominate.achp.entity.ChatContent;
 import org.dominate.achp.entity.ChatSceneCategory;
 import org.dominate.achp.entity.ChatSceneConf;
 import org.dominate.achp.entity.ChatSceneItem;
