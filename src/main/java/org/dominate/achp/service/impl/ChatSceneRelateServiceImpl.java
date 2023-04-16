@@ -47,7 +47,7 @@ public class ChatSceneRelateServiceImpl extends ServiceImpl<ChatSceneRelateMappe
         List<ChatSceneRelate> relateList = list(query);
         List<Integer> categoryIdList = new ArrayList<>(relateList.size());
         for (ChatSceneRelate relate : relateList) {
-            categoryIdList.add(relate.getSceneId());
+            categoryIdList.add(relate.getCategoryId());
         }
         return categoryIdList;
     }
