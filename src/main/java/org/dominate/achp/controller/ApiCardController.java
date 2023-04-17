@@ -62,7 +62,6 @@ public class ApiCardController {
     @ResponseBody
     public Response<CardRecordDTO> checkUserCard(
             @RequestHeader String token
-
     ) {
         int accountId = AuthHelper.parseWithValidForId(token);
         CardRecordDTO record = baseCardRecordService.checkUserRecord(accountId);
