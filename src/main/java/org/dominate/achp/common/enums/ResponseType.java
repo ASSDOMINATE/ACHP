@@ -75,6 +75,10 @@ public enum ResponseType {
      */
     MOBILE_VALID_CODE_ERROR(413, "手机验证码错误，请确认后重试", false),
 
+    CARD_NOT_VALID_ERROR(420, "会员卡无效", false),
+    CARD_NOT_BUY_ERROR(421, "没有购买过会员", false),
+
+
     /**
      * code:500
      * 请求失败

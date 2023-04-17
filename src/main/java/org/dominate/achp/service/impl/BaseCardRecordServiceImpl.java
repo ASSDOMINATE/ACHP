@@ -63,8 +63,11 @@ public class BaseCardRecordServiceImpl extends ServiceImpl<BaseCardRecordMapper,
             return cardRecord;
         }
         QueryWrapper<BaseCardRecord> query = new QueryWrapper<>();
-        query.lambda().eq(BaseCardRecord::getAccountId, accountId)
-                .eq(BaseCardRecord::getState, CardRecordState.USING.getCode())
+        query.lambda().eq(BaseCardRecord::getAccountId, accountId);
+        if (0 == count(query)) {
+            throw BusinessException.create(ExceptionType.NOT_BUY_USING);
+        }
+        query.lambda().eq(BaseCardRecord::getState, CardRecordState.USING.getCode())
                 .last(SqlUtil.limitOne());
         BaseCardRecord record = getOne(query);
         if (null == record) {
