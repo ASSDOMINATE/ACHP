@@ -3,6 +3,7 @@ package org.dominate.achp.controller;
 import lombok.AllArgsConstructor;
 import org.dominate.achp.common.enums.UserState;
 import org.dominate.achp.common.helper.AuthHelper;
+import org.dominate.achp.entity.UserInfo;
 import org.dominate.achp.entity.dto.UserDTO;
 import org.dominate.achp.entity.req.IdReq;
 import org.dominate.achp.entity.req.PageReq;
@@ -44,7 +45,6 @@ public class UserController {
     }
 
 
-
     @GetMapping(path = "search")
     @ResponseBody
     public Response<List<UserDTO>> list(
@@ -66,13 +66,17 @@ public class UserController {
     ) {
         AuthHelper.checkAdminUser(token);
         if (!userAccountService.updateState(idReq.getId(), UserState.DISABLED)) {
+            UserInfo info = new UserInfo();
+            info.setId(idReq.getId());
+            info.setState(UserState.DISABLED.getCode());
+            userInfoService.updateById(info);
             return Response.failed();
         }
         AuthHelper.setLogout(idReq.getId());
         return Response.success();
     }
 
-    private void setAdmin(List<UserDTO> userList){
+    private void setAdmin(List<UserDTO> userList) {
         List<Integer> accountIdList = new ArrayList<>(userList.size());
         for (UserDTO user : userList) {
             accountIdList.add(user.getAccountId());
