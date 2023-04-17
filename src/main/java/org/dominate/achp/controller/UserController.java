@@ -10,7 +10,6 @@ import org.dominate.achp.entity.req.PageReq;
 import org.dominate.achp.service.IUserAccountService;
 import org.dominate.achp.service.IUserInfoService;
 import org.dominate.achp.service.IUserRoleBindService;
-import org.dominate.achp.service.IUserRoleService;
 import org.dominate.achp.sys.Response;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -86,6 +85,5 @@ public class UserController {
             user.setIsAdmin(adminIdList.contains(user.getAccountId()));
         }
     }
-
 
 }
