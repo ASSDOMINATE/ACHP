@@ -32,13 +32,14 @@ public final class ALiYunHelper {
     private static final String STS_ROLE_ARN = LoadUtil.getProperty("aliyun.sts.role.arn");
     private static final String STS_ROLE_SESSION_NAME = LoadUtil.getProperty("aliyun.sts.role.session.name");
 
+    private static final String OSS_UPLOAD_DEFAULT_BUCKET = LoadUtil.getProperty("aliyun.oss.default-bucket");
+    private static final String OSS_ENDPOINT = LoadUtil.getProperty("aliyun.oss.endpoint");
+    private static final String OSS_REGION_ID = LoadUtil.getProperty("aliyun.oss.region-id");
+
     // 常量配置
 
-    private static final String OSS_UPLOAD_DEFAULT_BUCKET = "public-src";
-    private static final String OSS_ENDPOINT = "http://oss-cn-beijing.aliyuncs.com";
     private static final String STS_ENDPOINT = "sts.aliyuncs.com";
     private static final String STS_PRODUCT = "Sts";
-    private static final String REGION_ID = "cn-hangzhou";
 
     private static final String[] DEFAULT_CONNECT_TIMEOUT = {"sun.net.client.defaultConnectTimeout", "10000"};
     private static final String[] DEFAULT_READ_TIMEOUT = {"sun.net.client.defaultReadTimeout", "10000"};
@@ -96,8 +97,8 @@ public final class ALiYunHelper {
         System.setProperty(DEFAULT_READ_TIMEOUT[0], DEFAULT_READ_TIMEOUT[1]);
 
         // 初始化acsClient,暂不支持region化
-        IClientProfile profile = DefaultProfile.getProfile(REGION_ID, SMS_ACCESS_KEY_ID, SMS_SECRET);
-        DefaultProfile.addEndpoint(REGION_ID, REGION_ID, PRODUCT, DOMAIN);
+        IClientProfile profile = DefaultProfile.getProfile(OSS_REGION_ID, SMS_ACCESS_KEY_ID, SMS_SECRET);
+        DefaultProfile.addEndpoint(OSS_REGION_ID, OSS_REGION_ID, PRODUCT, DOMAIN);
         IAcsClient acsClient = new DefaultAcsClient(profile);
 
         // 组装请求对象-具体描述见控制台-文档部分内容

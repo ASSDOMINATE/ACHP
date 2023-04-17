@@ -28,7 +28,7 @@ public final class ALiPayHelper {
 
     private static final String APP_ID = LoadUtil.getProperty("alipay.app.id");
     private static final String APP_PRIVATE_KEY = LoadUtil.getProperty("alipay.app.private.key");
-    private static final String ALI_PAY_PUBLIC_KEY = LoadUtil.getProperty("alipay.app.public.key");
+    private static final String ALI_PAY_PUBLIC_KEY = LoadUtil.getProperty("alipay.ali.public.key");
 
     // 常量
 

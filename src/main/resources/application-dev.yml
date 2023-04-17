@@ -24,3 +24,34 @@ aliyun:
     sign: 聚点互动
     temp:
       common: SMS_276095238
+  oss:
+    default-bucket: public-src
+    endpoint: http://oss-cn-beijing.aliyuncs.com
+    region-id: cn-hangzhou
+  sts:
+    key: LTAI029m6fkGlEDf
+    secret: Bdnmuhp6ZpGXMqC3ME5X7vJBdrOWKs
+    role:
+      arn: acs:ram::1079346578132686:role/haiyouoss
+      session:
+        name: haiyouhome-session
+alipay:
+  app:
+    id: 2021001125651023
+    private:
+      key: MIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQDzWdmh6D+ESpOF84M3Mioq/GAStPV9gXJHda+eystjQfVesznABDOijZzNti3WkfauciCrjJM1fAEXvKLdWwy9edtUWXTj5f10fgUPV+c2rNwi4zJEkHWO6xNKi8NIjbE2kJ9352709Q4vIWxtslxS3N3wvzo/SE2Hkkp/ggGxbKs1/2XG4A8+jvI6dK2kn72B2H7JEKtRm/rvVuQc51Tt11pRuTrXHAcCydEaHJkpzlogZvcFnorvfUPaD7HL0IHRAfXjS/PmcRmY0KYmV0E0D+BRSqNwXGOjkF79ZNX08d6on7bieKRrdsOcqzpz343cTPzukSWdBBiSJdodBlS5AgMBAAECggEBAKVjknrseoaxnLO0PaC80lXmsnDkVdgXqxCQFmzIjRSHlnjnPD+ZW3KF5mUVBPBIwavr2vJclwwJnECCrvncULtR31PjfIMLI4gRweScrILHVtHLMbXRrGQWtkS62l0sF53rCsaWHx4SkrJLeALR7tdOTvS5MqAhxrd2IHWqaPYofqb4i9/WXJkw9aWbm6Tf0HjWjHMmHW+oD91T0pUxermNoRa6rC8TBJ5fgwO0x4c7tJoT+J2xP0h0Rvy8nW5OsTD3ad4u41TrbYUHBJwRerwdWyNgRT+a4bmEb3AzJvsELeFN5KRdE+XKUyEFWcXTlqlsS/G8aQJdTdXH3maDrVUCgYEA+/gBUKcM3kpeiTIUx1Y8cplqw9ggSuOwoh1v4A2y0fcVL1dmX5Ap5PyaaKWWoBwGrper2LxtoQv3dzeVTLUi+7pJRdnNxDN/yzAf28YalG0SeTsyQF0/xf8+95xroXnVrbCfxjHWLd4v9ec5MG8UQvSctk3vW8CM2MIi/Yq5d9sCgYEA9z6MgzXBkRzB8apDa1RiuLvAyqmQJ3kLLHbRTtoI1jGGVpxjPkMjyw5ovLxGxxFQNvViZsUM/1/rKmwqmG57XMQe1Voti7ZIhbQCN7dUHUmG4EHGJeMo1r8yvD+pyOpLe3/uBQ7E3b/NO4wqAECv1vRilDIa8pPvpxyzszdGw/sCgYBHS7WTjLEndQOq7nDStqQECUUchVsd1a91L78oNrgSkUd9Tc253KD+GjvWwIQOad+6J1CI00hx+WDcau3j9p0ffWaeTTLcAXZ3l/ZryXJb7UD87LMbY0dYTxESH0CVQFQmAYQ0IIXqFKSdf/++pK+nAnAVZZgE7kbsToJ4G3i/YQKBgQCKnNCeBxc8SckZuYEOvUKTmv9dH28oEh6HkR2LfYWSwDU2fXrOP0nj33IszclIdZZpGW1PfI3q5lWrdPT0fIxA19sJdgMu3sUN4HuVzPwlZ0FsnLOALjiJHKxPCcogT+p9lJ1WzI7mW0+uYMhzV9C9TEmwF98vvGyRXfAJO6Y63QKBgALxOzAvsosYiAaT5lj4n+UvfNsvTedcM9VkqdxOIAKV+jAla3OdyAHsiTMDL0JinHiJMWBIgS76T4No3LkKY9+VLUHl/ZEtrbNlztLLsCqRobgiGeFxt1G+kRzLaSz0tOqwXHhfsx60ytr7LXaWpEn07hBwnDqfMcfzapWJlY19
+    public:
+      key:MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA81nZoeg/hEqThfODNzIqKvxgErT1fYFyR3WvnsrLY0H1XrM5wAQzoo2czbYt1pH2rnIgq4yTNXwBF7yi3VsMvXnbVFl04+X9dH4FD1fnNqzcIuMyRJB1jusTSovDSI2xNpCfd+du9PUOLyFsbbJcUtzd8L86P0hNh5JKf4IBsWyrNf9lxuAPPo7yOnStpJ+9gdh+yRCrUZv671bkHOdU7ddaUbk61xwHAsnRGhyZKc5aIGb3BZ6K731D2g+xy9CB0QH140vz5nEZmNCmJldBNA/gUUqjcFxjo5Be/WTV9PHeqJ+24nika3bDnKs6c9+N3Ez87pElnQQYkiXaHQZUuQIDAQAB
+  ali:
+    public:
+      key: MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA07+1cJwlvD84iyK4JV3T2l5hwSX6sO9nS7cfD8VwL43uWkYp+MM3JQIyM7FZSfk2tWopMeGrVIp7hs5074xXCodh/m8Y+e1Oj/yYrJdgD+Iw0HjRzIgUUUBmk1I8VeRDumPdI5yWsIblgJDZmaFbTrAZjwd8PXPwWzehmmmCALj8VsHVCGYwtAeoX6IxX81UpXx+fBAu6sI0Cc97wpaGQnBsNcqVh66yBCerfo9Wse25acbPb9ooZHoqN1KPcdPxozxL6e/k2HTyDUIEBkMSsDhs7+Rqgqf5ST25cKEioN+stxwSzG4o/KW5eTL7+9X2R8iwdfY4qZKMHku9ccGDdwIDAQAB
+
+wechat:
+  pay:
+    platform:
+      key: SQZEIHKTVIAOWBKVMMNTWJJJGULFRBHH
+    app:
+      id: wx7eb0e3f2eb4876c2
+    much:
+      id: 1537352881
+    callback: http://www.thadhff.site/
