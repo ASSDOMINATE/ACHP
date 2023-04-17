@@ -64,13 +64,11 @@ public class UserController {
             @RequestBody IdReq idReq
     ) {
         AuthHelper.checkAdminUser(token);
-        if (!userAccountService.updateState(idReq.getId(), UserState.DISABLED)) {
-            UserInfo info = new UserInfo();
-            info.setId(idReq.getId());
-            info.setState(UserState.DISABLED.getCode());
-            userInfoService.updateById(info);
-            return Response.failed();
-        }
+        userAccountService.updateState(idReq.getId(), UserState.DISABLED);
+        UserInfo info = new UserInfo();
+        info.setId(idReq.getId());
+        info.setState(UserState.DISABLED.getCode());
+        userInfoService.updateById(info);
         AuthHelper.setLogout(idReq.getId());
         return Response.success();
     }
