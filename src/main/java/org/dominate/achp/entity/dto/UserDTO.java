@@ -71,6 +71,8 @@ public class UserDTO implements Serializable {
      */
     private String identity;
 
+    private Boolean isAdmin;
+
     public UserDTO() {
     }
 

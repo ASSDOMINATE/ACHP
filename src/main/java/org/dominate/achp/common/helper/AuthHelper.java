@@ -26,14 +26,15 @@ import java.util.Map;
  */
 public final class AuthHelper {
 
+    public static final int ADMIN_PERMISSION_ID = 1;
+    public static final int ADMIN_ROLE_ID = 1;
+
     private static final String JWT_SECRET = LoadUtil.getProperty("jwt.secret");
 
     private static final String CACHE_USER_ID_TOKEN_FIELD_KEY = "cache:user:id:token";
     private static final String CACHE_VALID_MOBILE_SIGN = "cache:valid:mobile";
 
     private static final String APPEND_PLATFORM_ID = "&";
-
-    public static final int ADMIN_PERMISSION_ID = 1;
 
     private static final Key JWT_SECRET_KEY;
 

@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.hwja.tool.utils.SqlUtil;
 import com.hwja.tool.utils.StringUtil;
 import lombok.AllArgsConstructor;
+import org.dominate.achp.common.enums.CardRecordState;
 import org.dominate.achp.common.helper.AuthHelper;
 import org.dominate.achp.entity.BaseCard;
 import org.dominate.achp.entity.BaseCardRecord;
@@ -105,6 +106,19 @@ public class CardController {
         BaseCard card = baseCardService.getById(idReq.getId());
         int recordId = baseCardRecordService.createRecord(card);
         return Response.data(baseCardRecordService.getById(recordId));
+    }
+
+    @PostMapping(path = "setRecordDisable")
+    @ResponseBody
+    public Response<Boolean> setRecordDisable(
+            @RequestHeader(name = "token", required = false) String token,
+            @RequestBody IdReq idReq
+    ) {
+        AuthHelper.checkAdminUser(token);
+        BaseCardRecord update = new BaseCardRecord();
+        update.setId(idReq.getId());
+        update.setState(CardRecordState.DISABLED.getCode());
+        return Response.data(baseCardRecordService.updateById(update));
     }
 
     @GetMapping(path = "cardRecordList")

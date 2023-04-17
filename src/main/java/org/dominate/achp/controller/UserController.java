@@ -8,10 +8,13 @@ import org.dominate.achp.entity.req.IdReq;
 import org.dominate.achp.entity.req.PageReq;
 import org.dominate.achp.service.IUserAccountService;
 import org.dominate.achp.service.IUserInfoService;
+import org.dominate.achp.service.IUserRoleBindService;
+import org.dominate.achp.service.IUserRoleService;
 import org.dominate.achp.sys.Response;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -25,6 +28,7 @@ public class UserController {
 
     private final IUserInfoService userInfoService;
     private final IUserAccountService userAccountService;
+    private final IUserRoleBindService userRoleBindService;
 
 
     @GetMapping(path = "list")
@@ -35,8 +39,11 @@ public class UserController {
     ) {
         AuthHelper.checkAdminUser(token);
         List<UserDTO> userList = userInfoService.getDTOList(page.getIndex(), page.getSize(), false);
+        setAdmin(userList);
         return Response.data(userList);
     }
+
+
 
     @GetMapping(path = "search")
     @ResponseBody
@@ -47,6 +54,7 @@ public class UserController {
     ) {
         AuthHelper.checkAdminUser(token);
         List<UserDTO> userList = userInfoService.search(keyword);
+        setAdmin(userList);
         return Response.data(userList);
     }
 
@@ -62,6 +70,17 @@ public class UserController {
         }
         AuthHelper.setLogout(idReq.getId());
         return Response.success();
+    }
+
+    private void setAdmin(List<UserDTO> userList){
+        List<Integer> accountIdList = new ArrayList<>(userList.size());
+        for (UserDTO user : userList) {
+            accountIdList.add(user.getAccountId());
+        }
+        List<Integer> adminIdList = userRoleBindService.hasRoleUserList(AuthHelper.ADMIN_ROLE_ID, accountIdList);
+        for (UserDTO user : userList) {
+            user.setIsAdmin(adminIdList.contains(user.getAccountId()));
+        }
     }
 
 
