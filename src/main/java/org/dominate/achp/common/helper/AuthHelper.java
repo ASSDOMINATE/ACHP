@@ -33,6 +33,8 @@ public final class AuthHelper {
 
     private static final String APPEND_PLATFORM_ID = "&";
 
+    public static final int ADMIN_PERMISSION_ID = 1;
+
     private static final Key JWT_SECRET_KEY;
 
     static {
@@ -89,9 +91,10 @@ public final class AuthHelper {
         return userAuth;
     }
 
+
     public static UserAuthDTO parseWithValidAdmin(String token) {
         UserAuthDTO userAuth = parseWithValid(token);
-        if (CollectionUtils.isEmpty(userAuth.getPermissions())) {
+        if (CollectionUtils.isEmpty(userAuth.getPermissions()) || !userAuth.getPermissions().contains(ADMIN_PERMISSION_ID)) {
             throw BusinessException.create(ExceptionType.NO_PERMISSION);
         }
         return userAuth;

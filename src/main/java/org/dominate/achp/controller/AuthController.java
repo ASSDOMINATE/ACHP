@@ -10,14 +10,8 @@ import org.dominate.achp.common.helper.PermissionHelper;
 import org.dominate.achp.entity.UserInfo;
 import org.dominate.achp.entity.dto.InitAccountDTO;
 import org.dominate.achp.entity.dto.UserAuthDTO;
-import org.dominate.achp.entity.req.InfoReq;
-import org.dominate.achp.entity.req.InitAccountReq;
-import org.dominate.achp.entity.req.LoginReq;
-import org.dominate.achp.entity.req.RegisterReq;
-import org.dominate.achp.service.DataService;
-import org.dominate.achp.service.IUserAccountService;
-import org.dominate.achp.service.IUserInfoService;
-import org.dominate.achp.service.IUserPermissionService;
+import org.dominate.achp.entity.req.*;
+import org.dominate.achp.service.*;
 import org.dominate.achp.sys.Response;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -40,6 +34,8 @@ public class AuthController {
     private final IUserAccountService userAccountService;
     private final IUserInfoService userInfoService;
     private final IUserPermissionService userPermissionService;
+
+    private final IUserRoleBindService userRoleBindService;
 
 
     /**
@@ -134,7 +130,7 @@ public class AuthController {
     ) {
         int accountId = AuthHelper.parseWithValidForId(token);
         UserState setState = UserState.DISABLED;
-        userAccountService.updateState(accountId,setState);
+        userAccountService.updateState(accountId, setState);
         InfoReq info = new InfoReq();
         info.setAccountId(accountId);
         info.setState(setState.getCode());
@@ -213,6 +209,21 @@ public class AuthController {
             return Response.code(ResponseType.INVALID_TOKEN);
         }
         return Response.data(userPermissionService.parsePathList(userAuth.getPermissions(), 0));
+    }
+
+    @PostMapping(path = "setAdmin")
+    @ResponseBody
+    public Response<Boolean> setAdmin(
+            @RequestHeader String token,
+            @RequestBody @Validated SetAdminReq setAdminReq
+    ) {
+        AuthHelper.checkAdminUser(token);
+        if (setAdminReq.getIsAdd()) {
+            userRoleBindService.add(setAdminReq.getAccountId(), AuthHelper.ADMIN_PERMISSION_ID);
+        } else {
+            userRoleBindService.delete(setAdminReq.getAccountId(), AuthHelper.ADMIN_PERMISSION_ID);
+        }
+        return Response.success();
     }
 
 
