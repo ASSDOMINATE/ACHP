@@ -6,6 +6,7 @@ import com.hwja.tool.utils.RandomUtil;
 import com.hwja.tool.utils.StringUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.http.ssl.SSLContexts;
 import org.dom4j.Document;
 import org.dom4j.DocumentHelper;
 import org.dom4j.Element;
@@ -13,10 +14,14 @@ import org.dominate.achp.common.enums.ExceptionType;
 import org.dominate.achp.common.utils.EncryptionUtil;
 import org.dominate.achp.sys.exception.BusinessException;
 
+import javax.net.ssl.SSLContext;
+import java.io.File;
+import java.io.FileInputStream;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.net.Inet4Address;
 import java.net.UnknownHostException;
+import java.security.KeyStore;
 import java.util.*;
 
 @Slf4j
@@ -29,6 +34,8 @@ public final class WeChatPayHelper {
     private static final String APP_ID = LoadUtil.getProperty("wechat.pay.app.id");
     private static final String MCH_ID = LoadUtil.getProperty("wechat.pay.mch.id");
     private static final String WX_PAY_CALLBACK = LoadUtil.getProperty("wechat.pay.callback");
+    private static final String CERT_FILE_PATH = LoadUtil.getProperty("ssl.wechat");
+
 
     private static final String CREATE_ORDER_URL = "https://api.mch.weixin.qq.com/pay/unifiedorder";
     private static final String[] CREATE_PAY_ORDER_FOR_APP_KEYS = {"mch_id", "appid", "trade_type", "notify_url", "body", "total_fee", "out_trade_no", "nonce_str", "spbill_create_ip"};
@@ -36,21 +43,63 @@ public final class WeChatPayHelper {
     private static final String QUERY_ORDER_URL = "https://api.mch.weixin.qq.com/pay/orderquery";
     private static final String[] QUERY_PAY_ORDER_KEYS = {"mch_id", "appid", "out_trade_no", "nonce_str"};
 
+
+    private static final String REFUND_ORDER_URL = "https://api.mch.weixin.qq.com/secapi/pay/refund";
+    private static final String[] REFUND_PAY_ORDER_KEYS = {"mch_id", "appid", "out_trade_no", "out_refund_no", "total_fee", "refund_fee", "nonce_str", "refund_account"};
+
     /**
      * 返回结果常量
      */
+
+    private static final String REFUND_TYPE_UNSETTLED = "REFUND_SOURCE_UNSETTLED_FUNDS";
+    private static final String REFUND_TYPE_RECHARGE = "REFUND_SOURCE_RECHARGE_FUNDS";
     private static final String RESULT_TYPE = "result_code";
     private static final String RESULT_SUCCESS = "SUCCESS";
     private static final String PREPAY_ID = "prepay_id";
     private static final String TOTAL_FEE = "total_fee";
     private static final String TRADE_TYPE_APP = "APP";
+    private static final String TRADE_TYPE_NATIVE = "NATIVE";
+
 
     private static final String IP_ADDRESS;
 
+    private static final String SSL_KEY_INSTANCE = "PKCS12";
+    private static final SSLContext SSL_CONTEXT;
+
     static {
+        SSL_CONTEXT = loadSSLCertFile();
         IP_ADDRESS = getIpAddress();
     }
 
+    /**
+     * 读取证书文件
+     *
+     * @return
+     */
+    private static SSLContext loadSSLCertFile() {
+        try (FileInputStream inStream = new FileInputStream(CERT_FILE_PATH)) {
+            KeyStore keyStore = KeyStore.getInstance(SSL_KEY_INSTANCE);
+            keyStore.load(inStream, MCH_ID.toCharArray());
+            return SSLContexts.custom()
+                    .loadKeyMaterial(keyStore, MCH_ID.toCharArray())
+                    .build();
+        } catch (Exception e) {
+            log.error("load SSL cert error ", e);
+        }
+        return null;
+    }
+
+    private static String parseParamPrice(BigDecimal price) {
+        return String.valueOf(price.multiply(BigDecimal.TEN).multiply(BigDecimal.TEN).intValue());
+    }
+
+    public static String createNativePayOrder(String uniqueOrderCode, BigDecimal payNum, String payTitle) {
+        return createPayOrder(uniqueOrderCode, payNum, payTitle, TRADE_TYPE_NATIVE);
+    }
+
+    public static String createAppPayOrder(String uniqueOrderCode, BigDecimal payNum, String payTitle) {
+        return createPayOrder(uniqueOrderCode, payNum, payTitle, TRADE_TYPE_APP);
+    }
 
     /**
      * 创建支付订单 用于 APP支付
@@ -60,12 +109,15 @@ public final class WeChatPayHelper {
      * @param payTitle        支付标题
      * @return String 微信支付订单号，若为空字符串即请求失败
      */
-    public static String createPayOrder(String uniqueOrderCode, String payNum, String payTitle) {
+    public static String createPayOrder(String uniqueOrderCode, BigDecimal payNum, String payTitle, String tradeType) {
         String nonceStr = createNonceStr();
-        String[] values = {MCH_ID, APP_ID, TRADE_TYPE_APP, WX_PAY_CALLBACK, payTitle, payNum, uniqueOrderCode, nonceStr, IP_ADDRESS};
+        String[] values = {MCH_ID, APP_ID, tradeType, WX_PAY_CALLBACK, payTitle, parseParamPrice(payNum), uniqueOrderCode, nonceStr, IP_ADDRESS};
         try {
             String response = sendRequest(CREATE_ORDER_URL, CREATE_PAY_ORDER_FOR_APP_KEYS, values);
             Map<String, Object> resultMap = WeChatPayHelper.parseXML(response);
+            for (Map.Entry<String, Object> stringObjectEntry : resultMap.entrySet()) {
+                System.out.println(stringObjectEntry.getKey() + " - " + stringObjectEntry.getValue());
+            }
             String returnCode = (String) resultMap.get(RESULT_TYPE);
             if (!RESULT_SUCCESS.equals(returnCode)) {
                 return StringUtils.EMPTY;
@@ -98,6 +150,46 @@ public final class WeChatPayHelper {
         if (balance.compareTo(parsePayNum(responseMap)) != 0) {
             throw BusinessException.create(ExceptionType.PAY_PRICE_ERROR);
         }
+    }
+
+
+    /**
+     * 原路退款，先进行冻结金额退款，失败后进行余额退款
+     *
+     * @param uniqueOrderCode 支付订单号
+     * @param refundOrderCode 退款订单号
+     * @param totalFee        退款总金额
+     * @param refundFee       退款金额
+     * @return 微信返回XML结果
+     */
+    public static String refundPayOrder(String uniqueOrderCode, String refundOrderCode, int totalFee, int refundFee) {
+        String firstResponse = refundPayOrder(uniqueOrderCode, refundOrderCode, totalFee, refundFee, REFUND_TYPE_UNSETTLED);
+
+        Map<String, Object> firstResponseMap = parseXML(firstResponse);
+        if (isSuccess(firstResponseMap)) {
+            return firstResponse;
+        }
+
+        return refundPayOrder(uniqueOrderCode, refundOrderCode, totalFee, refundFee, REFUND_TYPE_RECHARGE);
+    }
+
+    /**
+     * 原路退款
+     *
+     * @param uniqueOrderCode 支付订单号
+     * @param refundOrderCode 退款订单号
+     * @param totalFee        退款总金额
+     * @param refundFee       退款金额
+     * @param refundType      退款类型 冻结金额 / 余额
+     * @return 微信返回XML结果
+     */
+    private static String refundPayOrder(String uniqueOrderCode, String refundOrderCode, int totalFee, int refundFee, String refundType) {
+        String nonceStr = createNonceStr();
+        String totalFeeStr = String.valueOf(totalFee);
+        String refundFeeStr = String.valueOf(refundFee);
+        String[] values = {MCH_ID, APP_ID, uniqueOrderCode, refundOrderCode, totalFeeStr, refundFeeStr, nonceStr, refundType};
+
+        return sendRequest(REFUND_ORDER_URL, REFUND_PAY_ORDER_KEYS, values, true);
     }
 
     /**
@@ -230,16 +322,23 @@ public final class WeChatPayHelper {
     }
 
 
+    private static String sendRequest(String url, String[] keys, String[] values) {
+        return sendRequest(url, keys, values, false);
+    }
+
     /**
      * 发起请求
      *
-     * @param url    请求地址
-     * @param keys   键数组
-     * @param values 值数组
-     * @return 返回结果
+     * @param url
+     * @param keys
+     * @param values
+     * @return
      */
-    private static String sendRequest(String url, String[] keys, String[] values) {
+    private static String sendRequest(String url, String[] keys, String[] values, boolean useSSL) {
         String xml = formatRequestXML(keys, values);
+        if (useSSL) {
+            return HttpUtil.sendPostWithSsl(url, xml, SSL_CONTEXT);
+        }
         return HttpUtil.sendPost(url, xml);
     }
 

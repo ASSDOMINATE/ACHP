@@ -9,6 +9,7 @@ import lombok.Setter;
 import lombok.experimental.Accessors;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
 import java.util.Date;
 
 /**
@@ -47,6 +48,12 @@ public class BaseConfig implements Serializable {
      */
     @TableField("model_id")
     private String modelId;
+
+    @TableField("max_result_tokens")
+    private Integer maxResultTokens;
+
+    @TableField("temperature")
+    private BigDecimal temperature;
 
     @TableField("create_time")
     private Date createTime;

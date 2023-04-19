@@ -18,22 +18,22 @@ import java.io.Serializable;
 @Data
 @EqualsAndHashCode(callSuper = false)
 @Accessors(chain = true)
-public class LoginReq implements Serializable {
+public class LoginCodeReq implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
     /**
-     * 手机号/邮箱/唯一编码
+     * 短信验证码
      */
     @NotNull
-    private String sign;
+    private String code;
 
+    /**
+     * 手机号
+     */
     @NotNull
-    private String pwd;
+    private String mobile;
 
-    private Integer platform;
-
-    private Boolean skipPerm;
 
 
 }

@@ -1,8 +1,10 @@
 package org.dominate.achp.controller;
 
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
+import com.hwja.tool.utils.StringUtil;
 import lombok.AllArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
+import org.dominate.achp.common.enums.PlatformClientType;
 import org.dominate.achp.common.enums.ResponseType;
 import org.dominate.achp.common.enums.UserState;
 import org.dominate.achp.common.helper.AuthHelper;
@@ -16,6 +18,8 @@ import org.dominate.achp.sys.Response;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -54,10 +58,25 @@ public class AuthController {
             @Validated @RequestBody LoginReq loginReq
     ) {
         int accountId = userInfoService.find(loginReq.getSign());
-        if (null == loginReq.getForClient()) {
-            loginReq.setForClient(true);
+        if (null == loginReq.getSkipPerm()) {
+            loginReq.setSkipPerm(true);
         }
-        return loginAccount(accountId, loginReq.getPwd(), 0, loginReq.getForClient());
+        if (null == loginReq.getPlatform()) {
+            loginReq.setPlatform(PlatformClientType.APP.getId());
+        }
+        return loginAccount(accountId, loginReq.getPwd(), loginReq.getPlatform(), loginReq.getSkipPerm());
+    }
+
+    @PostMapping(path = "loginCode")
+    @ResponseBody
+    public Response<String> loginCode(
+            @Validated @RequestBody LoginCodeReq LoginCodeReq
+    ) {
+        if (!AuthHelper.checkMobileValid(LoginCodeReq.getMobile(), LoginCodeReq.getCode())) {
+            return Response.code(ResponseType.MOBILE_VALID_CODE_ERROR);
+        }
+        int accountId = userInfoService.find(LoginCodeReq.getMobile());
+        return loginAccount(accountId);
     }
 
     @PostMapping(path = "register")
@@ -227,23 +246,39 @@ public class AuthController {
     }
 
 
-    private Response<String> loginAccount(int accountId, String password, int platformId, boolean forClient) {
-        return loginAccount(accountId, password, true, platformId, forClient);
+    private Response<String> loginAccount(int accountId, String password, int platformId, boolean skipPerm) {
+        return loginAccount(accountId, password, true, platformId, skipPerm);
     }
 
-    private Response<String> loginAccount(int accountId, String password, boolean needValid, int platformId, boolean forClient) {
+    private Response<String> loginAccount(int accountId) {
+        return loginAccount(accountId, StringUtil.EMPTY, false, PlatformClientType.APP.getId(), true);
+    }
+
+    /**
+     * @param accountId  账号ID
+     * @param password   密码
+     * @param needValid  是否验证密码
+     * @param platformId 登陆平台ID
+     * @param skipPerm   是否跳过权限
+     * @return JwtToken
+     */
+    private Response<String> loginAccount(int accountId, String password, boolean needValid, int platformId, boolean skipPerm) {
         if (0 == accountId) {
             return Response.code(ResponseType.LOGIN_SIGN_NOT_FOUND);
         }
+        // 校验密码未通过
         if (needValid && !userAccountService.validPassword(accountId, password)) {
             return Response.code(ResponseType.WRONG_PASSWORD);
         }
         UserInfo info = userInfoService.getInfo(accountId);
-        List<Integer> permissionList = dataService.getUserPermissionIdList(accountId, platformId);
-        if (0 != platformId && CollectionUtils.isEmpty(permissionList) && !forClient) {
+        // 是否校验平台权限
+        if (skipPerm) {
+            return Response.data(AuthHelper.setAuth(info, platformId, Collections.emptyList()));
+        }
+        List<Integer> permissionList = dataService.getUserPermissionIdList(info.getAccountId(), platformId);
+        if (CollectionUtils.isEmpty(permissionList)) {
             return Response.code(ResponseType.NO_PERMISSION);
         }
-        String token = AuthHelper.setAuth(info, platformId, permissionList);
-        return Response.data(token);
+        return Response.data(AuthHelper.setAuth(info, platformId, permissionList));
     }
 }

@@ -31,9 +31,11 @@ public final class ChatGptHelper {
 
     public static final String DEFAULT_MODEL_ID = "gpt-3.5-turbo";
     private static final String DEFAULT_API_KEY = "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";
+    private static final int DEFAULT_TOKENS = 100;
+    private static final double DEFAULT_TEMPERATURE = 0.8;
+
     private static final int ANSWER_LIMIT = 1;
     private static final int FIRST_ANSWER_INDEX = 0;
-    private static final int MAX_TOKENS = 50;
 
     private static final Duration DEFAULT_DURATION = Duration.ofSeconds(55);
 
@@ -58,32 +60,21 @@ public final class ChatGptHelper {
      * @param sseEmitter 本次客户端的请求流
      */
     public static ReplyDTO send(String sentence, SseEmitter sseEmitter) {
-        return send(sentence, Collections.emptyList(), sseEmitter, DEFAULT_MODEL_ID, DEFAULT_API_KEY);
+        return send(sentence, Collections.emptyList(), sseEmitter, DEFAULT_MODEL_ID, DEFAULT_TOKENS, DEFAULT_TEMPERATURE, DEFAULT_API_KEY);
     }
+
 
     /**
      * 发送消息，回复到 sseEmitter
      *
-     * @param sentence    用户发起的话
-     * @param contentList 会话历史
+     * @param chat        会话对象
+     * @param contentList 前置对话
      * @param sseEmitter  本次客户端的请求流
-     * @return ReplyDTO 回复
+     * @param apiKey      apiKey
+     * @return
      */
-    public static ReplyDTO send(String sentence, List<ContentDTO> contentList, SseEmitter sseEmitter) {
-        return send(sentence, contentList, sseEmitter, DEFAULT_MODEL_ID, DEFAULT_API_KEY);
-    }
-
-    /**
-     * 发送消息，回复到 sseEmitter
-     *
-     * @param sentence    用户发起的话
-     * @param contentList 会话历史
-     * @param modelId     模型ID
-     * @param sseEmitter  本次客户端的请求流
-     * @return ReplyDTO 回复
-     */
-    public static ReplyDTO send(String sentence, List<ContentDTO> contentList, SseEmitter sseEmitter, String modelId) {
-        return send(sentence, contentList, sseEmitter, modelId, DEFAULT_API_KEY);
+    public static ReplyDTO send(ChatDTO chat, List<ContentDTO> contentList, SseEmitter sseEmitter, String apiKey) {
+        return send(chat.getSentence(), contentList, sseEmitter, chat.getModelId(), chat.getMaxResultTokens(), chat.getTemperature(), apiKey);
     }
 
     /**
@@ -96,9 +87,10 @@ public final class ChatGptHelper {
      * @param apiKey      OpenAi ApiKey
      * @return ReplyDTO 回复
      */
-    public static ReplyDTO send(String sentence, List<ContentDTO> contentList, SseEmitter sseEmitter, String modelId, String apiKey) {
+    public static ReplyDTO send(String sentence, List<ContentDTO> contentList, SseEmitter sseEmitter, String modelId,
+                                int resultTokens, Double temperature, String apiKey) {
         OpenAiService service = new OpenAiService(apiKey, DEFAULT_DURATION);
-        ChatCompletionRequest request = createChatRequest(sentence, modelId, parseMessages(contentList, modelId), true);
+        ChatCompletionRequest request = createChatRequest(sentence, modelId, resultTokens, temperature, parseMessages(contentList, modelId), true);
         StringBuilder reply = new StringBuilder();
         // SSE 关闭
         sseEmitter.onCompletion(service::shutdownExecutor);
@@ -113,7 +105,7 @@ public final class ChatGptHelper {
             try {
                 sseEmitter.send(message);
             } catch (Exception e) {
-                log.info("SSE closed , so shutdown stream", e);
+                log.info("SSE closed , so shutdown stream");
                 service.shutdownExecutor();
             }
             reply.append(message.getContent());
@@ -130,7 +122,7 @@ public final class ChatGptHelper {
      * @return AI回复
      */
     public static ReplyDTO send(String sentence) {
-        return send(sentence, Collections.emptyList(), DEFAULT_MODEL_ID, DEFAULT_API_KEY);
+        return send(sentence, Collections.emptyList(), DEFAULT_MODEL_ID, DEFAULT_TOKENS, DEFAULT_TEMPERATURE, DEFAULT_API_KEY);
     }
 
     /**
@@ -141,19 +133,7 @@ public final class ChatGptHelper {
      * @return AI回复
      */
     public static ReplyDTO send(String sentence, List<ContentDTO> contentList) {
-        return send(sentence, contentList, DEFAULT_MODEL_ID, DEFAULT_API_KEY);
-    }
-
-    /**
-     * 发送消息
-     *
-     * @param sentence    用户发起的话
-     * @param contentList 会话历史
-     * @param modelId     模型ID
-     * @return AI回复
-     */
-    public static ReplyDTO send(String sentence, List<ContentDTO> contentList, String modelId) {
-        return send(sentence, contentList, modelId, DEFAULT_API_KEY);
+        return send(sentence, contentList, DEFAULT_MODEL_ID, DEFAULT_TOKENS, DEFAULT_TEMPERATURE, DEFAULT_API_KEY);
     }
 
     /**
@@ -165,14 +145,67 @@ public final class ChatGptHelper {
      * @param apiKey      OpenAi ApiKey
      * @return AI回复
      */
-    public static ReplyDTO send(String sentence, List<ContentDTO> contentList, String modelId, String apiKey) {
+    public static ReplyDTO send(String sentence, List<ContentDTO> contentList, String modelId, int resultTokens, double temperature, String apiKey) {
         OpenAiService service = new OpenAiService(apiKey, DEFAULT_DURATION);
-        ChatCompletionRequest request = createChatRequest(sentence, modelId, parseMessages(contentList, modelId), false);
+        ChatCompletionRequest request = createChatRequest(sentence, modelId, resultTokens, temperature, parseMessages(contentList, modelId), false);
         ChatCompletionResult result = service.createChatCompletion(request);
         String content = result.getChoices().get(FIRST_ANSWER_INDEX).getMessage().getContent();
         service.shutdownExecutor();
         return new ReplyDTO(modelId, sentence, content);
     }
+
+
+    /**
+     * 生成对话消息对象
+     *
+     * @param content 内容
+     * @param forUser 是否用户发出的
+     * @return 对话消息对象
+     */
+    public static ChatMessage createMessage(String content, boolean forUser) {
+        return createMessage(content, forUser ? ChatRoleType.USER : ChatRoleType.AI);
+    }
+
+    /**
+     * 生成对话消息对象
+     *
+     * @param content  内容
+     * @param roleEnum 消息角色枚举
+     * @return 对话消息对象
+     */
+    public static ChatMessage createMessage(String content, ChatRoleType roleEnum) {
+        ChatMessage message = new ChatMessage();
+        message.setContent(content);
+        message.setRole(roleEnum.getRole());
+        return message;
+    }
+
+    /**
+     * 生成对话消息开头标识
+     *
+     * @param chatDTO 对话数据
+     * @return 消息对象开头数组 长度 2
+     */
+    public static ChatMessage[] createStartMessages(ChatDTO chatDTO) {
+        ChatMessage signMessage = createMessage(chatDTO.getChatGroupId(), ChatRoleType.CHAT_SIGN);
+        ChatMessage title = createMessage(extractTitle(chatDTO.getSentence()), ChatRoleType.TITLE);
+        return new ChatMessage[]{signMessage, title};
+    }
+
+    /**
+     * 提取会话标题
+     *
+     * @param sentence 内容
+     * @return 标题
+     */
+    public static String extractTitle(String sentence) {
+        final int maxTitleLength = 10;
+        if (sentence.length() < maxTitleLength) {
+            return sentence;
+        }
+        return sentence.substring(0, maxTitleLength);
+    }
+
 
     /**
      * prompt: 指定与Chatbot进行交互的初始提示。这可以是一个问题、一句话或一段文本。
@@ -190,20 +223,34 @@ public final class ChatGptHelper {
      * @param modelId  所选的语言模型
      * @return 会话请求
      */
-    private static CompletionRequest createRequest(String sentence, String modelId, boolean useStream) {
-        return CompletionRequest.builder().model(modelId).maxTokens(MAX_TOKENS).echo(true).prompt(sentence).n(ANSWER_LIMIT).stream(useStream).build();
+    private static CompletionRequest createRequest(String sentence, String modelId, int resultTokens, boolean useStream) {
+        return CompletionRequest.builder()
+                .model(modelId)
+                .echo(true)
+                .prompt(sentence)
+                .maxTokens(resultTokens)
+                .n(ANSWER_LIMIT)
+                .stream(useStream)
+                .build();
     }
 
-    private static ChatCompletionRequest createChatRequest(String sentence, String modelId, List<ChatMessage> messageList, boolean useStream) {
+    private static ChatCompletionRequest createChatRequest(String sentence, String modelId, int resultTokens, double temperature, List<ChatMessage> messageList, boolean useStream) {
         if (CollectionUtils.isEmpty(messageList)) {
             messageList = new ArrayList<>();
         }
         messageList.add(createMessage(sentence, true));
-        return ChatCompletionRequest.builder().model(modelId).messages(messageList).n(ANSWER_LIMIT).stream(useStream).build();
+        return ChatCompletionRequest.builder()
+                .model(modelId)
+                .temperature(temperature)
+                .maxTokens(resultTokens)
+                .messages(messageList)
+                .n(ANSWER_LIMIT)
+                .stream(useStream)
+                .build();
     }
 
-    private static ChatCompletionRequest createChatRequest(String sentence, String modelId, boolean useStream) {
-        return createChatRequest(sentence, modelId, Collections.emptyList(), useStream);
+    private static ChatCompletionRequest createChatRequest(String sentence, String modelId, int resultTokens, double temperature, boolean useStream) {
+        return createChatRequest(sentence, modelId, resultTokens, temperature, Collections.emptyList(), useStream);
     }
 
     private static List<ChatMessage> parseMessages(List<ContentDTO> contentList, String modelId) {
@@ -236,32 +283,6 @@ public final class ChatGptHelper {
             }
         }
         return messageList;
-    }
-
-
-    public static ChatMessage createMessage(String content, boolean forUser) {
-        return createMessage(content, forUser ? ChatRoleType.USER : ChatRoleType.AI);
-    }
-
-    public static ChatMessage createMessage(String content, ChatRoleType roleEnum) {
-        ChatMessage message = new ChatMessage();
-        message.setContent(content);
-        message.setRole(roleEnum.getRole());
-        return message;
-    }
-
-    public static ChatMessage[] createStartMessages(ChatDTO chatDTO) {
-        ChatMessage signMessage = createMessage(chatDTO.getChatGroupId(), ChatRoleType.CHAT_SIGN);
-        ChatMessage title = createMessage(extractTitle(chatDTO.getSentence()), ChatRoleType.TITLE);
-        return new ChatMessage[]{signMessage, title};
-    }
-
-    public static String extractTitle(String sentence) {
-        final int maxTitleLength = 10;
-        if (sentence.length() < maxTitleLength) {
-            return sentence;
-        }
-        return sentence.substring(0, maxTitleLength);
     }
 
 

@@ -49,9 +49,10 @@ alipay:
 wechat:
   pay:
     platform:
-      key: SQZEIHKTVIAOWBKVMMNTWJJJGULFRBHH
+      key: KJFD4J546K34J63N4Nfdgd94j3jfjjgl
+      ssl-path: /usr/cert/wechat-pay/apiclient_cert.p12
     app:
-      id: wx7eb0e3f2eb4876c2
-    much:
-      id: 1537352881
+      id: wx051ddee3f04823ec
+    mch:
+      id: 1299428401
     callback: http://www.thadhff.site/

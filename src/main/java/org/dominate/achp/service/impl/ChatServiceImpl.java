@@ -70,7 +70,7 @@ public class ChatServiceImpl implements ChatService {
             List<ContentDTO> contentList = chatContentService.list(contentIdList);
             try {
                 // 2.通过GPT流式传输发送SSE
-                ReplyDTO reply = ChatGptHelper.send(chat.getSentence(), contentList, sseEmitter, chat.getModelId(), apiKey);
+                ReplyDTO reply = ChatGptHelper.send(chat, contentList, sseEmitter, apiKey);
                 // 3.保存结果到数据库
                 int contentId = recordContent(chat, reply.getReply());
                 // 4.发送本次ID到消息中

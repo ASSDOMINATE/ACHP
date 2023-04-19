@@ -34,10 +34,17 @@ public class ApiUserController {
     @GetMapping(path = "sendValid")
     @ResponseBody
     public Response<Boolean> sendValid(
-            @RequestHeader String token,
+            @RequestHeader(name = "token", required = false) String token,
             @RequestParam(name = "mobile", required = false) String mobile
     ) {
         //TODO 对用户发送短信做下记录
+        if (StringUtil.isEmpty(token)) {
+            if (StringUtil.isEmpty(mobile)) {
+                throw BusinessException.create(ExceptionType.PARAM_ERROR);
+            }
+            AuthHelper.setMobileValid(mobile);
+            return Response.success();
+        }
         UserAuthDTO userAuth = AuthHelper.parseWithValid(token);
         if (StringUtil.isNotEmpty(mobile)) {
             AuthHelper.setMobileValid(mobile);

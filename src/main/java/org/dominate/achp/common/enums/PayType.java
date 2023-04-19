@@ -12,6 +12,7 @@ public enum PayType {
     ALIPAY("支付宝", 1),
     WECHAT("微信", 2),
     APPLE("苹果", 3),
+    WECHAT_NATIVE("微信-NATIVE", 4),
     ;
 
     private final String name;

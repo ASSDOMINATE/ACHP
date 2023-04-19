@@ -20,7 +20,6 @@ import java.util.Set;
  */
 public class ChatSseEmitter extends SseEmitter {
 
-    private static final MediaType TEXT_PLAIN;
 
     public ChatSseEmitter(Long time) {
         super(time);
@@ -36,6 +35,8 @@ public class ChatSseEmitter extends SseEmitter {
     public static SseEmitter.SseEventBuilder event() {
         return new ChatSseEmitter.SseEventBuilderImpl();
     }
+
+    private static final MediaType TEXT_PLAIN;
 
     static {
         TEXT_PLAIN = new MediaType("text", "plain", StandardCharsets.UTF_8);

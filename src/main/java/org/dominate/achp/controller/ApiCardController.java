@@ -80,10 +80,13 @@ public class ApiCardController {
         String partyOrderCode;
         switch (PayType.getValueByDbCode(payReq.getPayType())) {
             case WECHAT:
-                partyOrderCode = WeChatPayHelper.createPayOrder(sysOrderCode, card.getBalance().toString(), card.getName());
+                partyOrderCode = WeChatPayHelper.createAppPayOrder(sysOrderCode, card.getBalance(), card.getName());
+                break;
+            case WECHAT_NATIVE:
+                partyOrderCode = WeChatPayHelper.createNativePayOrder(sysOrderCode, card.getBalance(), card.getName());
                 break;
             case ALIPAY:
-                partyOrderCode = ALiPayHelper.createPayOrder(sysOrderCode, card.getBalance().toString(), card.getName());
+                partyOrderCode = ALiPayHelper.createPayOrder(sysOrderCode, card.getBalance(), card.getName());
                 break;
             case APPLE:
                 throw BusinessException.create(ExceptionType.PAY_ORDER_TYPE_ERROR);
@@ -136,6 +139,7 @@ public class ApiCardController {
                 ALiPayHelper.verifyPayOrder(cacheOrder.getPartyOrderCode(), card.getBalance());
                 break;
             case WECHAT:
+            case WECHAT_NATIVE:
                 // 校验金额
                 WeChatPayHelper.verifyPayOrder(cacheOrder.getPartyOrderCode(), card.getBalance());
                 break;
@@ -168,7 +172,7 @@ public class ApiCardController {
         try {
             baseCardRecordService.checkUserRecord(accountId);
             throw BusinessException.create(ExceptionType.HAS_CARD_BINDING);
-        }catch (BusinessException e){
+        } catch (BusinessException e) {
             // 检查记录状态出现异常代表没有可以用的卡
         }
         BaseCard card = baseCardService.getById(record.getCardId());

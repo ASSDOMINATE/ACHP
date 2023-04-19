@@ -60,10 +60,10 @@ public final class ALiPayHelper {
      * @param payTitle        支付标题
      * @return String 支付订单号，若为空字符既创建失败
      */
-    public static String createPayOrder(String uniqueOrderCode, String payNum, String payTitle) {
+    public static String createPayOrder(String uniqueOrderCode, BigDecimal payNum, String payTitle) {
         try {
             AlipayTradeAppPayRequest request = new AlipayTradeAppPayRequest();
-            request.setBizContent(createRequestContent(CREATE_ORDER_PARAM_NAMES, new String[]{uniqueOrderCode, payNum, payTitle}));
+            request.setBizContent(createRequestContent(CREATE_ORDER_PARAM_NAMES, new String[]{uniqueOrderCode, payNum.toString(), payTitle}));
             AlipayTradeAppPayResponse response = ALI_PAY_CLIENT.sdkExecute(request);
             if (!response.isSuccess()) {
                 return StringUtils.EMPTY;
@@ -84,7 +84,6 @@ public final class ALiPayHelper {
      */
     public static boolean isSuccessPayOrder(String payResultJSON) {
         try {
-
             String payStatus = JsonUtil.parseResponseValueForString(payResultJSON, TRADE_STATUS);
             return TRADE_STATUS_VALUES[2].equals(payStatus) || TRADE_STATUS_VALUES[3].equals(payStatus);
         } catch (Exception e) {

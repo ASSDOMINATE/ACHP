@@ -58,24 +58,28 @@ public class BaseCardRecordServiceImpl extends ServiceImpl<BaseCardRecordMapper,
         if (null != cardRecord) {
             if (checkRecordUsed(cardRecord.getCardTypeCode(), cardRecord.getExpireTime(), cardRecord.getRemainCount())) {
                 setRecordUsed(accountId, cardRecord.getId(), cardRecord.getRequestCount(), cardRecord.getRemainCount());
-                throw BusinessException.create(ExceptionType.SEND_CARD_LIMIT);
+//                throw BusinessException.create(ExceptionType.SEND_CARD_LIMIT);
+                throw BusinessException.create(ExceptionType.EMPTY_ERROR);
             }
             return cardRecord;
         }
         QueryWrapper<BaseCardRecord> query = new QueryWrapper<>();
         query.lambda().eq(BaseCardRecord::getAccountId, accountId);
         if (0 == count(query)) {
-            throw BusinessException.create(ExceptionType.NOT_BUY_USING);
+//            throw BusinessException.create(ExceptionType.NOT_BUY_USING);
+            throw BusinessException.create(ExceptionType.EMPTY_ERROR);
         }
         query.lambda().eq(BaseCardRecord::getState, CardRecordState.USING.getCode())
                 .last(SqlUtil.limitOne());
         BaseCardRecord record = getOne(query);
         if (null == record) {
-            throw BusinessException.create(ExceptionType.NOT_CARD_USING);
+//            throw BusinessException.create(ExceptionType.NOT_CARD_USING);
+            throw BusinessException.create(ExceptionType.EMPTY_ERROR);
         }
         if (checkRecordUsed(record.getCardType(), record.getExpireTime().getTime(), record.getRemainCount())) {
             setRecordUsed(accountId, record.getId(), record.getRequestCount(), record.getRemainCount());
-            throw BusinessException.create(ExceptionType.SEND_CARD_LIMIT);
+//            throw BusinessException.create(ExceptionType.SEND_CARD_LIMIT);
+            throw BusinessException.create(ExceptionType.EMPTY_ERROR);
         }
         cardRecord = CardWrapper.build().entityDTO(record);
         CardHelper.saveUsingCard(accountId, cardRecord);

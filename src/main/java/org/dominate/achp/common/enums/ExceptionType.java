@@ -20,6 +20,7 @@ public enum ExceptionType {
     PARAM_ERROR(ResponseType.HAS_WRONG_PARAM),
 
     ERROR(ResponseType.ERROR.getCode(), "请求异常"),
+    EMPTY_ERROR(ResponseType.ERROR.getCode(), ""),
 
     HAS_CARD_BINDING(ResponseType.ERROR.getCode(), "存在已绑定的会员卡"),
     NOT_FOUND_CARD(ResponseType.ERROR.getCode(), "无效的会员卡"),
@@ -34,6 +35,7 @@ public enum ExceptionType {
     SEND_FREQ_LIMIT(ResponseType.ERROR.getCode(), "已达到发送频率限制，请稍后再试，或购买会员解除限制"),
     SEND_COUNT_LIMIT(ResponseType.ERROR.getCode(), "已达到发送次数限制，购买会员可解除限制"),
     SEND_CARD_LIMIT(ResponseType.CARD_NOT_VALID_ERROR.getCode(), "会员权益已使用完，请购买后再试"),
+
 
     PAY_ORDER_TYPE_ERROR(ResponseType.ERROR.getCode(), "支付订单对应支付类型错误"),
     PAY_ORDER_NOT_FOUND(ResponseType.ERROR.getCode(), "支付订单号错误"),

@@ -30,6 +30,10 @@ public class ChatDTO implements Serializable {
      */
     private String modelId;
 
+    private Integer maxResultTokens;
+
+    private Double temperature;
+
     /**
      * 对话句子
      */

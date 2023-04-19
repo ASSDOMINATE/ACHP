@@ -51,6 +51,8 @@ public class ApiChatController {
         ChatDTO chat = new ChatDTO(chatId, sentence, sceneId);
         chat.setAccountId(accountId);
         chat.setModelId(config.getModelId());
+        chat.setMaxResultTokens(config.getMaxResultTokens());
+        chat.setTemperature(config.getTemperature().doubleValue());
         // 记录请求次数
         cardService.addUserRequestRecord(accountId);
         return chatService.startChat(chat);

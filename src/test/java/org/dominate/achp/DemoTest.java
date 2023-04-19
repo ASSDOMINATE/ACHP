@@ -8,16 +8,27 @@ import org.dominate.achp.common.enums.ChatRoleType;
 import org.dominate.achp.common.enums.GptModelType;
 import org.dominate.achp.common.enums.SceneItemType;
 import org.dominate.achp.common.helper.ChatGptHelper;
+import org.dominate.achp.common.helper.WeChatPayHelper;
 import org.dominate.achp.common.utils.ApplePayUtil;
 import org.dominate.achp.common.utils.ChatTokenUtil;
+import org.dominate.achp.common.utils.UniqueCodeUtil;
 import org.dominate.achp.entity.dto.*;
 import org.junit.Test;
 import org.springframework.util.CollectionUtils;
 
+import java.math.BigDecimal;
 import java.util.*;
 
 public class DemoTest {
 
+
+    @Test
+    public void testWechatPay(){
+        String orderCode = UniqueCodeUtil.createPayOrder(3);
+        String result = WeChatPayHelper.createNativePayOrder(orderCode, BigDecimal.ONE,"测试订单");
+        System.out.println(result);
+        WeChatPayHelper.verifyPayOrder("1231231321", BigDecimal.ONE);
+    }
 
     @Test
     public void forBigNum() {

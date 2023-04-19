@@ -36,8 +36,10 @@ public class PayReq implements Serializable {
     /**
      * 支付编码
      */
-    @NotNull
     private String orderCode;
 
+    /**
+     * 支付凭证
+     */
     private String auth;
 }

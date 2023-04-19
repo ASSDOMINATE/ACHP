@@ -12,7 +12,7 @@ public final class UniqueCodeUtil {
 
     private static final int SSE_CODE_LENGTH = 18;
 
-    private static final int PAY_ORDER_CODE_LENGTH = 32;
+    private static final int PAY_ORDER_CODE_LENGTH = 24;
     private static final int CARD_EXCHANGE_KEY_LENGTH = 64;
 
     public static String createChatId() {
