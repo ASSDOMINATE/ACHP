@@ -128,6 +128,7 @@ public class CardController {
             @RequestParam(name = "card_id", required = false) Integer cardId,
             @RequestParam(name = "exchange_key", required = false) String key,
             @RequestParam(name = "keyword", required = false) String keyword,
+            @RequestParam(name = "state", required = false) Integer state,
             @Validated PageReq page
     ) {
         AuthHelper.checkAdminUser(token);
@@ -138,6 +139,7 @@ public class CardController {
         }
         QueryWrapper<BaseCardRecord> query = new QueryWrapper<>();
         query.lambda().eq(null != cardId, BaseCardRecord::getCardId, cardId)
+                .eq(null != state, BaseCardRecord::getState, state)
                 .eq(StringUtil.isNotEmpty(key), BaseCardRecord::getExchangeKey, key)
                 .eq(accountId != 0, BaseCardRecord::getAccountId, accountId)
                 .last(SqlUtil.pageLimit(page.getSize(), page.getPage()))

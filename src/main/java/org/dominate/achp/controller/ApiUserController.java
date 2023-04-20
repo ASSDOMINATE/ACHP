@@ -5,6 +5,8 @@ import lombok.AllArgsConstructor;
 import org.dominate.achp.common.enums.ExceptionType;
 import org.dominate.achp.common.enums.ResponseType;
 import org.dominate.achp.common.helper.AuthHelper;
+import org.dominate.achp.common.helper.ConfigHelper;
+import org.dominate.achp.entity.dto.AppConfigDTO;
 import org.dominate.achp.entity.dto.UserAuthDTO;
 import org.dominate.achp.entity.req.InfoReq;
 import org.dominate.achp.entity.req.ModifyPasswordReq;
@@ -30,6 +32,14 @@ public class ApiUserController {
 
     private final IUserAccountService userAccountService;
     private final IUserInfoService userInfoService;
+
+    @GetMapping(path = "config")
+    @ResponseBody
+    public Response<AppConfigDTO> config(
+            @RequestParam String version
+    ) {
+        return Response.data(ConfigHelper.getAppConfig(version));
+    }
 
     @GetMapping(path = "sendValid")
     @ResponseBody

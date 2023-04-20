@@ -11,7 +11,7 @@ import org.dominate.achp.entity.dto.CardRecordDTO;
 
 import java.util.*;
 
-public class CardHelper {
+public final class CardHelper {
 
 
     private static final String TEMP_CARD_KEY_LIST = "temp:card:key:list";

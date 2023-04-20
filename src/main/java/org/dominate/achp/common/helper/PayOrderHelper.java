@@ -1,12 +1,13 @@
 package org.dominate.achp.common.helper;
 
 import com.hwja.tool.clients.redis.RedisClient;
+import com.hwja.tool.utils.StringUtil;
 import org.dominate.achp.entity.dto.PayOrderDTO;
 
 import java.util.Collection;
 import java.util.Map;
 
-public class PayOrderHelper {
+public final class PayOrderHelper {
 
     private static final String CACHE_PAY_ORDER_INFO_HASH_KEY = "cache:pay:order:info";
     private static final String CACHE_PAY_ORDER_CODE_HEADER_KEY = "cache:pay:order:code:";
@@ -33,18 +34,20 @@ public class PayOrderHelper {
      */
     public static void save(PayOrderDTO payOrder) {
         String field = createField(payOrder.getPayType(), payOrder.getPartyOrderCode());
-        // 存在相同订单号，更新订单凭证
-        if (RedisClient.hHasKey(CACHE_PAY_ORDER_INFO_HASH_KEY, field)) {
-            PayOrderDTO cachePayOrder = RedisClient.hGet(CACHE_PAY_ORDER_INFO_HASH_KEY, field, PayOrderDTO.class);
-            if (!cachePayOrder.getAuth().equals(payOrder.getAuth())) {
-                cachePayOrder.setAuth(payOrder.getAuth());
-                RedisClient.hSetPersist(CACHE_PAY_ORDER_INFO_HASH_KEY, field, cachePayOrder);
-            }
+        // 无凭证更新 不存在相同订单号 直接保存
+        if (StringUtil.isEmpty(payOrder.getAuth()) || !RedisClient.hHasKey(CACHE_PAY_ORDER_INFO_HASH_KEY, field)) {
+            RedisClient.hSetPersist(CACHE_PAY_ORDER_INFO_HASH_KEY, field, payOrder);
+            RedisClient.setPersist(CACHE_PAY_ORDER_CODE_HEADER_KEY + payOrder.getSysOrderCode(), field);
             return;
         }
-        RedisClient.hSetPersist(CACHE_PAY_ORDER_INFO_HASH_KEY, field, payOrder);
-        RedisClient.setPersist(CACHE_PAY_ORDER_CODE_HEADER_KEY + payOrder.getSysOrderCode(), field);
+        // 存在订单号 更新 AUTH
+        PayOrderDTO cachePayOrder = RedisClient.hGet(CACHE_PAY_ORDER_INFO_HASH_KEY, field, PayOrderDTO.class);
+        if (!cachePayOrder.getAuth().equals(payOrder.getAuth())) {
+            cachePayOrder.setAuth(payOrder.getAuth());
+            RedisClient.hSetPersist(CACHE_PAY_ORDER_INFO_HASH_KEY, field, cachePayOrder);
+        }
     }
+
 
     /**
      * 查找支付订单

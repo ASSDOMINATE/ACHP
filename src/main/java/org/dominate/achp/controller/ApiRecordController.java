@@ -2,7 +2,6 @@ package org.dominate.achp.controller;
 
 import lombok.AllArgsConstructor;
 import org.dominate.achp.common.helper.AuthHelper;
-import org.dominate.achp.common.helper.WeChatPayHelper;
 import org.dominate.achp.entity.dto.ContentDTO;
 import org.dominate.achp.entity.dto.GroupDTO;
 import org.dominate.achp.entity.req.PageReq;

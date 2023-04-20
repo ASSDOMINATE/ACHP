@@ -86,8 +86,10 @@ public class ApiCardController {
                 partyOrderCode = WeChatPayHelper.createNativePayOrder(sysOrderCode, card.getBalance(), card.getName());
                 break;
             case ALIPAY:
-                partyOrderCode = ALiPayHelper.createPayOrder(sysOrderCode, card.getBalance(), card.getName());
-                break;
+                throw BusinessException.create(ExceptionType.PAY_ORDER_TYPE_ERROR);
+                //TODO 未接入
+//                partyOrderCode = ALiPayHelper.createPayOrder(sysOrderCode, card.getBalance(), card.getName());
+//                break;
             case APPLE:
                 throw BusinessException.create(ExceptionType.PAY_ORDER_TYPE_ERROR);
             default:
@@ -97,7 +99,7 @@ public class ApiCardController {
         payOrder.setAccountId(accountId);
         payOrder.setSysOrderCode(partyOrderCode);
         PayOrderHelper.save(payOrder);
-        return Response.data(sysOrderCode);
+        return Response.data(partyOrderCode);
     }
 
     @PostMapping(path = "savePayOrder")

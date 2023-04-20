@@ -15,7 +15,6 @@ import org.dominate.achp.common.utils.EncryptionUtil;
 import org.dominate.achp.sys.exception.BusinessException;
 
 import javax.net.ssl.SSLContext;
-import java.io.File;
 import java.io.FileInputStream;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -34,7 +33,7 @@ public final class WeChatPayHelper {
     private static final String APP_ID = LoadUtil.getProperty("wechat.pay.app.id");
     private static final String MCH_ID = LoadUtil.getProperty("wechat.pay.mch.id");
     private static final String WX_PAY_CALLBACK = LoadUtil.getProperty("wechat.pay.callback");
-    private static final String CERT_FILE_PATH = LoadUtil.getProperty("ssl.wechat");
+    private static final String CERT_FILE_PATH = LoadUtil.getProperty("wechat.pay.platform.ssl-path");
 
 
     private static final String CREATE_ORDER_URL = "https://api.mch.weixin.qq.com/pay/unifiedorder";
@@ -116,7 +115,7 @@ public final class WeChatPayHelper {
             String response = sendRequest(CREATE_ORDER_URL, CREATE_PAY_ORDER_FOR_APP_KEYS, values);
             Map<String, Object> resultMap = WeChatPayHelper.parseXML(response);
             for (Map.Entry<String, Object> stringObjectEntry : resultMap.entrySet()) {
-                System.out.println(stringObjectEntry.getKey() + " - " + stringObjectEntry.getValue());
+                log.info("wechat pay order key: {} value: {}", stringObjectEntry.getKey(), stringObjectEntry.getValue());
             }
             String returnCode = (String) resultMap.get(RESULT_TYPE);
             if (!RESULT_SUCCESS.equals(returnCode)) {
@@ -144,6 +143,9 @@ public final class WeChatPayHelper {
         String[] values = {MCH_ID, APP_ID, uniqueOrderCode, nonceStr};
         String response = sendRequest(QUERY_ORDER_URL, QUERY_PAY_ORDER_KEYS, values);
         Map<String, Object> responseMap = parseXML(response);
+        for (Map.Entry<String, Object> stringObjectEntry : responseMap.entrySet()) {
+            log.info("wechat verify order key: {} value: {}", stringObjectEntry.getKey(), stringObjectEntry.getValue());
+        }
         if (!isSuccess(responseMap)) {
             throw BusinessException.create(ExceptionType.PAY_NOT_COMPLETED);
         }

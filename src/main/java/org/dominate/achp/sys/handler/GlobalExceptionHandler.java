@@ -28,7 +28,7 @@ public class GlobalExceptionHandler {
      */
     @ExceptionHandler(Exception.class)
     public Response<String> runtimeExceptionHandler(Exception e) {
-        log.warn("请求出现异常,异常信息为: {}", e.getMessage());
+        log.warn("请求出现异常,异常信息为: {}", e.getMessage(), e);
         return Response.code(ResponseType.SERVER_ERROR);
     }
 

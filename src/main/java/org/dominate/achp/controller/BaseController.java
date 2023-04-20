@@ -3,8 +3,10 @@ package org.dominate.achp.controller;
 import lombok.AllArgsConstructor;
 import org.dominate.achp.common.helper.AuthHelper;
 import org.dominate.achp.common.helper.CardHelper;
+import org.dominate.achp.common.helper.ConfigHelper;
 import org.dominate.achp.entity.BaseConfig;
 import org.dominate.achp.entity.BaseKey;
+import org.dominate.achp.entity.dto.AppConfigDTO;
 import org.dominate.achp.entity.req.ConfigReq;
 import org.dominate.achp.entity.req.KeyReq;
 import org.dominate.achp.service.IBaseConfigService;
@@ -13,7 +15,9 @@ import org.dominate.achp.sys.Response;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author dominate
@@ -59,6 +63,8 @@ public class BaseController {
         insert.setModelId(configReq.getModelId());
         insert.setFreqSecondLimit(configReq.getFreqSecondLimit());
         insert.setDailyRequestLimit(configReq.getDailyRequestLimit());
+        insert.setMaxResultTokens(configReq.getMaxResultTokens());
+        insert.setTemperature(configReq.getTemperature());
         if (baseConfigService.save(insert)) {
             CardHelper.clearConfig();
         }
@@ -96,4 +102,24 @@ public class BaseController {
         return Response.data(baseKeyService.updateById(save));
     }
 
+    @GetMapping(path = "appConfig")
+    @ResponseBody
+    public Response<List<AppConfigDTO>> appConfigMap(
+            @RequestHeader(name = "token", required = false) String token
+    ) {
+        AuthHelper.checkAdminUser(token);
+        Map<String, AppConfigDTO> configMap = ConfigHelper.getAllAppConfig();
+        return Response.data(new ArrayList<>(configMap.values()));
+    }
+
+    @PostMapping(path = "setAppConfig")
+    @ResponseBody
+    public Response<Boolean> setAppConfig(
+            @RequestHeader(name = "token", required = false) String token,
+            @RequestBody @Validated AppConfigDTO appConfig
+    ) {
+        AuthHelper.checkAdminUser(token);
+        ConfigHelper.setAppConfig(appConfig);
+        return Response.success();
+    }
 }

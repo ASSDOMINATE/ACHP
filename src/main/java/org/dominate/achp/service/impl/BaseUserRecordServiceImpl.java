@@ -38,7 +38,8 @@ public class BaseUserRecordServiceImpl extends ServiceImpl<BaseUserRecordMapper,
         if (0 == count(query)) {
             record = new BaseUserRecord();
             record.setAccountId(accountId);
-            record.setLatestRequestTime(time);
+            Date baseRequestTime = new Date(System.currentTimeMillis() - 1000 * 60 * 5);
+            record.setLatestRequestTime(baseRequestTime);
             record.setDailyRequestCount(0);
             save(record);
         }

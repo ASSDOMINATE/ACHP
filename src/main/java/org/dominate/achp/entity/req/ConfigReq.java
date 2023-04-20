@@ -5,6 +5,7 @@ import lombok.Setter;
 import lombok.experimental.Accessors;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
 
 /**
  * <p>
@@ -37,4 +38,7 @@ public class ConfigReq implements Serializable {
      */
     private String modelId;
 
+    private Integer maxResultTokens;
+
+    private BigDecimal temperature;
 }
