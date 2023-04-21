@@ -48,6 +48,9 @@ public class ChatScene implements Serializable {
     @TableField("notice")
     private String notice;
 
+    @TableField("system")
+    private String system;
+
     @TableField("content_id")
     private Integer contentId;
 

@@ -36,6 +36,11 @@ public class SceneInfoReq implements Serializable {
     private String desr;
 
     /**
+     * 系统设置
+     */
+    private String system;
+
+    /**
      * 提醒
      */
     private String notice;

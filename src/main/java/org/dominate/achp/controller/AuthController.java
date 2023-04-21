@@ -244,6 +244,19 @@ public class AuthController {
         return Response.success();
     }
 
+    @PostMapping(path = "updateToken")
+    @ResponseBody
+    public Response<String> updateToken(
+            @RequestHeader String token
+    ) {
+        UserAuthDTO auth = AuthHelper.parseWithValid(token);
+        if (null == auth) {
+            return Response.code(ResponseType.IDENTITY_STATE_WRONG);
+        }
+        UserInfo info = userInfoService.getInfo(auth.getAccountId());
+        return Response.data(AuthHelper.setAuth(info, auth.getPlatformId(), Collections.emptyList()));
+    }
+
 
     private Response<String> loginAccount(int accountId, String password, int platformId, boolean skipPerm) {
         return loginAccount(accountId, password, true, platformId, skipPerm);

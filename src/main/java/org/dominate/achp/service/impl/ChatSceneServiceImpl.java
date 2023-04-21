@@ -39,12 +39,19 @@ public class ChatSceneServiceImpl extends ServiceImpl<ChatSceneMapper, ChatScene
 
     @Override
     public List<SceneDTO> list(List<Integer> sceneIdList) {
-        if(CollectionUtils.isEmpty(sceneIdList)){
+        if (CollectionUtils.isEmpty(sceneIdList)) {
             return Collections.emptyList();
         }
         QueryWrapper<ChatScene> query = new QueryWrapper<>();
         query.lambda().in(ChatScene::getId, sceneIdList);
         return dtoList(query);
+    }
+
+    @Override
+    public String getSystem(int id) {
+        QueryWrapper<ChatScene> query = new QueryWrapper<>();
+        query.lambda().eq(ChatScene::getId, id).select(ChatScene::getSystem);
+        return getOne(query).getSystem();
     }
 
     private List<SceneDTO> dtoList(QueryWrapper<ChatScene> query) {

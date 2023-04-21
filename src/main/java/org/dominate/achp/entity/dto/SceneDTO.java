@@ -34,6 +34,11 @@ public class SceneDTO implements Serializable {
     private String desr;
 
     /**
+     * 系统设置
+     */
+    private String system;
+
+    /**
      * 查看数量
      */
     private Integer readCount;

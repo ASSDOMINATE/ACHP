@@ -51,7 +51,6 @@ public final class ChatGptHelper {
         return service.listModels();
     }
 
-
     /**
      * 发送消息，回复到 sseEmitter
      *
@@ -63,43 +62,6 @@ public final class ChatGptHelper {
      */
     public static ReplyDTO send(ChatDTO chat, List<ContentDTO> contentList, SseEmitter sseEmitter, String apiKey) {
         return send(chat.getSentence(), chat.getSystem(), contentList, sseEmitter, chat.getModelId(), chat.getMaxResultTokens(), chat.getTemperature(), apiKey);
-    }
-
-    /**
-     * 发送消息，回复到 sseEmitter
-     *
-     * @param sentence    用户发起的话
-     * @param contentList 会话历史
-     * @param sseEmitter  本次客户端的请求流
-     * @param modelId     模型ID
-     * @param apiKey      OpenAi ApiKey
-     * @return ReplyDTO 回复
-     */
-    public static ReplyDTO send(String sentence, String system, List<ContentDTO> contentList, SseEmitter sseEmitter, String modelId,
-                                int resultTokens, Double temperature, String apiKey) {
-        OpenAiService service = new OpenAiService(apiKey, DEFAULT_DURATION);
-        ChatCompletionRequest request = createChatRequest(modelId, resultTokens, temperature, parseMessages(contentList, sentence, system, modelId), true);
-        StringBuilder reply = new StringBuilder();
-        // SSE 关闭
-        sseEmitter.onCompletion(service::shutdownExecutor);
-        service.streamChatCompletion(request).doOnError(Throwable::printStackTrace).blockingForEach((result) -> {
-            ChatMessage message = result.getChoices().get(FIRST_ANSWER_INDEX).getMessage();
-            if (StringUtil.isEmpty(message.getContent())) {
-                return;
-            }
-            if (StringUtil.isEmpty(message.getRole())) {
-                message.setRole(ChatRoleType.AI.getRole());
-            }
-            try {
-                sseEmitter.send(message);
-            } catch (Exception e) {
-                log.info("SSE closed , so shutdown stream");
-                service.shutdownExecutor();
-            }
-            reply.append(message.getContent());
-        });
-        service.shutdownExecutor();
-        return new ReplyDTO(modelId, sentence, reply.toString());
     }
 
 
@@ -124,23 +86,7 @@ public final class ChatGptHelper {
         return send(sentence, StringUtil.EMPTY, contentList, DEFAULT_MODEL_ID, DEFAULT_TOKENS, DEFAULT_TEMPERATURE, DEFAULT_API_KEY);
     }
 
-    /**
-     * 发送消息
-     *
-     * @param sentence    用户发起的话
-     * @param contentList 会话历史
-     * @param modelId     模型ID
-     * @param apiKey      OpenAi ApiKey
-     * @return AI回复
-     */
-    public static ReplyDTO send(String sentence, String system, List<ContentDTO> contentList, String modelId, int resultTokens, double temperature, String apiKey) {
-        OpenAiService service = new OpenAiService(apiKey, DEFAULT_DURATION);
-        ChatCompletionRequest request = createChatRequest(modelId, resultTokens, temperature, parseMessages(contentList, sentence, system, modelId), false);
-        ChatCompletionResult result = service.createChatCompletion(request);
-        String content = result.getChoices().get(FIRST_ANSWER_INDEX).getMessage().getContent();
-        service.shutdownExecutor();
-        return new ReplyDTO(modelId, sentence, content);
-    }
+
 
 
     /**
@@ -195,6 +141,63 @@ public final class ChatGptHelper {
     }
 
 
+
+    /**
+     * 发送消息，回复到 sseEmitter
+     *
+     * @param sentence    用户发起的话
+     * @param contentList 会话历史
+     * @param sseEmitter  本次客户端的请求流
+     * @param modelId     模型ID
+     * @param apiKey      OpenAi ApiKey
+     * @return ReplyDTO 回复
+     */
+    private static ReplyDTO send(String sentence, String system, List<ContentDTO> contentList, SseEmitter sseEmitter, String modelId,
+                                 int resultTokens, Double temperature, String apiKey) {
+        OpenAiService service = new OpenAiService(apiKey, DEFAULT_DURATION);
+        ChatCompletionRequest request = createChatRequest(modelId, resultTokens, temperature, parseMessages(contentList, sentence, system, modelId), true);
+        StringBuilder reply = new StringBuilder();
+        // SSE 关闭
+        sseEmitter.onCompletion(service::shutdownExecutor);
+        service.streamChatCompletion(request).doOnError(Throwable::printStackTrace).blockingForEach((result) -> {
+            ChatMessage message = result.getChoices().get(FIRST_ANSWER_INDEX).getMessage();
+            if (StringUtil.isEmpty(message.getContent())) {
+                return;
+            }
+            if (StringUtil.isEmpty(message.getRole())) {
+                message.setRole(ChatRoleType.AI.getRole());
+            }
+            try {
+                sseEmitter.send(message);
+            } catch (Exception e) {
+                log.info("SSE closed , so shutdown stream");
+                service.shutdownExecutor();
+            }
+            reply.append(message.getContent());
+        });
+        service.shutdownExecutor();
+        return new ReplyDTO(modelId, sentence, reply.toString());
+    }
+
+
+    /**
+     * 发送消息
+     *
+     * @param sentence    用户发起的话
+     * @param contentList 会话历史
+     * @param modelId     模型ID
+     * @param apiKey      OpenAi ApiKey
+     * @return AI回复
+     */
+    private static ReplyDTO send(String sentence, String system, List<ContentDTO> contentList, String modelId, int resultTokens, double temperature, String apiKey) {
+        OpenAiService service = new OpenAiService(apiKey, DEFAULT_DURATION);
+        ChatCompletionRequest request = createChatRequest(modelId, resultTokens, temperature, parseMessages(contentList, sentence, system, modelId), false);
+        ChatCompletionResult result = service.createChatCompletion(request);
+        String content = result.getChoices().get(FIRST_ANSWER_INDEX).getMessage().getContent();
+        service.shutdownExecutor();
+        return new ReplyDTO(modelId, sentence, content);
+    }
+
     /**
      * prompt: 指定与Chatbot进行交互的初始提示。这可以是一个问题、一句话或一段文本。
      * temperature: 控制生成的响应的创造性和多样性。较高的温度会导致更多的随机性和创造性，但可能会降低响应的准确性。默认值为0.7，建议在0.1到1之间进行调整。
@@ -225,9 +228,6 @@ public final class ChatGptHelper {
     }
 
 
-    private static List<ChatMessage> parseMessages(List<ContentDTO> contentList, String sentence, String modelId) {
-        return parseMessages(contentList, sentence, StringUtil.EMPTY, modelId);
-    }
 
     private static List<ChatMessage> parseMessages(List<ContentDTO> contentList, String sentence, String system, String modelId) {
         if (CollectionUtils.isEmpty(contentList)) {

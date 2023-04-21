@@ -30,4 +30,6 @@ public interface IChatSceneService extends IService<ChatScene> {
      * @return 场景列表
      */
     List<SceneDTO> list(List<Integer> sceneIdList);
+
+    String getSystem(int id);
 }

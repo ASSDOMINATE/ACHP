@@ -1,5 +1,6 @@
 package org.dominate.achp.entity.dto;
 
+import com.hwja.tool.utils.StringUtil;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
@@ -39,6 +40,9 @@ public class ChatDTO implements Serializable {
      */
     private String sentence;
 
+    /**
+     * 系统设定
+     */
     private String system;
 
     /**
@@ -56,6 +60,7 @@ public class ChatDTO implements Serializable {
         this.sentence = sentence;
         this.sceneId = sceneId;
         this.modelId = ChatGptHelper.DEFAULT_MODEL_ID;
+        this.system = StringUtil.EMPTY;
         this.accountId = 0;
     }
 }

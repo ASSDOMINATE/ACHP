@@ -53,6 +53,7 @@ public class ApiChatController {
         chat.setModelId(config.getModelId());
         chat.setMaxResultTokens(config.getMaxResultTokens());
         chat.setTemperature(config.getTemperature().doubleValue());
+        chat.setSystem(config.getSystem());
         // 记录请求次数
         cardService.addUserRequestRecord(accountId);
         return chatService.startChat(chat);

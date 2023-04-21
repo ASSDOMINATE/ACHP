@@ -1,5 +1,6 @@
 package org.dominate.achp.service.impl;
 
+import com.hwja.tool.utils.StringUtil;
 import com.theokanning.openai.completion.chat.ChatMessage;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -45,6 +46,7 @@ public class ChatServiceImpl implements ChatService {
     private final IChatGroupService chatGroupService;
     private final IChatContentService chatContentService;
     private final IChatRecordService chatRecordService;
+    private final IChatSceneService chatSceneService;
 
     private final IBaseKeyService baseKeyService;
 
@@ -68,6 +70,10 @@ public class ChatServiceImpl implements ChatService {
             }
             List<Integer> contentIdList = chatRecordService.getGroupContentIdList(chat.getChatGroupId(), PageReq.defaultPage());
             List<ContentDTO> contentList = chatContentService.list(contentIdList);
+            String system = chatSceneService.getSystem(chat.getSceneId());
+            if (StringUtil.isNotEmpty(system)) {
+                chat.setSystem(system);
+            }
             try {
                 // 2.通过GPT流式传输发送SSE
                 ReplyDTO reply = ChatGptHelper.send(chat, contentList, sseEmitter, apiKey);
