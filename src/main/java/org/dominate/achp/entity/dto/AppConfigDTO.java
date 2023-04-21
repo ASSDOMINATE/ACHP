@@ -21,16 +21,40 @@ public class AppConfigDTO implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
+    /**
+     * 版本号，用 & 拼接平台在开头
+     */
     private String version;
 
+    /**
+     * 是否开启兑换
+     */
     private Boolean exchange;
 
+    /**
+     * 是否需要更新
+     */
+    private Boolean needUpdate;
 
-    public AppConfigDTO(){
+    /**
+     * 更新信息
+     */
+    private String updateInfo;
+
+    /**
+     * 更新地址
+     */
+    private String updateUrl;
+
+
+    public AppConfigDTO() {
     }
 
     public AppConfigDTO(String version) {
         this.version = version;
+        this.needUpdate = false;
+        this.updateInfo = "";
+        this.updateUrl = "";
         this.exchange = false;
     }
 }

@@ -39,6 +39,10 @@ public class OrderCheck {
         long thisTime = System.currentTimeMillis();
         Collection<PayOrderDTO> payOrders = PayOrderHelper.getList();
         for (PayOrderDTO payOrder : payOrders) {
+            if (StringUtil.isEmpty(payOrder.getSysOrderCode()) || StringUtil.isEmpty(payOrder.getPartyOrderCode())) {
+                PayOrderHelper.remove(payOrder.getSysOrderCode());
+                return;
+            }
             // 订单时间检查
             if (null != payOrder.getCheckedTime()) {
                 // 1.未到检查间隔时间
@@ -66,6 +70,7 @@ public class OrderCheck {
             log.info("支付订单校验通过 {} - {}", payOrder.getSysOrderCode(), payOrder.getPartyOrderCode());
             int paymentId = basePaymentRecordService.save(payOrder, card);
             if (paymentId == 0) {
+                // 保存失败下一次重试
                 payOrder.setCheckedTime(thisTime);
                 PayOrderHelper.updateCheckTime(payOrder);
                 continue;
@@ -75,7 +80,7 @@ public class OrderCheck {
                 PayOrderHelper.remove(payOrder.getSysOrderCode());
                 continue;
             }
-            // 5.数据库异常导致保存失败，清理数据
+            // 5.数据库异常导致保存失败，清理数据，等待下一次重试
             basePaymentRecordService.removeById(paymentId);
             payOrder.setCheckedTime(thisTime);
             PayOrderHelper.updateCheckTime(payOrder);
@@ -91,11 +96,12 @@ public class OrderCheck {
                     return true;
                 case ALIPAY:
                     // 校验金额
-                    ALiPayHelper.verifyPayOrder(payOrder.getPartyOrderCode(), targetBalance);
+                    ALiPayHelper.verifyPayOrder(payOrder.getSysOrderCode(), targetBalance);
                     return true;
                 case WECHAT:
+                case WECHAT_NATIVE:
                     // 校验金额
-                    WeChatPayHelper.verifyPayOrder(payOrder.getPartyOrderCode(), targetBalance);
+                    WeChatPayHelper.verifyPayOrder(payOrder.getSysOrderCode(), targetBalance);
                     return true;
                 default:
                     return false;

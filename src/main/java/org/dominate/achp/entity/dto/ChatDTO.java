@@ -39,6 +39,8 @@ public class ChatDTO implements Serializable {
      */
     private String sentence;
 
+    private String system;
+
     /**
      * 场景ID
      */

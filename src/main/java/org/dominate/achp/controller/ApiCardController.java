@@ -14,6 +14,7 @@ import org.dominate.achp.entity.BaseCardRecord;
 import org.dominate.achp.entity.dto.CardDTO;
 import org.dominate.achp.entity.dto.CardRecordDTO;
 import org.dominate.achp.entity.dto.PayOrderDTO;
+import org.dominate.achp.entity.dto.PayResultDTO;
 import org.dominate.achp.entity.req.ExchangeReq;
 import org.dominate.achp.entity.req.PayOrderReq;
 import org.dominate.achp.entity.req.PayReq;
@@ -68,6 +69,35 @@ public class ApiCardController {
         return Response.data(record);
     }
 
+    @PostMapping(path = "createPayUrl")
+    @ResponseBody
+    public Response<PayResultDTO> createPayUrl(
+            @RequestHeader String token,
+            @Validated @RequestBody PayReq payReq
+    ) {
+        int accountId = AuthHelper.parseWithValidForId(token);
+        BaseCard card = baseCardService.getById(payReq.getCardId());
+        String sysOrderCode = UniqueCodeUtil.createPayOrder(payReq.getPayType());
+        PayResultDTO payResult;
+        switch (PayType.getValueByDbCode(payReq.getPayType())) {
+            case WECHAT_NATIVE:
+                payResult = WeChatPayHelper.createNativePayOrder(sysOrderCode, card.getBalance(), card.getName());
+                break;
+            case WECHAT:
+            case ALIPAY:
+            case APPLE:
+                throw BusinessException.create(ExceptionType.PAY_ORDER_TYPE_ERROR);
+            default:
+                throw BusinessException.create(ExceptionType.PARAM_ERROR);
+        }
+        payResult.setSysOrderCode(sysOrderCode);
+        PayOrderDTO payOrder = new PayOrderDTO(payReq);
+        payOrder.setAccountId(accountId);
+        payOrder.setPartyOrderCode(payResult.getPartyOrderCode());
+        PayOrderHelper.save(payOrder);
+        return Response.data(payResult);
+    }
+
     @PostMapping(path = "createPayOrder")
     @ResponseBody
     public Response<String> createPayOrder(
@@ -83,13 +113,7 @@ public class ApiCardController {
                 partyOrderCode = WeChatPayHelper.createAppPayOrder(sysOrderCode, card.getBalance(), card.getName());
                 break;
             case WECHAT_NATIVE:
-                partyOrderCode = WeChatPayHelper.createNativePayOrder(sysOrderCode, card.getBalance(), card.getName());
-                break;
             case ALIPAY:
-                throw BusinessException.create(ExceptionType.PAY_ORDER_TYPE_ERROR);
-                //TODO 未接入
-//                partyOrderCode = ALiPayHelper.createPayOrder(sysOrderCode, card.getBalance(), card.getName());
-//                break;
             case APPLE:
                 throw BusinessException.create(ExceptionType.PAY_ORDER_TYPE_ERROR);
             default:
@@ -97,7 +121,7 @@ public class ApiCardController {
         }
         PayOrderDTO payOrder = new PayOrderDTO(payReq);
         payOrder.setAccountId(accountId);
-        payOrder.setSysOrderCode(partyOrderCode);
+        payOrder.setPartyOrderCode(partyOrderCode);
         PayOrderHelper.save(payOrder);
         return Response.data(partyOrderCode);
     }

@@ -5,13 +5,13 @@ import com.hwja.tool.utils.LoadUtil;
 import com.hwja.tool.utils.RandomUtil;
 import com.hwja.tool.utils.StringUtil;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.http.ssl.SSLContexts;
 import org.dom4j.Document;
 import org.dom4j.DocumentHelper;
 import org.dom4j.Element;
 import org.dominate.achp.common.enums.ExceptionType;
 import org.dominate.achp.common.utils.EncryptionUtil;
+import org.dominate.achp.entity.dto.PayResultDTO;
 import org.dominate.achp.sys.exception.BusinessException;
 
 import javax.net.ssl.SSLContext;
@@ -55,6 +55,7 @@ public final class WeChatPayHelper {
     private static final String RESULT_TYPE = "result_code";
     private static final String RESULT_SUCCESS = "SUCCESS";
     private static final String PREPAY_ID = "prepay_id";
+    private static final String CODE_URL = "code_url";
     private static final String TOTAL_FEE = "total_fee";
     private static final String TRADE_TYPE_APP = "APP";
     private static final String TRADE_TYPE_NATIVE = "NATIVE";
@@ -92,12 +93,12 @@ public final class WeChatPayHelper {
         return String.valueOf(price.multiply(BigDecimal.TEN).multiply(BigDecimal.TEN).intValue());
     }
 
-    public static String createNativePayOrder(String uniqueOrderCode, BigDecimal payNum, String payTitle) {
+    public static PayResultDTO createNativePayOrder(String uniqueOrderCode, BigDecimal payNum, String payTitle) {
         return createPayOrder(uniqueOrderCode, payNum, payTitle, TRADE_TYPE_NATIVE);
     }
 
     public static String createAppPayOrder(String uniqueOrderCode, BigDecimal payNum, String payTitle) {
-        return createPayOrder(uniqueOrderCode, payNum, payTitle, TRADE_TYPE_APP);
+        return Objects.requireNonNull(createPayOrder(uniqueOrderCode, payNum, payTitle, TRADE_TYPE_APP)).getPartyOrderCode();
     }
 
     /**
@@ -108,7 +109,7 @@ public final class WeChatPayHelper {
      * @param payTitle        支付标题
      * @return String 微信支付订单号，若为空字符串即请求失败
      */
-    public static String createPayOrder(String uniqueOrderCode, BigDecimal payNum, String payTitle, String tradeType) {
+    public static PayResultDTO createPayOrder(String uniqueOrderCode, BigDecimal payNum, String payTitle, String tradeType) {
         String nonceStr = createNonceStr();
         String[] values = {MCH_ID, APP_ID, tradeType, WX_PAY_CALLBACK, payTitle, parseParamPrice(payNum), uniqueOrderCode, nonceStr, IP_ADDRESS};
         try {
@@ -119,12 +120,18 @@ public final class WeChatPayHelper {
             }
             String returnCode = (String) resultMap.get(RESULT_TYPE);
             if (!RESULT_SUCCESS.equals(returnCode)) {
-                return StringUtils.EMPTY;
+                return null;
             }
-            return (String) resultMap.get(PREPAY_ID);
+            if (tradeType.equals(TRADE_TYPE_NATIVE)) {
+                return new PayResultDTO().setCodeUrl(resultMap.get(CODE_URL).toString())
+                        .setPartyOrderCode(resultMap.get(PREPAY_ID).toString())
+                        .setSign(nonceStr);
+            }
+            return new PayResultDTO().setPartyOrderCode(resultMap.get(PREPAY_ID).toString())
+                    .setSign(nonceStr);
         } catch (Exception e) {
             log.error("WeChat create pay order error ", e);
-            return StringUtils.EMPTY;
+            return null;
         }
     }
 

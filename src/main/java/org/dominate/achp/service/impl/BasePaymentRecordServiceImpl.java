@@ -33,7 +33,9 @@ public class BasePaymentRecordServiceImpl extends ServiceImpl<BasePaymentRecordM
         String message = PayType.createPayMessage(payOrder.getPayType(), card.getBalance(), card.getName());
         record.setMessage(message);
         record.setComment(StringUtil.EMPTY);
-        save(record);
-        return record.getId();
+        if(save(record)) {
+            return record.getId();
+        }
+        return 0;
     }
 }

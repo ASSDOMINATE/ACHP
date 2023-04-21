@@ -36,9 +36,10 @@ public class ApiUserController {
     @GetMapping(path = "config")
     @ResponseBody
     public Response<AppConfigDTO> config(
-            @RequestParam String version
+            @RequestParam(name = "version", required = false) String version,
+            @RequestParam(name = "platform", required = false) String platform
     ) {
-        return Response.data(ConfigHelper.getAppConfig(version));
+        return Response.data(ConfigHelper.getAppConfig(version, platform));
     }
 
     @GetMapping(path = "sendValid")

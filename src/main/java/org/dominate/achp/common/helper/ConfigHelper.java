@@ -1,6 +1,8 @@
 package org.dominate.achp.common.helper;
 
 import com.hwja.tool.clients.redis.RedisClient;
+import com.hwja.tool.utils.StringUtil;
+import org.apache.commons.lang3.StringUtils;
 import org.dominate.achp.entity.dto.AppConfigDTO;
 
 import java.util.Map;
@@ -9,6 +11,9 @@ public class ConfigHelper {
 
     private static final String CACHE_APP_CONFIG_HASH_KEY = "cache.app.config:hash";
 
+    private static final String DEFAULT_VERSION = "default";
+    private static final String VERSION_PLATFORM_SPLIT = "&";
+
     /**
      * 获取所有APP配置
      *
@@ -16,6 +21,14 @@ public class ConfigHelper {
      */
     public static Map<String, AppConfigDTO> getAllAppConfig() {
         return RedisClient.hGetAll(CACHE_APP_CONFIG_HASH_KEY, AppConfigDTO.class);
+    }
+
+    public static AppConfigDTO getAppConfig(String version, String platform) {
+        if (StringUtils.isEmpty(platform)) {
+            return getAppConfig(version);
+        }
+        String versionWithPlatform = platform + VERSION_PLATFORM_SPLIT + version;
+        return getAppConfig(versionWithPlatform);
     }
 
     /**
@@ -27,6 +40,9 @@ public class ConfigHelper {
      * @return APP配置
      */
     public static AppConfigDTO getAppConfig(String version) {
+        if (StringUtil.isEmpty(version)) {
+            version = DEFAULT_VERSION;
+        }
         if (!RedisClient.hHasKey(CACHE_APP_CONFIG_HASH_KEY, version)) {
             AppConfigDTO config = new AppConfigDTO(version);
             RedisClient.hSetPersist(CACHE_APP_CONFIG_HASH_KEY, version, config);

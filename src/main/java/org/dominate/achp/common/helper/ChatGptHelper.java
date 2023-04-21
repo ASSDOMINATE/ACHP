@@ -1,7 +1,6 @@
 package org.dominate.achp.common.helper;
 
 import com.hwja.tool.utils.StringUtil;
-import com.theokanning.openai.completion.CompletionRequest;
 import com.theokanning.openai.completion.chat.ChatCompletionRequest;
 import com.theokanning.openai.completion.chat.ChatCompletionResult;
 import com.theokanning.openai.completion.chat.ChatMessage;
@@ -43,7 +42,6 @@ public final class ChatGptHelper {
         Locale.setDefault(Locale.CHINA);
     }
 
-
     public static List<Model> modelList() {
         return modelList(DEFAULT_API_KEY);
     }
@@ -51,16 +49,6 @@ public final class ChatGptHelper {
     public static List<Model> modelList(String apiKey) {
         OpenAiService service = new OpenAiService(apiKey, DEFAULT_DURATION);
         return service.listModels();
-    }
-
-    /**
-     * 发送消息，回复到 sseEmitter
-     *
-     * @param sentence   用户发起的话
-     * @param sseEmitter 本次客户端的请求流
-     */
-    public static ReplyDTO send(String sentence, SseEmitter sseEmitter) {
-        return send(sentence, Collections.emptyList(), sseEmitter, DEFAULT_MODEL_ID, DEFAULT_TOKENS, DEFAULT_TEMPERATURE, DEFAULT_API_KEY);
     }
 
 
@@ -74,7 +62,7 @@ public final class ChatGptHelper {
      * @return
      */
     public static ReplyDTO send(ChatDTO chat, List<ContentDTO> contentList, SseEmitter sseEmitter, String apiKey) {
-        return send(chat.getSentence(), contentList, sseEmitter, chat.getModelId(), chat.getMaxResultTokens(), chat.getTemperature(), apiKey);
+        return send(chat.getSentence(), chat.getSystem(), contentList, sseEmitter, chat.getModelId(), chat.getMaxResultTokens(), chat.getTemperature(), apiKey);
     }
 
     /**
@@ -87,10 +75,10 @@ public final class ChatGptHelper {
      * @param apiKey      OpenAi ApiKey
      * @return ReplyDTO 回复
      */
-    public static ReplyDTO send(String sentence, List<ContentDTO> contentList, SseEmitter sseEmitter, String modelId,
+    public static ReplyDTO send(String sentence, String system, List<ContentDTO> contentList, SseEmitter sseEmitter, String modelId,
                                 int resultTokens, Double temperature, String apiKey) {
         OpenAiService service = new OpenAiService(apiKey, DEFAULT_DURATION);
-        ChatCompletionRequest request = createChatRequest(sentence, modelId, resultTokens, temperature, parseMessages(contentList, modelId), true);
+        ChatCompletionRequest request = createChatRequest(modelId, resultTokens, temperature, parseMessages(contentList, sentence, system, modelId), true);
         StringBuilder reply = new StringBuilder();
         // SSE 关闭
         sseEmitter.onCompletion(service::shutdownExecutor);
@@ -122,7 +110,7 @@ public final class ChatGptHelper {
      * @return AI回复
      */
     public static ReplyDTO send(String sentence) {
-        return send(sentence, Collections.emptyList(), DEFAULT_MODEL_ID, DEFAULT_TOKENS, DEFAULT_TEMPERATURE, DEFAULT_API_KEY);
+        return send(sentence, StringUtil.EMPTY, Collections.emptyList(), DEFAULT_MODEL_ID, DEFAULT_TOKENS, DEFAULT_TEMPERATURE, DEFAULT_API_KEY);
     }
 
     /**
@@ -133,7 +121,7 @@ public final class ChatGptHelper {
      * @return AI回复
      */
     public static ReplyDTO send(String sentence, List<ContentDTO> contentList) {
-        return send(sentence, contentList, DEFAULT_MODEL_ID, DEFAULT_TOKENS, DEFAULT_TEMPERATURE, DEFAULT_API_KEY);
+        return send(sentence, StringUtil.EMPTY, contentList, DEFAULT_MODEL_ID, DEFAULT_TOKENS, DEFAULT_TEMPERATURE, DEFAULT_API_KEY);
     }
 
     /**
@@ -145,9 +133,9 @@ public final class ChatGptHelper {
      * @param apiKey      OpenAi ApiKey
      * @return AI回复
      */
-    public static ReplyDTO send(String sentence, List<ContentDTO> contentList, String modelId, int resultTokens, double temperature, String apiKey) {
+    public static ReplyDTO send(String sentence, String system, List<ContentDTO> contentList, String modelId, int resultTokens, double temperature, String apiKey) {
         OpenAiService service = new OpenAiService(apiKey, DEFAULT_DURATION);
-        ChatCompletionRequest request = createChatRequest(sentence, modelId, resultTokens, temperature, parseMessages(contentList, modelId), false);
+        ChatCompletionRequest request = createChatRequest(modelId, resultTokens, temperature, parseMessages(contentList, sentence, system, modelId), false);
         ChatCompletionResult result = service.createChatCompletion(request);
         String content = result.getChoices().get(FIRST_ANSWER_INDEX).getMessage().getContent();
         service.shutdownExecutor();
@@ -219,26 +207,13 @@ public final class ChatGptHelper {
      * max_turns: 指定对话的最大轮数。默认值为10，建议在1到20之间进行调整。
      * max_history: 指定对话历史记录的最大长度。默认值为2，表示只保留最近的两个对话回合。如果您需要保留更多的对话历史记录，可以将max_history设置为所需的长度。
      *
-     * @param sentence 提问的句子
-     * @param modelId  所选的语言模型
+     * @param modelId 所选的语言模型
      * @return 会话请求
      */
-    private static CompletionRequest createRequest(String sentence, String modelId, int resultTokens, boolean useStream) {
-        return CompletionRequest.builder()
-                .model(modelId)
-                .echo(true)
-                .prompt(sentence)
-                .maxTokens(resultTokens)
-                .n(ANSWER_LIMIT)
-                .stream(useStream)
-                .build();
-    }
-
-    private static ChatCompletionRequest createChatRequest(String sentence, String modelId, int resultTokens, double temperature, List<ChatMessage> messageList, boolean useStream) {
+    private static ChatCompletionRequest createChatRequest(String modelId, int resultTokens, double temperature, List<ChatMessage> messageList, boolean useStream) {
         if (CollectionUtils.isEmpty(messageList)) {
             messageList = new ArrayList<>();
         }
-        messageList.add(createMessage(sentence, true));
         return ChatCompletionRequest.builder()
                 .model(modelId)
                 .temperature(temperature)
@@ -249,19 +224,30 @@ public final class ChatGptHelper {
                 .build();
     }
 
-    private static ChatCompletionRequest createChatRequest(String sentence, String modelId, int resultTokens, double temperature, boolean useStream) {
-        return createChatRequest(sentence, modelId, resultTokens, temperature, Collections.emptyList(), useStream);
+
+    private static List<ChatMessage> parseMessages(List<ContentDTO> contentList, String sentence, String modelId) {
+        return parseMessages(contentList, sentence, StringUtil.EMPTY, modelId);
     }
 
-    private static List<ChatMessage> parseMessages(List<ContentDTO> contentList, String modelId) {
+    private static List<ChatMessage> parseMessages(List<ContentDTO> contentList, String sentence, String system, String modelId) {
         if (CollectionUtils.isEmpty(contentList)) {
-            return Collections.emptyList();
+            // 无上下文
+            List<ChatMessage> messageList = new ArrayList<>(2);
+            if (StringUtil.isNotEmpty(system)) {
+                messageList.add(createMessage(system, ChatRoleType.SYS));
+            }
+            messageList.add(createMessage(sentence, true));
+            return messageList;
         }
         List<ChatMessage> messageList = new ArrayList<>(contentList.size() * 2);
+        if (StringUtil.isNotEmpty(system)) {
+            messageList.add(createMessage(system, ChatRoleType.SYS));
+        }
         for (ContentDTO content : contentList) {
             messageList.add(createMessage(content.getSentence(), true));
             messageList.add(createMessage(content.getReply(), false));
         }
+        messageList.add(createMessage(sentence, true));
         // Tokens 限制检查
         int tokens = ChatTokenUtil.tokens(modelId, messageList);
         int limitTokens = GptModelType.getModelType(modelId).getTokenLimit();
@@ -277,6 +263,9 @@ public final class ChatGptHelper {
         while (iterator.hasNext()) {
             ChatMessage message = iterator.next();
             totalTokens += ChatTokenUtil.token(modelId, message);
+            if (ChatRoleType.SYS.getRole().equals(message.getRole())) {
+                continue;
+            }
             iterator.remove();
             if (totalTokens >= deleteTokens) {
                 return messageList;
