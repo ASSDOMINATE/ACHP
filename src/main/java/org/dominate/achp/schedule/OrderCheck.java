@@ -29,7 +29,7 @@ public class OrderCheck {
     private final IBaseCardRecordService baseCardRecordService;
     private final IBasePaymentRecordService basePaymentRecordService;
 
-    private static final long CHECK_BETWEEN_TIME = 5 * 60 * 1000;
+    private static final long CHECK_BETWEEN_TIME = 60 * 1000;
 
     private static final long ORDER_OUT_TIME = 60 * 60 * 1000;
 
@@ -107,7 +107,7 @@ public class OrderCheck {
                     return false;
             }
         } catch (Exception e) {
-            log.error("订单检查未通过", e);
+            log.info("订单检查未通过", e);
             return false;
         }
 

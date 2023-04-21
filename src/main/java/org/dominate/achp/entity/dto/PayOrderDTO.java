@@ -64,5 +64,20 @@ public class PayOrderDTO implements Serializable {
         this.payType = payReq.getPayType();
         this.auth = payReq.getAuth();
         this.createTime = System.currentTimeMillis();
+        this.checkedTime = System.currentTimeMillis();
+    }
+
+    @Override
+    public String toString() {
+        return "PayOrderDTO{" +
+                "sysOrderCode='" + sysOrderCode + '\'' +
+                ", partyOrderCode='" + partyOrderCode + '\'' +
+                ", accountId=" + accountId +
+                ", cardId=" + cardId +
+                ", payType=" + payType +
+                ", auth='" + auth + '\'' +
+                ", createTime=" + createTime +
+                ", checkedTime=" + checkedTime +
+                '}';
     }
 }

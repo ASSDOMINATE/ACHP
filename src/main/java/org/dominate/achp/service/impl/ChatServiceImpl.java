@@ -70,9 +70,11 @@ public class ChatServiceImpl implements ChatService {
             }
             List<Integer> contentIdList = chatRecordService.getGroupContentIdList(chat.getChatGroupId(), PageReq.defaultPage());
             List<ContentDTO> contentList = chatContentService.list(contentIdList);
-            String system = chatSceneService.getSystem(chat.getSceneId());
-            if (StringUtil.isNotEmpty(system)) {
-                chat.setSystem(system);
+            if (0 != chat.getSceneId()) {
+                String system = chatSceneService.getSystem(chat.getSceneId());
+                if (StringUtil.isNotEmpty(system)) {
+                    chat.setSystem(system);
+                }
             }
             try {
                 // 2.通过GPT流式传输发送SSE

@@ -2,14 +2,16 @@ package org.dominate.achp.common.helper;
 
 import com.hwja.tool.clients.redis.RedisClient;
 import com.hwja.tool.utils.StringUtil;
+import lombok.extern.slf4j.Slf4j;
 import org.dominate.achp.entity.dto.PayOrderDTO;
 
 import java.util.Collection;
 import java.util.Map;
 
+@Slf4j
 public final class PayOrderHelper {
 
-    private static final String CACHE_PAY_ORDER_INFO_HASH_KEY = "cache:pay:order:info";
+    private static final String CACHE_PAY_ORDER_INFO_HASH_KEY = "cache:pay:order:info:hash";
     private static final String CACHE_PAY_ORDER_CODE_HEADER_KEY = "cache:pay:order:code:";
 
     /**
@@ -33,6 +35,7 @@ public final class PayOrderHelper {
      * @param payOrder 支付订单参数
      */
     public static void save(PayOrderDTO payOrder) {
+        log.info("saving pay order {} ", payOrder);
         String field = createField(payOrder.getPayType(), payOrder.getPartyOrderCode());
         // 无凭证更新 不存在相同订单号 直接保存
         if (StringUtil.isEmpty(payOrder.getAuth()) || !RedisClient.hHasKey(CACHE_PAY_ORDER_INFO_HASH_KEY, field)) {

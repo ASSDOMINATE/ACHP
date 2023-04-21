@@ -88,6 +88,7 @@ public class SceneController {
         saveScene.setNotice(infoReq.getNotice());
         saveScene.setDel(infoReq.getDel());
         saveScene.setUpdateBy(accountId);
+        saveScene.setSetSystem(infoReq.getSystem());
         if (null == infoReq.getId()) {
             saveScene.setCreateBy(accountId);
             if (!chatSceneService.save(saveScene)) {

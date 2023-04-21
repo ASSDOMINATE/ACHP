@@ -90,6 +90,7 @@ public class ApiCardController {
             default:
                 throw BusinessException.create(ExceptionType.PARAM_ERROR);
         }
+        payReq.setOrderCode(sysOrderCode);
         payResult.setSysOrderCode(sysOrderCode);
         PayOrderDTO payOrder = new PayOrderDTO(payReq);
         payOrder.setAccountId(accountId);
@@ -119,6 +120,7 @@ public class ApiCardController {
             default:
                 throw BusinessException.create(ExceptionType.PARAM_ERROR);
         }
+        payReq.setOrderCode(sysOrderCode);
         PayOrderDTO payOrder = new PayOrderDTO(payReq);
         payOrder.setAccountId(accountId);
         payOrder.setPartyOrderCode(partyOrderCode);

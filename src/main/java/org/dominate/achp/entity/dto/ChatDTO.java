@@ -48,12 +48,12 @@ public class ChatDTO implements Serializable {
     /**
      * 场景ID
      */
-    private int sceneId;
+    private Integer sceneId;
 
     /**
      * 用户账号
      */
-    private int accountId;
+    private Integer accountId;
 
     public ChatDTO(String chatGroupId, String sentence,int sceneId) {
         this.chatGroupId = chatGroupId;

@@ -48,8 +48,8 @@ public class ChatScene implements Serializable {
     @TableField("notice")
     private String notice;
 
-    @TableField("system")
-    private String system;
+    @TableField("set_system")
+    private String setSystem;
 
     @TableField("content_id")
     private Integer contentId;

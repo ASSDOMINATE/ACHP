@@ -65,6 +65,7 @@ public class BaseController {
         insert.setDailyRequestLimit(configReq.getDailyRequestLimit());
         insert.setMaxResultTokens(configReq.getMaxResultTokens());
         insert.setTemperature(configReq.getTemperature());
+        insert.setSetSystem(configReq.getSystem());
         if (baseConfigService.save(insert)) {
             CardHelper.clearConfig();
         }

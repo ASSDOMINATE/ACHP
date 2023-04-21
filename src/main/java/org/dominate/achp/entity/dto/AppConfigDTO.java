@@ -47,6 +47,7 @@ public class AppConfigDTO implements Serializable {
     private String updateUrl;
 
 
+
     public AppConfigDTO() {
     }
 

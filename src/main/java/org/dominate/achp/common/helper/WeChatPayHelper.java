@@ -57,6 +57,7 @@ public final class WeChatPayHelper {
     private static final String PREPAY_ID = "prepay_id";
     private static final String CODE_URL = "code_url";
     private static final String TOTAL_FEE = "total_fee";
+    private static final String TRADE_STATE = "trade_state";
     private static final String TRADE_TYPE_APP = "APP";
     private static final String TRADE_TYPE_NATIVE = "NATIVE";
 
@@ -98,7 +99,11 @@ public final class WeChatPayHelper {
     }
 
     public static String createAppPayOrder(String uniqueOrderCode, BigDecimal payNum, String payTitle) {
-        return Objects.requireNonNull(createPayOrder(uniqueOrderCode, payNum, payTitle, TRADE_TYPE_APP)).getPartyOrderCode();
+        PayResultDTO result = createPayOrder(uniqueOrderCode, payNum, payTitle, TRADE_TYPE_APP);
+        if (null == result) {
+            return StringUtil.EMPTY;
+        }
+        return result.getPartyOrderCode();
     }
 
     /**
@@ -140,8 +145,8 @@ public final class WeChatPayHelper {
      * 查询订单
      *
      * @param uniqueOrderCode 唯一订单号
-     * @return 微信返回XML结果
-     * <p>
+     *
+     * 未抛出异常则检查通过
      * key:trade_state, value:SUCCESS—支付成功/REFUND—转入退款/NOTPAY—未支付/CLOSED—已关闭/REVOKED—已撤销（刷卡支付）/USERPAYING--用户支付中/PAYERROR--支付失败(其他原因，如银行返回失败)
      * key:total_fee, value:0.00
      */
@@ -156,9 +161,13 @@ public final class WeChatPayHelper {
         if (!isSuccess(responseMap)) {
             throw BusinessException.create(ExceptionType.PAY_NOT_COMPLETED);
         }
+        if(!responseMap.get(TRADE_STATE).equals(RESULT_SUCCESS)){
+            throw BusinessException.create(ExceptionType.PAY_NOT_COMPLETED);
+        }
         if (balance.compareTo(parsePayNum(responseMap)) != 0) {
             throw BusinessException.create(ExceptionType.PAY_PRICE_ERROR);
         }
+
     }
 
 

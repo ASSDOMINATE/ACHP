@@ -25,10 +25,23 @@ public class DemoTest {
     @Test
     public void testWechatPay(){
         String orderCode = UniqueCodeUtil.createPayOrder(3);
+        String wxCode = WeChatPayHelper.createAppPayOrder(orderCode, BigDecimal.ONE,"测试订单");
+        System.out.println("app "+wxCode);
         PayResultDTO result = WeChatPayHelper.createNativePayOrder(orderCode, BigDecimal.ONE,"测试订单");
-        System.out.println("订单" + result.getPartyOrderCode());
+
+        System.out.println("native " + result.getPartyOrderCode());
         System.out.println("链接" + result.getCodeUrl());
         WeChatPayHelper.verifyPayOrder(result.getSysOrderCode(), BigDecimal.ONE);
+    }
+
+    @Test
+    public void testOrder(){
+        try {
+            WeChatPayHelper.verifyPayOrder("2168208273588298465833413", new BigDecimal(18));
+            System.out.println("支付完成");
+        }catch (Exception e){
+            System.out.println("支付未完成");
+        }
     }
 
     @Test

@@ -41,4 +41,6 @@ public class ConfigReq implements Serializable {
     private Integer maxResultTokens;
 
     private BigDecimal temperature;
+
+    private String system;
 }

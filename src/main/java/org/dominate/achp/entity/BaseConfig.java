@@ -55,8 +55,8 @@ public class BaseConfig implements Serializable {
     @TableField("temperature")
     private BigDecimal temperature;
 
-    @TableField("system")
-    private String system;
+    @TableField("set_system")
+    private String setSystem;
 
     @TableField("create_time")
     private Date createTime;
