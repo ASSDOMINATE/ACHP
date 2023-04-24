@@ -1,4 +1,4 @@
-package org.dominate.achp.common.helper;
+package org.dominate.achp.common.cache;
 
 import com.hwja.tool.clients.redis.RedisClient;
 import com.hwja.tool.utils.StringUtil;
@@ -8,7 +8,7 @@ import org.dominate.achp.entity.dto.AppNoticeDTO;
 
 import java.util.Map;
 
-public class ConfigHelper {
+public class ConfigCache {
 
     private static final String CACHE_APP_CONFIG_HASH_KEY = "cache.app.config:hash";
     private static final String CACHE_APP_NOTICE_INFO_KEY = "cache:app:notice:info";

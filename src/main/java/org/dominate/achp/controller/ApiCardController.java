@@ -1,11 +1,11 @@
 package org.dominate.achp.controller;
 
 import lombok.AllArgsConstructor;
+import org.dominate.achp.common.cache.PayOrderCache;
 import org.dominate.achp.common.enums.ExceptionType;
 import org.dominate.achp.common.enums.PayType;
 import org.dominate.achp.common.helper.ALiPayHelper;
 import org.dominate.achp.common.helper.AuthHelper;
-import org.dominate.achp.common.helper.PayOrderHelper;
 import org.dominate.achp.common.helper.WeChatPayHelper;
 import org.dominate.achp.common.utils.ApplePayUtil;
 import org.dominate.achp.common.utils.UniqueCodeUtil;
@@ -97,7 +97,7 @@ public class ApiCardController {
         PayOrderDTO payOrder = new PayOrderDTO(payReq);
         payOrder.setAccountId(accountId);
         payOrder.setPartyOrderCode(payResult.getPartyOrderCode());
-        PayOrderHelper.save(payOrder);
+        PayOrderCache.save(payOrder);
         return Response.data(payResult);
     }
 
@@ -126,7 +126,7 @@ public class ApiCardController {
         PayOrderDTO payOrder = new PayOrderDTO(payReq);
         payOrder.setAccountId(accountId);
         payOrder.setPartyOrderCode(partyOrderCode);
-        PayOrderHelper.save(payOrder);
+        PayOrderCache.save(payOrder);
         return Response.data(partyOrderCode);
     }
 
@@ -141,7 +141,7 @@ public class ApiCardController {
         PayOrderDTO order = new PayOrderDTO(payReq);
         order.setAccountId(accountId);
         order.setSysOrderCode(sysOrderCode);
-        PayOrderHelper.save(order);
+        PayOrderCache.save(order);
         return Response.success();
     }
 
@@ -152,7 +152,7 @@ public class ApiCardController {
             @Validated @RequestBody PayOrderReq payOrderReq
     ) {
         int accountId = AuthHelper.parseWithValidForId(token);
-        PayOrderDTO cacheOrder = PayOrderHelper.find(payOrderReq.getPayType(), payOrderReq.getOrderCode());
+        PayOrderDTO cacheOrder = PayOrderCache.find(payOrderReq.getPayType(), payOrderReq.getOrderCode());
         if (null == cacheOrder) {
             throw BusinessException.create(ExceptionType.PAY_ORDER_NOT_FOUND);
         }
@@ -181,7 +181,7 @@ public class ApiCardController {
             return Response.failed();
         }
         if (baseCardRecordService.bindRecord(accountId, card)) {
-            PayOrderHelper.remove(cacheOrder.getSysOrderCode());
+            PayOrderCache.remove(cacheOrder.getSysOrderCode());
             return Response.success();
         }
         basePaymentRecordService.removeById(paymentId);

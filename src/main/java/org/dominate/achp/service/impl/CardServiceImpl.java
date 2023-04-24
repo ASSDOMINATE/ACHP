@@ -2,9 +2,9 @@ package org.dominate.achp.service.impl;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.dominate.achp.common.cache.CardCache;
 import org.dominate.achp.common.enums.CardType;
 import org.dominate.achp.common.enums.ExceptionType;
-import org.dominate.achp.common.helper.CardHelper;
 import org.dominate.achp.entity.BaseConfig;
 import org.dominate.achp.entity.BaseUserRecord;
 import org.dominate.achp.entity.dto.CardRecordDTO;
@@ -57,8 +57,8 @@ public class CardServiceImpl implements CardService {
         BaseUserRecord record = baseUserRecordService.getDailyRecord(accountId);
         record.setDailyRequestCount(record.getDailyRequestCount() + 1);
         record.setLatestRequestTime(new Date());
-        CardHelper.saveUserRecord(record);
-        CardHelper.setUserRecordUpdate(accountId);
+        CardCache.saveUserRecord(record);
+        CardCache.setUserRecordUpdate(accountId);
         BaseConfig config = baseConfigService.current();
         // 先把免费的次数用完
         if (config.getDailyRequestLimit() >= record.getDailyRequestCount()) {
@@ -71,8 +71,8 @@ public class CardServiceImpl implements CardService {
             }
             cardRecord.setRequestCount(cardRecord.getRequestCount() + 1);
             cardRecord.setRemainCount(cardRecord.getRemainCount() - 1);
-            CardHelper.saveUsingCard(accountId, cardRecord);
-            CardHelper.setUserUsingUpdate(accountId);
+            CardCache.saveUsingCard(accountId, cardRecord);
+            CardCache.setUserUsingUpdate(accountId);
         } catch (Exception e) {
             log.info("已达请求限制 用户ID {} ", accountId);
         }

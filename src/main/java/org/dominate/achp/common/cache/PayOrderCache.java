@@ -1,4 +1,4 @@
-package org.dominate.achp.common.helper;
+package org.dominate.achp.common.cache;
 
 import com.hwja.tool.clients.redis.RedisClient;
 import com.hwja.tool.utils.StringUtil;
@@ -9,7 +9,7 @@ import java.util.Collection;
 import java.util.Map;
 
 @Slf4j
-public final class PayOrderHelper {
+public final class PayOrderCache {
 
     private static final String CACHE_PAY_ORDER_INFO_HASH_KEY = "cache:pay:order:info:hash";
     private static final String CACHE_PAY_ORDER_CODE_HEADER_KEY = "cache:pay:order:code:";

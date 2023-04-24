@@ -1,18 +1,22 @@
 package org.dominate.achp.common.helper;
 
 import com.hwja.tool.utils.StringUtil;
+import com.theokanning.openai.completion.chat.ChatCompletionChunk;
 import com.theokanning.openai.completion.chat.ChatCompletionRequest;
 import com.theokanning.openai.completion.chat.ChatCompletionResult;
 import com.theokanning.openai.completion.chat.ChatMessage;
 import com.theokanning.openai.model.Model;
 import com.theokanning.openai.service.OpenAiService;
+import io.reactivex.Flowable;
 import lombok.extern.slf4j.Slf4j;
 import org.dominate.achp.common.enums.ChatRoleType;
+import org.dominate.achp.common.enums.ExceptionType;
 import org.dominate.achp.common.enums.GptModelType;
 import org.dominate.achp.common.utils.ChatTokenUtil;
 import org.dominate.achp.entity.dto.ChatDTO;
 import org.dominate.achp.entity.dto.ContentDTO;
 import org.dominate.achp.entity.dto.ReplyDTO;
+import org.dominate.achp.sys.exception.BusinessException;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
@@ -87,8 +91,6 @@ public final class ChatGptHelper {
     }
 
 
-
-
     /**
      * 生成对话消息对象
      *
@@ -141,7 +143,6 @@ public final class ChatGptHelper {
     }
 
 
-
     /**
      * 发送消息，回复到 sseEmitter
      *
@@ -159,7 +160,8 @@ public final class ChatGptHelper {
         StringBuilder reply = new StringBuilder();
         // SSE 关闭
         sseEmitter.onCompletion(service::shutdownExecutor);
-        service.streamChatCompletion(request).doOnError(Throwable::printStackTrace).blockingForEach((result) -> {
+        Flowable<ChatCompletionChunk> serviceFlow = service.streamChatCompletion(request);
+        serviceFlow.blockingForEach((result) -> {
             ChatMessage message = result.getChoices().get(FIRST_ANSWER_INDEX).getMessage();
             if (StringUtil.isEmpty(message.getContent())) {
                 return;
@@ -172,6 +174,7 @@ public final class ChatGptHelper {
             } catch (Exception e) {
                 log.info("SSE closed , so shutdown stream");
                 service.shutdownExecutor();
+                throw BusinessException.create(ExceptionType.EMPTY_ERROR);
             }
             reply.append(message.getContent());
         });
@@ -226,7 +229,6 @@ public final class ChatGptHelper {
                 .stream(useStream)
                 .build();
     }
-
 
 
     private static List<ChatMessage> parseMessages(List<ContentDTO> contentList, String sentence, String system, String modelId) {

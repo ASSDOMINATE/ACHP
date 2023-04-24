@@ -2,10 +2,10 @@ package org.dominate.achp.controller;
 
 import com.hwja.tool.utils.StringUtil;
 import lombok.AllArgsConstructor;
+import org.dominate.achp.common.cache.ConfigCache;
 import org.dominate.achp.common.enums.ExceptionType;
 import org.dominate.achp.common.enums.ResponseType;
 import org.dominate.achp.common.helper.AuthHelper;
-import org.dominate.achp.common.helper.ConfigHelper;
 import org.dominate.achp.entity.dto.AppConfigDTO;
 import org.dominate.achp.entity.dto.AppNoticeDTO;
 import org.dominate.achp.entity.dto.UserAuthDTO;
@@ -37,7 +37,7 @@ public class ApiUserController {
     @GetMapping(path = "notice")
     @ResponseBody
     public Response<AppNoticeDTO> notice() {
-        return Response.data(ConfigHelper.getAppNotice());
+        return Response.data(ConfigCache.getAppNotice());
     }
 
     @GetMapping(path = "config")
@@ -46,7 +46,7 @@ public class ApiUserController {
             @RequestParam(name = "version", required = false) String version,
             @RequestParam(name = "platform", required = false) String platform
     ) {
-        return Response.data(ConfigHelper.getAppConfig(version, platform));
+        return Response.data(ConfigCache.getAppConfig(version, platform));
     }
 
     @GetMapping(path = "sendValid")

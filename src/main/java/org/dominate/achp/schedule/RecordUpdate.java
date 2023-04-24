@@ -2,7 +2,7 @@ package org.dominate.achp.schedule;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.dominate.achp.common.helper.CardHelper;
+import org.dominate.achp.common.cache.CardCache;
 import org.dominate.achp.entity.BaseCardRecord;
 import org.dominate.achp.entity.BaseUserRecord;
 import org.dominate.achp.entity.dto.CardRecordDTO;
@@ -32,7 +32,7 @@ public class RecordUpdate {
     }
 
     private void updateCardRecord() {
-        long listLength = CardHelper.getUpdateUserUsingLength();
+        long listLength = CardCache.getUpdateUserUsingLength();
         if (0 == listLength) {
             return;
         }
@@ -44,7 +44,7 @@ public class RecordUpdate {
         }
         List<BaseCardRecord> updateList = new ArrayList<>(targetLength);
         for (int i = 0; i < targetLength; i++) {
-            CardRecordDTO cardRecord = CardHelper.getUpdateUserUsing();
+            CardRecordDTO cardRecord = CardCache.getUpdateUserUsing();
             BaseCardRecord update = new BaseCardRecord();
             update.setId(cardRecord.getId());
             update.setRequestCount(cardRecord.getRequestCount());
@@ -57,7 +57,7 @@ public class RecordUpdate {
 
 
     private void updateUserRecord() {
-        long listLength = CardHelper.getUpdateUserRecordLength();
+        long listLength = CardCache.getUpdateUserRecordLength();
         if (0 == listLength) {
             return;
         }
@@ -69,7 +69,7 @@ public class RecordUpdate {
         }
         List<BaseUserRecord> updateList = new ArrayList<>(targetLength);
         for (int i = 0; i < targetLength; i++) {
-            BaseUserRecord userRecord = CardHelper.getUpdateUserRecord();
+            BaseUserRecord userRecord = CardCache.getUpdateUserRecord();
             BaseUserRecord update = new BaseUserRecord();
             update.setId(userRecord.getId());
             update.setDailyRequestCount(userRecord.getDailyRequestCount());

@@ -10,6 +10,7 @@ import org.dominate.achp.entity.dto.CardDTO;
 import org.dominate.achp.entity.dto.CardRecordDTO;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 public class CardWrapper {
@@ -62,12 +63,10 @@ public class CardWrapper {
             if (CardRecordState.USING == recordState) {
                 switch (cardType) {
                     case COUNT:
-                        dto.setInfo("当前会员剩余：" + dto.getRemainCount() + "次");
+                        dto.setInfo("会员剩余：" + dto.getRemainCount() + "次");
                         break;
                     case DAY:
-                        dto.setInfo("当前会员，"
-                                + DateUtil.dateToStr(entity.getExpireTime(),
-                                "yyyy年M月d日") + "到期");
+                        dto.setInfo("当前会员：" + formatTime(entity.getExpireTime()) + "到期");
                         break;
                     default:
                         dto.setInfo(StringUtil.EMPTY);
@@ -77,6 +76,11 @@ public class CardWrapper {
         }
         return dto;
     }
+
+    private static String formatTime(Date date) {
+        return DateUtil.dateToStr(date, "yyyy年M月d日");
+    }
+
 
     public List<CardRecordDTO> entityCardRecordDTO(List<BaseCardRecord> entityList) {
         List<CardRecordDTO> dtoList = new ArrayList<>(entityList.size());

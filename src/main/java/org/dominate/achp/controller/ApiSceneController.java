@@ -2,6 +2,7 @@ package org.dominate.achp.controller;
 
 import com.theokanning.openai.model.Model;
 import lombok.AllArgsConstructor;
+import org.dominate.achp.common.cache.RecommendCache;
 import org.dominate.achp.common.helper.AuthHelper;
 import org.dominate.achp.common.helper.ChatGptHelper;
 import org.dominate.achp.entity.dto.SceneCategoryDTO;
@@ -18,6 +19,7 @@ import java.util.List;
 
 /**
  * 场景相关接口
+ *
  * @author dominate
  * @since 2023-04-03
  */
@@ -63,7 +65,7 @@ public class ApiSceneController {
             List<SceneDTO> sceneList = chatSceneService.list(pageReq);
             return Response.data(sceneList);
         }
-        List<Integer> sceneIdList = chatSceneRelateService.getSceneIdList(categoryId,pageReq);
+        List<Integer> sceneIdList = chatSceneRelateService.getSceneIdList(categoryId, pageReq);
         List<SceneDTO> sceneList = chatSceneService.list(sceneIdList);
         return Response.data(sceneList);
     }
@@ -87,6 +89,20 @@ public class ApiSceneController {
         List<SceneDTO> sceneList = chatSceneService.list(sceneIdList);
         return Response.data(sceneList);
     }
+
+    /**
+     * 获取推荐场景列表
+     *
+     * @return 场景列表
+     */
+    @GetMapping(path = "getRecommendSceneList")
+    @ResponseBody
+    public Response<List<SceneDTO>> getRecommendSceneList() {
+        List<Integer> sceneIdList = RecommendCache.getSceneIdList();
+        List<SceneDTO> sceneList = chatSceneService.list(sceneIdList);
+        return Response.data(sceneList);
+    }
+
 
     /**
      * 获取场景详情

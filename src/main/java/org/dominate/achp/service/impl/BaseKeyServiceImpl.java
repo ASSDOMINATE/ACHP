@@ -4,8 +4,8 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.hwja.tool.utils.RandomUtil;
 import com.hwja.tool.utils.StringUtil;
+import org.dominate.achp.common.cache.CardCache;
 import org.dominate.achp.common.enums.State;
-import org.dominate.achp.common.helper.CardHelper;
 import org.dominate.achp.entity.BaseKey;
 import org.dominate.achp.mapper.BaseKeyMapper;
 import org.dominate.achp.service.IBaseKeyService;
@@ -34,10 +34,10 @@ public class BaseKeyServiceImpl extends ServiceImpl<BaseKeyMapper, BaseKey> impl
 
     @Override
     public String getBestApiKey() {
-        List<BaseKey> keyList = CardHelper.getCacheKeyList();
+        List<BaseKey> keyList = CardCache.getCacheKeyList();
         if (CollectionUtils.isEmpty(keyList)) {
             keyList = enableList();
-            CardHelper.saveCacheKeyList(keyList);
+            CardCache.saveCacheKeyList(keyList);
         }
         if (CollectionUtils.isEmpty(keyList)) {
             return StringUtil.EMPTY;

@@ -1,4 +1,4 @@
-package org.dominate.achp.common.helper;
+package org.dominate.achp.common.cache;
 
 import com.hwja.tool.clients.redis.RedisClient;
 import com.hwja.tool.utils.RandomUtil;
@@ -11,7 +11,7 @@ import org.dominate.achp.entity.dto.CardRecordDTO;
 
 import java.util.*;
 
-public final class CardHelper {
+public final class CardCache {
 
 
     private static final String TEMP_CARD_KEY_LIST = "temp:card:key:list";
@@ -33,6 +33,9 @@ public final class CardHelper {
     }
 
     public static long getUpdateUserRecordLength() {
+        if(!RedisClient.hasKey(LIST_UPDATE_USER_DAILY_RECORD_ID)){
+            return 0L;
+        }
         return RedisClient.listLength(LIST_UPDATE_USER_DAILY_RECORD_ID);
     }
 
@@ -45,6 +48,9 @@ public final class CardHelper {
     }
 
     public static long getUpdateUserUsingLength() {
+        if(!RedisClient.hasKey(CACHE_CARD_USER_USING_HASH_KEY)){
+            return 0L;
+        }
         return RedisClient.listLength(CACHE_CARD_USER_USING_HASH_KEY);
     }
 

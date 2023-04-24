@@ -4,7 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.hwja.tool.utils.DateUtil;
 import com.hwja.tool.utils.SqlUtil;
-import org.dominate.achp.common.helper.CardHelper;
+import org.dominate.achp.common.cache.CardCache;
 import org.dominate.achp.entity.BaseUserRecord;
 import org.dominate.achp.mapper.BaseUserRecordMapper;
 import org.dominate.achp.service.IBaseUserRecordService;
@@ -25,7 +25,7 @@ public class BaseUserRecordServiceImpl extends ServiceImpl<BaseUserRecordMapper,
 
     @Override
     public BaseUserRecord getDailyRecord(int accountId) {
-        BaseUserRecord record = CardHelper.getUserDailyRecord(accountId);
+        BaseUserRecord record = CardCache.getUserDailyRecord(accountId);
         if (null != record) {
             return record;
         }
@@ -44,7 +44,7 @@ public class BaseUserRecordServiceImpl extends ServiceImpl<BaseUserRecordMapper,
             save(record);
         }
         record = getOne(query);
-        CardHelper.saveUserRecord(record);
+        CardCache.saveUserRecord(record);
         return record;
     }
 

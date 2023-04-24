@@ -4,15 +4,14 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.hwja.tool.utils.SqlUtil;
 import com.hwja.tool.utils.StringUtil;
 import lombok.AllArgsConstructor;
+import org.dominate.achp.common.cache.RecommendCache;
 import org.dominate.achp.common.helper.AuthHelper;
 import org.dominate.achp.entity.ChatScene;
 import org.dominate.achp.entity.ChatSceneCategory;
 import org.dominate.achp.entity.ChatSceneConf;
 import org.dominate.achp.entity.ChatSceneItem;
 import org.dominate.achp.entity.dto.SceneInfoDTO;
-import org.dominate.achp.entity.req.PageReq;
-import org.dominate.achp.entity.req.SceneCategoryReq;
-import org.dominate.achp.entity.req.SceneInfoReq;
+import org.dominate.achp.entity.req.*;
 import org.dominate.achp.entity.wrapper.SceneWrapper;
 import org.dominate.achp.service.*;
 import org.dominate.achp.sys.Response;
@@ -114,6 +113,28 @@ public class SceneController {
     }
 
 
+    @PostMapping(path = "setRecommend")
+    @ResponseBody
+    public Response<Boolean> setRecommend(
+            @RequestHeader(name = "token", required = false) String token,
+            @RequestBody @Validated IdsReq idsReq
+    ) {
+        AuthHelper.checkAdminUser(token);
+        RecommendCache.updateSceneIdList(idsReq.getIds());
+        return Response.success();
+    }
+
+    @PostMapping(path = "addRecommend")
+    @ResponseBody
+    public Response<Boolean> setRecommend(
+            @RequestHeader(name = "token", required = false) String token,
+            @RequestBody @Validated IdReq idReq
+    ) {
+        AuthHelper.checkAdminUser(token);
+        RecommendCache.addSceneIdList(idReq.getId());
+        return Response.success();
+    }
+
 
     @GetMapping(path = "category")
     @ResponseBody
@@ -191,7 +212,6 @@ public class SceneController {
             chatSceneConfService.save(config);
         }
     }
-
 
 
 }

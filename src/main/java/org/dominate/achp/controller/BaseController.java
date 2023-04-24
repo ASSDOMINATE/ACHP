@@ -1,9 +1,9 @@
 package org.dominate.achp.controller;
 
 import lombok.AllArgsConstructor;
+import org.dominate.achp.common.cache.CardCache;
+import org.dominate.achp.common.cache.ConfigCache;
 import org.dominate.achp.common.helper.AuthHelper;
-import org.dominate.achp.common.helper.CardHelper;
-import org.dominate.achp.common.helper.ConfigHelper;
 import org.dominate.achp.entity.BaseConfig;
 import org.dominate.achp.entity.BaseKey;
 import org.dominate.achp.entity.dto.AppConfigDTO;
@@ -68,7 +68,7 @@ public class BaseController {
         insert.setTemperature(configReq.getTemperature());
         insert.setSetSystem(configReq.getSystem());
         if (baseConfigService.save(insert)) {
-            CardHelper.clearConfig();
+            CardCache.clearConfig();
         }
         return Response.success();
     }
@@ -110,7 +110,7 @@ public class BaseController {
             @RequestHeader(name = "token", required = false) String token
     ) {
         AuthHelper.checkAdminUser(token);
-        Map<String, AppConfigDTO> configMap = ConfigHelper.getAllAppConfig();
+        Map<String, AppConfigDTO> configMap = ConfigCache.getAllAppConfig();
         return Response.data(new ArrayList<>(configMap.values()));
     }
 
@@ -121,7 +121,7 @@ public class BaseController {
             @RequestBody @Validated AppConfigDTO appConfig
     ) {
         AuthHelper.checkAdminUser(token);
-        ConfigHelper.setAppConfig(appConfig);
+        ConfigCache.setAppConfig(appConfig);
         return Response.success();
     }
 
@@ -131,7 +131,7 @@ public class BaseController {
             @RequestHeader(name = "token", required = false) String token
     ) {
         AuthHelper.checkAdminUser(token);
-        AppNoticeDTO appNotice = ConfigHelper.getAppNotice();
+        AppNoticeDTO appNotice = ConfigCache.getAppNotice();
         return Response.data(appNotice);
     }
 
@@ -142,7 +142,7 @@ public class BaseController {
             @RequestBody @Validated AppNoticeDTO appNotice
     ) {
         AuthHelper.checkAdminUser(token);
-        ConfigHelper.setAppNotice(appNotice);
+        ConfigCache.setAppNotice(appNotice);
         return Response.success();
     }
 }

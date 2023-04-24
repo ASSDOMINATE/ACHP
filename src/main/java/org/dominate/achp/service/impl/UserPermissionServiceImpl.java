@@ -6,9 +6,9 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.hwja.tool.utils.RandomUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.dominate.achp.common.cache.PermissionCache;
 import org.dominate.achp.common.constant.SqlConstants;
 import org.dominate.achp.common.enums.PermissionType;
-import org.dominate.achp.common.helper.PermissionHelper;
 import org.dominate.achp.entity.UserPermission;
 import org.dominate.achp.entity.dto.PermissionDTO;
 import org.dominate.achp.entity.req.PermissionReq;
@@ -90,7 +90,7 @@ public class UserPermissionServiceImpl extends ServiceImpl<UserPermissionMapper,
             insert.setCode(createUniqueCode());
             insert.setPath(req.getPath());
             if (save(insert)) {
-                PermissionHelper.setPermCache(req.getPath(), insert.getId());
+                PermissionCache.setPermCache(req.getPath(), insert.getId());
                 req.setId(insert.getId());
                 return true;
             }
@@ -130,7 +130,7 @@ public class UserPermissionServiceImpl extends ServiceImpl<UserPermissionMapper,
         }
         if (updateById(update)) {
             if (StringUtils.isNotEmpty(update.getPath())) {
-                PermissionHelper.setPermCache(update.getPath(), update.getId());
+                PermissionCache.setPermCache(update.getPath(), update.getId());
             }
             return true;
         }
@@ -150,9 +150,9 @@ public class UserPermissionServiceImpl extends ServiceImpl<UserPermissionMapper,
         update.setId(id);
         update.setIsDel(del);
         if (del) {
-            PermissionHelper.removePermCache(update.getPath());
+            PermissionCache.removePermCache(update.getPath());
         } else {
-            PermissionHelper.setPermCache(permission.getPath(), id);
+            PermissionCache.setPermCache(permission.getPath(), id);
         }
         return updateById(update);
     }

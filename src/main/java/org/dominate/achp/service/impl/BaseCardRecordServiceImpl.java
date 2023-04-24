@@ -7,10 +7,10 @@ import com.hwja.tool.utils.SqlUtil;
 import com.hwja.tool.utils.StringUtil;
 import lombok.AllArgsConstructor;
 import org.apache.commons.lang3.time.DateUtils;
+import org.dominate.achp.common.cache.CardCache;
 import org.dominate.achp.common.enums.CardRecordState;
 import org.dominate.achp.common.enums.CardType;
 import org.dominate.achp.common.enums.ExceptionType;
-import org.dominate.achp.common.helper.CardHelper;
 import org.dominate.achp.common.utils.UniqueCodeUtil;
 import org.dominate.achp.entity.BaseCard;
 import org.dominate.achp.entity.BaseCardRecord;
@@ -61,7 +61,7 @@ public class BaseCardRecordServiceImpl extends ServiceImpl<BaseCardRecordMapper,
 
     @Override
     public CardRecordDTO checkUserRecord(int accountId) throws BusinessException {
-        CardRecordDTO cardRecord = CardHelper.getUsingCard(accountId);
+        CardRecordDTO cardRecord = CardCache.getUsingCard(accountId);
         // 1.缓存中有记录，检查是否过期
         if (null != cardRecord) {
             if (checkRecordUsed(cardRecord.getCardTypeCode(), cardRecord.getExpireTime(), cardRecord.getRemainCount())) {
@@ -87,7 +87,7 @@ public class BaseCardRecordServiceImpl extends ServiceImpl<BaseCardRecordMapper,
         BaseCardRecord record = getOne(query);
         if (null != record) {
             cardRecord = CardWrapper.build().entityDTO(record);
-            CardHelper.saveUsingCard(accountId, cardRecord);
+            CardCache.saveUsingCard(accountId, cardRecord);
             // 重新执行 checkUserRecord->1 进行状态检查
             return checkUserRecord(accountId);
         }
@@ -103,7 +103,7 @@ public class BaseCardRecordServiceImpl extends ServiceImpl<BaseCardRecordMapper,
             if (saveRecordUsing(accountId, record.getId(), card)) {
                 setUsing(record, card);
                 cardRecord = CardWrapper.build().entityDTO(record);
-                CardHelper.saveUsingCard(accountId, cardRecord);
+                CardCache.saveUsingCard(accountId, cardRecord);
                 // 才设置为启用的卡不需要检查，直接返回即可
                 return cardRecord;
             }
@@ -125,7 +125,7 @@ public class BaseCardRecordServiceImpl extends ServiceImpl<BaseCardRecordMapper,
             return StringUtil.EMPTY;
         }
         StringBuilder info = new StringBuilder();
-        info.append(",待使用的：");
+        info.append("；待使用的有：");
         for (int i = 0; i < recordList.size(); i++) {
             if(0 != i){
                 info.append("，");
@@ -177,7 +177,7 @@ public class BaseCardRecordServiceImpl extends ServiceImpl<BaseCardRecordMapper,
         update.setId(recordId);
         update.setAccountId(accountId);
         setUsing(update, card);
-        CardHelper.removeUsingCard(accountId);
+        CardCache.removeUsingCard(accountId);
         return updateById(update);
     }
 
@@ -238,7 +238,7 @@ public class BaseCardRecordServiceImpl extends ServiceImpl<BaseCardRecordMapper,
         update.setRemainCount(remainCount);
         update.setState(CardRecordState.USED.getCode());
         if (updateById(update)) {
-            CardHelper.removeUsingCard(accountId);
+            CardCache.removeUsingCard(accountId);
             return true;
         }
         return false;
