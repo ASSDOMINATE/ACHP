@@ -59,6 +59,21 @@ public class ApiChatController {
         return chatService.startChat(chat);
     }
 
+    @GetMapping(path = "checkSendLimit")
+    @ResponseBody
+    public Response<Boolean> checkSendLimit(
+            @RequestHeader(name = "token", required = false) String token
+    ) {
+        int accountId = AuthHelper.parseWithValidForId(token);
+        // 用户发消息限制检查
+        try {
+            cardService.checkSendLimit(accountId);
+            return Response.data(true);
+        } catch (Exception e) {
+            return Response.data(false);
+        }
+    }
+
     // 调试用接口
 
     @GetMapping(path = "question")

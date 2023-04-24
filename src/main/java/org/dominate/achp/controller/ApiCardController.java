@@ -66,6 +66,8 @@ public class ApiCardController {
     ) {
         int accountId = AuthHelper.parseWithValidForId(token);
         CardRecordDTO record = baseCardRecordService.checkUserRecord(accountId);
+        String waitRecordInfo = baseCardRecordService.getRecordWaitInfo(accountId);
+        record.setInfo(record.getInfo() + waitRecordInfo);
         return Response.data(record);
     }
 

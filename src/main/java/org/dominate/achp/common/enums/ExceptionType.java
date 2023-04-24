@@ -42,7 +42,7 @@ public enum ExceptionType {
     PAY_ORDER_MUST_SAME_USER(ResponseType.ERROR.getCode(), "支付订单号必须是下单用户确认"),
 
     PAY_NOT_FOUND_ORDER(ResponseType.ERROR.getCode(), "无此订单信息"),
-    PAY_NOT_COMPLETED(ResponseType.ERROR.getCode(), "支付未完成"),
+    PAY_NOT_COMPLETED(ResponseType.ERROR.getCode(), "支付正在处理中，如已完成将会自动到账"),
     PAY_PRICE_ERROR(ResponseType.ERROR.getCode(), "支付金额错误"),
 
 

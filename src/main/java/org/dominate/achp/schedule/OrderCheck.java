@@ -29,9 +29,15 @@ public class OrderCheck {
     private final IBaseCardRecordService baseCardRecordService;
     private final IBasePaymentRecordService basePaymentRecordService;
 
+    /**
+     * 每分钟重试一次
+     */
     private static final long CHECK_BETWEEN_TIME = 60 * 1000;
 
-    private static final long ORDER_OUT_TIME = 60 * 60 * 1000;
+    /**
+     * 30分钟还未完成算超时
+     */
+    private static final long ORDER_OUT_TIME = 30 * 60 * 1000;
 
 
     @Scheduled(cron = "*/10 * * * * ?")
@@ -107,7 +113,7 @@ public class OrderCheck {
                     return false;
             }
         } catch (Exception e) {
-            log.info("订单检查未通过", e);
+            log.info("订单检查未通过 系统订单号 {} ，三方订单号 {}", payOrder.getSysOrderCode(), payOrder.getPartyOrderCode());
             return false;
         }
 

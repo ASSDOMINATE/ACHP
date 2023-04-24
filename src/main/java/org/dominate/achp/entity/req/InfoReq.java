@@ -93,7 +93,7 @@ public class InfoReq implements Serializable {
     public static InfoReq initInfo(int accountId, String sign) {
         InfoReq infoReq = new InfoReq();
         infoReq.setAccountId(accountId);
-        infoReq.setName("游客-" + accountId);
+        infoReq.setName(String.valueOf(accountId));
         infoReq.setAlias(infoReq.getName());
         infoReq.setPhone(StringUtils.EMPTY);
         infoReq.setAvatar(StringUtils.EMPTY);

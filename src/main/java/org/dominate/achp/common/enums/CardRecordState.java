@@ -13,7 +13,8 @@ public enum CardRecordState {
     NOT_USE(0, "未使用"),
     USING(1, "使用中"),
     USED(2, "已使用"),
-    DISABLED(3, "禁用");
+    DISABLED(3, "禁用"),
+    WAIT(4, "待使用");
 
     final int code;
     final String name;

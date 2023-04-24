@@ -34,6 +34,6 @@ public interface IChatGroupService extends IService<ChatGroup> {
      */
     boolean checkGroup(ChatDTO chat, int accountId);
 
-
     List<GroupDTO> list(List<String> groupIdList);
+
 }

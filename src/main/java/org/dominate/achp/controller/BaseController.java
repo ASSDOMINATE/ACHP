@@ -7,6 +7,7 @@ import org.dominate.achp.common.helper.ConfigHelper;
 import org.dominate.achp.entity.BaseConfig;
 import org.dominate.achp.entity.BaseKey;
 import org.dominate.achp.entity.dto.AppConfigDTO;
+import org.dominate.achp.entity.dto.AppNoticeDTO;
 import org.dominate.achp.entity.req.ConfigReq;
 import org.dominate.achp.entity.req.KeyReq;
 import org.dominate.achp.service.IBaseConfigService;
@@ -121,6 +122,27 @@ public class BaseController {
     ) {
         AuthHelper.checkAdminUser(token);
         ConfigHelper.setAppConfig(appConfig);
+        return Response.success();
+    }
+
+    @GetMapping(path = "appNotice")
+    @ResponseBody
+    public Response<AppNoticeDTO> appNotice(
+            @RequestHeader(name = "token", required = false) String token
+    ) {
+        AuthHelper.checkAdminUser(token);
+        AppNoticeDTO appNotice = ConfigHelper.getAppNotice();
+        return Response.data(appNotice);
+    }
+
+    @PostMapping(path = "setAppNotice")
+    @ResponseBody
+    public Response<Boolean> setAppNotice(
+            @RequestHeader(name = "token", required = false) String token,
+            @RequestBody @Validated AppNoticeDTO appNotice
+    ) {
+        AuthHelper.checkAdminUser(token);
+        ConfigHelper.setAppNotice(appNotice);
         return Response.success();
     }
 }

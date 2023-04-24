@@ -1,6 +1,7 @@
 package org.dominate.achp.controller;
 
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
+import com.hwja.tool.utils.RandomUtil;
 import com.hwja.tool.utils.StringUtil;
 import lombok.AllArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
@@ -105,7 +106,7 @@ public class AuthController {
             @Validated @RequestBody InitAccountReq initAccountReq
     ) {
         // 自动生成账号的初始密码
-        String defaultPassword = initAccountReq.getDeviceSign().substring(0, 6);
+        String defaultPassword = RandomUtil.genRandomNum(6).toLowerCase();
         int accountId = userAccountService.addAccount(defaultPassword);
         InfoReq info = InfoReq.initInfo(accountId, initAccountReq.getDeviceSign());
         if (userInfoService.saveInfo(info)) {

@@ -31,6 +31,8 @@ public interface IBaseCardRecordService extends IService<BaseCardRecord> {
      */
     CardRecordDTO checkUserRecord(int accountId) throws BusinessException;
 
+    String getRecordWaitInfo(int accountId);
+
     boolean hasBinding(int accountId);
 
     boolean bindRecord(int accountId, int id, BaseCard card);
@@ -41,6 +43,6 @@ public interface IBaseCardRecordService extends IService<BaseCardRecord> {
 
     BaseCardRecord findActiveRecord(String code);
 
-    boolean setRecordUsed(int accountId, int id, int requestCount, int remainCount);
+    boolean saveRecordUsed(int accountId, int id, int requestCount, int remainCount);
 
 }

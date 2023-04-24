@@ -7,6 +7,7 @@ import org.dominate.achp.common.enums.ResponseType;
 import org.dominate.achp.common.helper.AuthHelper;
 import org.dominate.achp.common.helper.ConfigHelper;
 import org.dominate.achp.entity.dto.AppConfigDTO;
+import org.dominate.achp.entity.dto.AppNoticeDTO;
 import org.dominate.achp.entity.dto.UserAuthDTO;
 import org.dominate.achp.entity.req.InfoReq;
 import org.dominate.achp.entity.req.ModifyPasswordReq;
@@ -32,6 +33,12 @@ public class ApiUserController {
 
     private final IUserAccountService userAccountService;
     private final IUserInfoService userInfoService;
+
+    @GetMapping(path = "notice")
+    @ResponseBody
+    public Response<AppNoticeDTO> notice() {
+        return Response.data(ConfigHelper.getAppNotice());
+    }
 
     @GetMapping(path = "config")
     @ResponseBody

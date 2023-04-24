@@ -4,12 +4,14 @@ import com.hwja.tool.clients.redis.RedisClient;
 import com.hwja.tool.utils.StringUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.dominate.achp.entity.dto.AppConfigDTO;
+import org.dominate.achp.entity.dto.AppNoticeDTO;
 
 import java.util.Map;
 
 public class ConfigHelper {
 
     private static final String CACHE_APP_CONFIG_HASH_KEY = "cache.app.config:hash";
+    private static final String CACHE_APP_NOTICE_INFO_KEY = "cache:app:notice:info";
 
     private static final String DEFAULT_VERSION = "default";
     private static final String VERSION_PLATFORM_SPLIT = "&";
@@ -58,5 +60,18 @@ public class ConfigHelper {
      */
     public static void setAppConfig(AppConfigDTO config) {
         RedisClient.hSetPersist(CACHE_APP_CONFIG_HASH_KEY, config.getVersion(), config);
+    }
+
+    public static AppNoticeDTO getAppNotice() {
+        if (!RedisClient.hasKey(CACHE_APP_NOTICE_INFO_KEY)) {
+            AppNoticeDTO notice = new AppNoticeDTO();
+            RedisClient.setPersist(CACHE_APP_NOTICE_INFO_KEY, notice);
+            return notice;
+        }
+        return RedisClient.get(CACHE_APP_NOTICE_INFO_KEY, AppNoticeDTO.class);
+    }
+
+    public static void setAppNotice(AppNoticeDTO notice) {
+        RedisClient.setPersist(CACHE_APP_NOTICE_INFO_KEY, notice);
     }
 }

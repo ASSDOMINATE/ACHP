@@ -62,10 +62,11 @@ public class CardWrapper {
             if (CardRecordState.USING == recordState) {
                 switch (cardType) {
                     case COUNT:
-                        dto.setInfo("剩余：" + dto.getRemainCount() + "次");
+                        dto.setInfo("当前会员剩余：" + dto.getRemainCount() + "次");
                         break;
                     case DAY:
-                        dto.setInfo(entity.getCardName() + "会员，" + DateUtil.dateToStr(entity.getExpireTime(),
+                        dto.setInfo("当前会员，"
+                                + DateUtil.dateToStr(entity.getExpireTime(),
                                 "yyyy年M月d日") + "到期");
                         break;
                     default:

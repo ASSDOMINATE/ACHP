@@ -120,9 +120,6 @@ public final class WeChatPayHelper {
         try {
             String response = sendRequest(CREATE_ORDER_URL, CREATE_PAY_ORDER_FOR_APP_KEYS, values);
             Map<String, Object> resultMap = WeChatPayHelper.parseXML(response);
-            for (Map.Entry<String, Object> stringObjectEntry : resultMap.entrySet()) {
-                log.info("wechat pay order key: {} value: {}", stringObjectEntry.getKey(), stringObjectEntry.getValue());
-            }
             String returnCode = (String) resultMap.get(RESULT_TYPE);
             if (!RESULT_SUCCESS.equals(returnCode)) {
                 return null;
@@ -155,9 +152,6 @@ public final class WeChatPayHelper {
         String[] values = {MCH_ID, APP_ID, uniqueOrderCode, nonceStr};
         String response = sendRequest(QUERY_ORDER_URL, QUERY_PAY_ORDER_KEYS, values);
         Map<String, Object> responseMap = parseXML(response);
-        for (Map.Entry<String, Object> stringObjectEntry : responseMap.entrySet()) {
-            log.info("wechat verify order key: {} value: {}", stringObjectEntry.getKey(), stringObjectEntry.getValue());
-        }
         if (!isSuccess(responseMap)) {
             throw BusinessException.create(ExceptionType.PAY_NOT_COMPLETED);
         }

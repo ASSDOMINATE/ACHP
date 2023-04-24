@@ -37,6 +37,11 @@ public class AppConfigDTO implements Serializable {
     private Boolean needUpdate;
 
     /**
+     * 是否强制更新
+     */
+    private Boolean mustUpdate;
+
+    /**
      * 更新信息
      */
     private String updateInfo;
@@ -47,13 +52,19 @@ public class AppConfigDTO implements Serializable {
     private String updateUrl;
 
 
-
     public AppConfigDTO() {
+        this.version = "";
+        this.needUpdate = false;
+        this.mustUpdate = false;
+        this.updateInfo = "";
+        this.updateUrl = "";
+        this.exchange = false;
     }
 
     public AppConfigDTO(String version) {
         this.version = version;
         this.needUpdate = false;
+        this.mustUpdate = false;
         this.updateInfo = "";
         this.updateUrl = "";
         this.exchange = false;
