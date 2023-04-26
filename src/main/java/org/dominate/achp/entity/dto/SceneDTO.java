@@ -38,6 +38,8 @@ public class SceneDTO implements Serializable {
      */
     private String system;
 
+    private String imgSrc;
+
     /**
      * 查看数量
      */

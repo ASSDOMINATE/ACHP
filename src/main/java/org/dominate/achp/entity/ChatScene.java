@@ -51,6 +51,9 @@ public class ChatScene implements Serializable {
     @TableField("set_system")
     private String setSystem;
 
+    @TableField("img_src")
+    private String imgSrc;
+
     @TableField("content_id")
     private Integer contentId;
 

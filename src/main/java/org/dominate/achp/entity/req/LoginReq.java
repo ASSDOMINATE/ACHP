@@ -31,7 +31,7 @@ public class LoginReq implements Serializable {
     @NotNull
     private String pwd;
 
-    private Integer platform;
+    private String platform;
 
     private Boolean skipPerm;
 

@@ -61,10 +61,8 @@ public class AuthController {
         if (null == loginReq.getSkipPerm()) {
             loginReq.setSkipPerm(true);
         }
-        if (null == loginReq.getPlatform()) {
-            loginReq.setPlatform(PlatformClientType.APP.getId());
-        }
-        return loginAccount(accountId, loginReq.getPwd(), loginReq.getPlatform(), loginReq.getSkipPerm());
+        PlatformClientType platform = PlatformClientType.getValueByCode(loginReq.getPlatform());
+        return loginAccount(accountId, loginReq.getPwd(), platform.getId(), loginReq.getSkipPerm());
     }
 
     @PostMapping(path = "loginCode")

@@ -68,7 +68,7 @@ public class ChatServiceImpl implements ChatService {
             } catch (IOException e) {
                 log.error("ChatService startChat send start message error ", e);
             }
-            List<Integer> contentIdList = chatRecordService.getGroupContentIdList(chat.getChatGroupId(), PageReq.defaultPage());
+            List<Integer> contentIdList = chatRecordService.getGroupContentIdList(chat.getChatGroupId(), PageReq.chatPage());
             List<ContentDTO> contentList = chatContentService.list(contentIdList);
             if (0 != chat.getSceneId()) {
                 String system = chatSceneService.getSystem(chat.getSceneId());

@@ -35,6 +35,7 @@ public class SceneWrapper {
         dto.setDesr(entity.getDesr());
         dto.setTitle(entity.getTitle());
         dto.setSystem(entity.getSetSystem());
+        dto.setImgSrc(entity.getImgSrc());
         dto.setChatCount(entity.getChatCount());
         dto.setReadCount(entity.getReadCount());
         dto.setSendCount(entity.getSendCount());

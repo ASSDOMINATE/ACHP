@@ -45,6 +45,8 @@ public class SceneInfoReq implements Serializable {
      */
     private String notice;
 
+    private String imgSrc;
+
     private Boolean del;
 
     private ChatSceneItem[] items;

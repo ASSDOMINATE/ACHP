@@ -1,5 +1,7 @@
 package org.dominate.achp.common.enums;
 
+import com.hwja.tool.utils.StringUtil;
+
 public enum PlatformClientType {
 
     ADMIN(0, "管理后台"),
@@ -20,5 +22,20 @@ public enum PlatformClientType {
 
     public int getId() {
         return id;
+    }
+
+    public static PlatformClientType getValueByCode(String code){
+        if(null == code){
+            return APP;
+        }
+        if(!StringUtil.isNumeric(code)){
+            return APP;
+        }
+        for (PlatformClientType value : PlatformClientType.values()) {
+            if(value.id == Integer.parseInt(code)){
+                return value;
+            }
+        }
+        return APP;
     }
 }

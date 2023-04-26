@@ -87,6 +87,7 @@ public class SceneController {
         saveScene.setNotice(infoReq.getNotice());
         saveScene.setDel(infoReq.getDel());
         saveScene.setUpdateBy(accountId);
+        saveScene.setImgSrc(infoReq.getImgSrc());
         saveScene.setSetSystem(infoReq.getSystem());
         if (null == infoReq.getId()) {
             saveScene.setCreateBy(accountId);
