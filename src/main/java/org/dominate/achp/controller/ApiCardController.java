@@ -145,8 +145,8 @@ public class ApiCardController {
         String sysOrderCode = UniqueCodeUtil.createPayOrder(payReq.getPayType());
         PayOrderDTO order = new PayOrderDTO(payReq);
         order.setAccountId(accountId);
-        order.setPartyOrderCode(payReq.getOrderCode());
         order.setSysOrderCode(sysOrderCode);
+        order.setPartyOrderCode(payReq.getOrderCode());
         PayOrderCache.save(order);
         return Response.success();
     }
