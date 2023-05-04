@@ -1,5 +1,11 @@
 package org.dominate.achp.common.enums;
 
+import org.apache.commons.lang3.time.DateUtils;
+import org.dominate.achp.entity.BaseCard;
+import org.dominate.achp.entity.BaseCardRecord;
+
+import java.util.Date;
+
 /**
  * 卡密记录状态枚举
  *
@@ -39,5 +45,22 @@ public enum CardRecordState {
             }
         }
         return DISABLED;
+    }
+
+    public static void setUsing(BaseCardRecord record, BaseCard card) {
+        switch (CardType.getValueByCode(card.getType())) {
+            case DAY:
+                Date start = new Date();
+                Date expire = DateUtils.addDays(start, card.getDayLimit());
+                record.setStartTime(start);
+                record.setExpireTime(expire);
+                break;
+            case COUNT:
+                record.setRemainCount(card.getCountLimit());
+                break;
+            default:
+                break;
+        }
+        record.setState(CardRecordState.USING.getCode());
     }
 }

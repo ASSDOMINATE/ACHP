@@ -161,7 +161,7 @@ public final class AuthHelper {
         String validCode = RandomUtil.createRandomStrNums(6);
         String key = createValidCacheKey(mobile);
         try {
-            if (!ALiYunHelper.sendSMSForValid(mobile, validCode, ALiYunHelper.SMS_TEMPLATE_COMMON)) {
+            if (!AliYunHelper.sendSmsForValid(mobile, validCode, AliYunHelper.SMS_TEMPLATE_COMMON)) {
                 throw BusinessException.create(ExceptionType.SEND_SMS_ERROR);
             }
             RedisClient.set(key, validCode, RandomUtil.getRandNum(VALID_CACHE_OUT_TIME[0], VALID_CACHE_OUT_TIME[1]));

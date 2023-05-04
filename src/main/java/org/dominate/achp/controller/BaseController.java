@@ -1,15 +1,17 @@
 package org.dominate.achp.controller;
 
 import lombok.AllArgsConstructor;
-import org.dominate.achp.common.cache.CardCache;
 import org.dominate.achp.common.cache.ConfigCache;
+import org.dominate.achp.common.cache.WallpaperCache;
 import org.dominate.achp.common.helper.AuthHelper;
 import org.dominate.achp.entity.BaseConfig;
 import org.dominate.achp.entity.BaseKey;
 import org.dominate.achp.entity.dto.AppConfigDTO;
 import org.dominate.achp.entity.dto.AppNoticeDTO;
+import org.dominate.achp.entity.dto.WallpaperDTO;
 import org.dominate.achp.entity.req.ConfigReq;
 import org.dominate.achp.entity.req.KeyReq;
+import org.dominate.achp.entity.req.WallpaperReq;
 import org.dominate.achp.service.IBaseConfigService;
 import org.dominate.achp.service.IBaseKeyService;
 import org.dominate.achp.sys.Response;
@@ -32,6 +34,17 @@ public class BaseController {
     private final IBaseConfigService baseConfigService;
     private final IBaseKeyService baseKeyService;
 
+    @PostMapping(path = "saveWallpaper")
+    @ResponseBody
+    public Response<Boolean> saveWallpaper(
+            @RequestHeader(name = "token", required = false) String token,
+            @RequestBody @Validated WallpaperReq wallpaperReq
+    ) {
+        AuthHelper.checkAdminUser(token);
+        WallpaperDTO save = new WallpaperDTO(wallpaperReq);
+        WallpaperCache.save(save);
+        return Response.success();
+    }
 
     @GetMapping(path = "config")
     @ResponseBody
@@ -68,7 +81,7 @@ public class BaseController {
         insert.setTemperature(configReq.getTemperature());
         insert.setSetSystem(configReq.getSystem());
         if (baseConfigService.save(insert)) {
-            CardCache.clearConfig();
+            ConfigCache.clearConfig();
         }
         return Response.success();
     }

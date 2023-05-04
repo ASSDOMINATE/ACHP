@@ -8,10 +8,24 @@ import org.dominate.achp.entity.dto.PayOrderDTO;
 import java.util.Collection;
 import java.util.Map;
 
+/**
+ * 支付订单缓存
+ *
+ * @author dominate
+ * @since 2023-04-24
+ */
 @Slf4j
 public final class PayOrderCache {
 
+    /**
+     * 哈希缓存
+     * 支付订单信息
+     */
     private static final String CACHE_PAY_ORDER_INFO_HASH_KEY = "cache:pay:order:info:hash";
+    /**
+     * 键值缓存
+     * 支付订单号
+     */
     private static final String CACHE_PAY_ORDER_CODE_HEADER_KEY = "cache:pay:order:code:";
 
     /**

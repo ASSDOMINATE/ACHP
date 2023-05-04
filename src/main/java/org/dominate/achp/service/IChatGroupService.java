@@ -34,6 +34,12 @@ public interface IChatGroupService extends IService<ChatGroup> {
      */
     boolean checkGroup(ChatDTO chat, int accountId);
 
+    /**
+     * 获取对话组列表
+     *
+     * @param groupIdList 对话组ID列表
+     * @return 对话组列表
+     */
     List<GroupDTO> list(List<String> groupIdList);
 
 }

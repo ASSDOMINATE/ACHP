@@ -117,7 +117,7 @@ public class DemoTest {
         String parseJson = parseBase.toJson();
         assert json.equals(parseJson);
         System.out.println(base.getTypeCode());
-        System.out.println(base.toDBJson());
+        System.out.println(base.toDbJson());
     }
 
     private static ChatMessage createMessage(String content, boolean forUser) {

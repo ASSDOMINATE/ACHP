@@ -22,6 +22,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * 场景相关逻辑实现类
+ *
+ * @author dominate
+ * @since 2023-04-14
+ */
 @Slf4j
 @Service
 @Transactional(rollbackFor = Exception.class)

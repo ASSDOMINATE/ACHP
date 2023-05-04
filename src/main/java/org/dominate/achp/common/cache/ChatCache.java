@@ -4,98 +4,113 @@ import com.hwja.tool.clients.redis.RedisClient;
 import com.hwja.tool.utils.RandomUtil;
 import com.hwja.tool.utils.StringUtil;
 import org.apache.commons.lang3.time.DateUtils;
-import org.dominate.achp.entity.BaseConfig;
 import org.dominate.achp.entity.BaseKey;
 import org.dominate.achp.entity.BaseUserRecord;
 import org.dominate.achp.entity.dto.CardRecordDTO;
 
 import java.util.*;
 
-public final class CardCache {
+/**
+ * 对话缓存工具
+ *
+ * @author dominate
+ * @since 2023-04-27
+ */
+public final class ChatCache {
 
-
+    /**
+     * 临时缓存
+     * 卡密列表
+     */
     private static final String TEMP_CARD_KEY_LIST = "temp:card:key:list";
     private static final int[] TEMP_OUT_TIME = {60 * 3, 60 * 6};
 
+    /**
+     * 哈希缓存
+     * 用户当前使用的卡密
+     */
     private static final String CACHE_CARD_USER_USING_HASH_KEY = "cache:card:user:using:hash";
+    /**
+     * 哈希缓存
+     * 用户每日记录
+     */
     private static final String CACHE_USER_DAILY_RECORD_HASH_KEY = "cache:card:user:daily:record:hash";
 
+    /**
+     * 列表缓存
+     * 用户使用卡密 待更新
+     */
     private static final String LIST_UPDATE_USER_USING_ID = "list:update:user:using:id";
+    /**
+     * 列表缓存
+     * 用户每日记录 待更新
+     */
     private static final String LIST_UPDATE_USER_DAILY_RECORD_ID = "list:update:user:daily:record:id";
 
 
-    public static void setUserRecordUpdate(int accountId) {
+    /**
+     * 设置 用户每日记录 待更新
+     *
+     * @param accountId 用户ID
+     */
+    public static void setUserDailyUpdate(int accountId) {
         RedisClient.leftPush(LIST_UPDATE_USER_DAILY_RECORD_ID, String.valueOf(accountId));
     }
 
-    public static BaseUserRecord getUpdateUserRecord() {
+    /**
+     * 获取 待更新的 用户每日记录
+     *
+     * @return 用户每日记录
+     */
+    public static BaseUserRecord getUpdateUserDaily() {
         return getListTarget(LIST_UPDATE_USER_DAILY_RECORD_ID, CACHE_USER_DAILY_RECORD_HASH_KEY, BaseUserRecord.class);
     }
 
-    public static long getUpdateUserRecordLength() {
-        if(!RedisClient.hasKey(LIST_UPDATE_USER_DAILY_RECORD_ID)){
+    /**
+     * 获取 待更新的 用户每日记录 列表长度
+     *
+     * @return 列表长度
+     */
+    public static long getUpdateUserDailyLength() {
+        if (!RedisClient.hasKey(LIST_UPDATE_USER_DAILY_RECORD_ID)) {
             return 0L;
         }
         return RedisClient.listLength(LIST_UPDATE_USER_DAILY_RECORD_ID);
     }
 
+    /**
+     * 设置 用户使用卡密 待更新
+     *
+     * @param accountId 账号ID
+     */
     public static void setUserUsingUpdate(int accountId) {
         RedisClient.leftPush(LIST_UPDATE_USER_USING_ID, String.valueOf(accountId));
     }
 
+    /**
+     * 获取 待更新的 用户使用卡密
+     *
+     * @return 用户使用卡密
+     */
     public static CardRecordDTO getUpdateUserUsing() {
         return getListTarget(LIST_UPDATE_USER_USING_ID, CACHE_CARD_USER_USING_HASH_KEY, CardRecordDTO.class);
     }
 
+    /**
+     * 获取 待更新的 用户使用卡密 列表长度
+     *
+     * @return 列表长度
+     */
     public static long getUpdateUserUsingLength() {
-        if(!RedisClient.hasKey(CACHE_CARD_USER_USING_HASH_KEY)){
+        if (!RedisClient.hasKey(CACHE_CARD_USER_USING_HASH_KEY)) {
             return 0L;
         }
         return RedisClient.listLength(CACHE_CARD_USER_USING_HASH_KEY);
     }
 
 
-    private static <T> T getListTarget(String listKey, String hashTargetKey, Class<T> targetClass) {
-        String field = RedisClient.rightPop(listKey, String.class);
-        if (StringUtil.isEmpty(field)) {
-            return null;
-        }
-        if (!RedisClient.hHasKey(hashTargetKey, field)) {
-            return null;
-        }
-        return RedisClient.hGet(hashTargetKey, field, targetClass);
-    }
-
-    private static BaseConfig SYS_CONFIG = null;
-
     /**
-     * 获取基础配置
-     *
-     * @return 基础配置
-     */
-    public static BaseConfig getConfig() {
-        return SYS_CONFIG;
-    }
-
-    /**
-     * 清除配置，记得下次使用从数据库更新
-     */
-    public static void clearConfig() {
-        SYS_CONFIG = null;
-    }
-
-    /**
-     * 更新基础配置
-     *
-     * @param config 基础配置
-     */
-    public static void updateConfig(BaseConfig config) {
-        SYS_CONFIG = config;
-    }
-
-
-    /**
-     * 获取用户当前使用卡密
+     * 获取 用户使用卡密
      *
      * @param accountId 用户ID
      * @return 卡密记录
@@ -108,7 +123,7 @@ public final class CardCache {
     }
 
     /**
-     * 保存用户使用卡密
+     * 保存 用户使用卡密
      *
      * @param accountId 用户ID
      * @param card      卡密记录
@@ -117,17 +132,27 @@ public final class CardCache {
         RedisClient.hSetPersist(CACHE_CARD_USER_USING_HASH_KEY, String.valueOf(accountId), card);
     }
 
+    /**
+     * 用户使用卡密缓存
+     *
+     * @param accountId 账号ID
+     */
     public static void removeUsingCard(int accountId) {
         RedisClient.hRemoveField(CACHE_CARD_USER_USING_HASH_KEY, String.valueOf(accountId));
     }
 
+    /**
+     * 获取所有缓存中的 用户使用卡密
+     *
+     * @return 用户使用卡密集合
+     */
     public static Collection<CardRecordDTO> getUsingList() {
         Map<String, CardRecordDTO> cardRecordMap = RedisClient.hGetAll(CACHE_CARD_USER_USING_HASH_KEY, CardRecordDTO.class);
         return cardRecordMap.values();
     }
 
     /**
-     * 获取用户每日记录
+     * 获取 用户每日记录
      *
      * @param accountId 账号ID
      * @return 每日记录
@@ -144,6 +169,11 @@ public final class CardCache {
         return userRecord;
     }
 
+    /**
+     * 获取所有缓存中的 用户每日记录
+     *
+     * @return 用户每日记录集合
+     */
     public static Collection<BaseUserRecord> getUserRecordList() {
         Map<String, BaseUserRecord> userRecordMap = RedisClient.hGetAll(CACHE_USER_DAILY_RECORD_HASH_KEY, BaseUserRecord.class);
         return userRecordMap.values();
@@ -154,7 +184,7 @@ public final class CardCache {
      *
      * @param userRecord 用户记录
      */
-    public static void saveUserRecord(BaseUserRecord userRecord) {
+    public static void saveUserDaily(BaseUserRecord userRecord) {
         RedisClient.hSetPersist(CACHE_USER_DAILY_RECORD_HASH_KEY, userRecord.getAccountId().toString(), userRecord);
     }
 
@@ -179,4 +209,17 @@ public final class CardCache {
     public static void saveCacheKeyList(List<BaseKey> keyList) {
         RedisClient.set(TEMP_CARD_KEY_LIST, keyList, RandomUtil.getRandNum(TEMP_OUT_TIME[0], TEMP_OUT_TIME[1]));
     }
+
+
+    private static <T> T getListTarget(String listKey, String hashTargetKey, Class<T> targetClass) {
+        String field = RedisClient.rightPop(listKey, String.class);
+        if (StringUtil.isEmpty(field)) {
+            return null;
+        }
+        if (!RedisClient.hHasKey(hashTargetKey, field)) {
+            return null;
+        }
+        return RedisClient.hGet(hashTargetKey, field, targetClass);
+    }
+
 }

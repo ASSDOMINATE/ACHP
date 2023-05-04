@@ -4,14 +4,23 @@ import com.alibaba.fastjson.JSON;
 import com.hwja.tool.utils.StringUtil;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 import lombok.experimental.Accessors;
 import org.dominate.achp.common.enums.SceneItemType;
 
 import java.io.Serializable;
 
+
+/**
+ * 场景项基础类型
+ *
+ * @author dominate
+ * @since 2023-04-14
+ */
 @Getter
 @Setter
 @Accessors(chain = true)
+@ToString
 public class SceneItemBaseDTO implements Serializable {
 
     private Integer id;
@@ -27,7 +36,7 @@ public class SceneItemBaseDTO implements Serializable {
         return JSON.toJSONString(this);
     }
 
-    public String toDBJson() {
+    public String toDbJson() {
         id = null;
         typeCode = null;
         typeName = null;

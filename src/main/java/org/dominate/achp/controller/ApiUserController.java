@@ -3,12 +3,14 @@ package org.dominate.achp.controller;
 import com.hwja.tool.utils.StringUtil;
 import lombok.AllArgsConstructor;
 import org.dominate.achp.common.cache.ConfigCache;
+import org.dominate.achp.common.cache.WallpaperCache;
 import org.dominate.achp.common.enums.ExceptionType;
 import org.dominate.achp.common.enums.ResponseType;
 import org.dominate.achp.common.helper.AuthHelper;
 import org.dominate.achp.entity.dto.AppConfigDTO;
 import org.dominate.achp.entity.dto.AppNoticeDTO;
 import org.dominate.achp.entity.dto.UserAuthDTO;
+import org.dominate.achp.entity.dto.WallpaperDTO;
 import org.dominate.achp.entity.req.InfoReq;
 import org.dominate.achp.entity.req.ModifyPasswordReq;
 import org.dominate.achp.entity.req.SetPasswordReq;
@@ -19,6 +21,8 @@ import org.dominate.achp.sys.Response;
 import org.dominate.achp.sys.exception.BusinessException;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 /**
  * 用户相关接口
@@ -33,6 +37,12 @@ public class ApiUserController {
 
     private final IUserAccountService userAccountService;
     private final IUserInfoService userInfoService;
+
+    @GetMapping(path = "wallpaper")
+    @ResponseBody
+    public Response<List<WallpaperDTO>> wallpaper() {
+        return Response.data(WallpaperCache.getAll());
+    }
 
     @GetMapping(path = "notice")
     @ResponseBody

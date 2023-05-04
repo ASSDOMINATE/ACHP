@@ -60,10 +60,10 @@ public class UserRoleServiceImpl extends ServiceImpl<UserRoleMapper, UserRole> i
     }
 
     @Override
-    public List<UserRole> getList(Integer platformId, String nameZT, String desrZT) {
+    public List<UserRole> getList(Integer platformId, String name, String desr) {
         QueryWrapper<UserRole> query = createQuery(platformId);
-        query.lambda().like(StringUtils.isNotEmpty(nameZT), UserRole::getName, nameZT).
-                like(StringUtils.isNotEmpty(desrZT), UserRole::getDesr, desrZT);
+        query.lambda().like(StringUtils.isNotEmpty(name), UserRole::getName, name).
+                like(StringUtils.isNotEmpty(desr), UserRole::getDesr, desr);
         return list(query);
     }
 

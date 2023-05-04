@@ -37,11 +37,11 @@ public interface IUserRoleService extends IService<UserRole> {
      * 获取角色列表 管理用
      *
      * @param platformId 平台ID
-     * @param desrZT     角色描述
-     * @param nameZT     角色名称
+     * @param desr     角色描述
+     * @param name     角色名称
      * @return 角色列表
      */
-    List<UserRole> getList(Integer platformId, String nameZT, String desrZT);
+    List<UserRole> getList(Integer platformId, String name, String desr);
 
     /**
      * 获取角色列表 管理用

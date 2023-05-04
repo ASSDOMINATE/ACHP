@@ -22,7 +22,7 @@ import java.math.BigDecimal;
  * @author dominate
  */
 @Slf4j
-public final class ALiPayHelper {
+public final class AliPayHelper {
 
     // 读取配置问句
 
@@ -79,12 +79,12 @@ public final class ALiPayHelper {
     /**
      * 支付订单是否已完成
      *
-     * @param payResultJSON 支付结果
+     * @param payResultJson 支付结果
      * @return boolean 是否已完成支付
      */
-    public static boolean isSuccessPayOrder(String payResultJSON) {
+    public static boolean isSuccessPayOrder(String payResultJson) {
         try {
-            String payStatus = JsonUtil.parseResponseValueForString(payResultJSON, TRADE_STATUS);
+            String payStatus = JsonUtil.parseResponseValueForString(payResultJson, TRADE_STATUS);
             return TRADE_STATUS_VALUES[2].equals(payStatus) || TRADE_STATUS_VALUES[3].equals(payStatus);
         } catch (Exception e) {
             log.error("ALiPay parse pay result error ", e);
@@ -95,12 +95,12 @@ public final class ALiPayHelper {
     /**
      * 解析支付金额
      *
-     * @param payResultJSON 支付返回结果JSON
+     * @param payResultJson 支付返回结果JSON
      * @return double 支付金额 RMB 0.00
      */
-    public static BigDecimal parsePayNum(String payResultJSON) {
+    public static BigDecimal parsePayNum(String payResultJson) {
         try {
-            return new BigDecimal(JsonUtil.parseResponseValueForString(payResultJSON, TOTAL_AMOUNT));
+            return new BigDecimal(JsonUtil.parseResponseValueForString(payResultJson, TOTAL_AMOUNT));
         } catch (Exception e) {
             log.error("ALiPay parse pay result error ", e);
             return BigDecimal.ZERO;

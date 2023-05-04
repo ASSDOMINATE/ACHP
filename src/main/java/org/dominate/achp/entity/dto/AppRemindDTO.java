@@ -3,6 +3,7 @@ package org.dominate.achp.entity.dto;
 import com.hwja.tool.utils.RandomUtil;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 import lombok.experimental.Accessors;
 
 import java.io.Serializable;
@@ -18,6 +19,7 @@ import java.io.Serializable;
 @Getter
 @Setter
 @Accessors(chain = true)
+@ToString
 public class AppRemindDTO implements Serializable {
 
     private static final long serialVersionUID = 1L;

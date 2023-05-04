@@ -13,6 +13,12 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+/**
+ * 卡密相关包装工具
+ *
+ * @author dominate
+ * @since 2023-04-24
+ */
 public class CardWrapper {
 
     public static CardWrapper build() {

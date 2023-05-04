@@ -19,6 +19,7 @@ public interface IChatSceneService extends IService<ChatScene> {
 
     /**
      * 分页获取场景
+     *
      * @param page 分页参数
      * @return 场景列表
      */
@@ -26,10 +27,17 @@ public interface IChatSceneService extends IService<ChatScene> {
 
     /**
      * ID 列表获取场景
+     *
      * @param sceneIdList 场景ID列表
      * @return 场景列表
      */
     List<SceneDTO> list(List<Integer> sceneIdList);
 
+    /**
+     * 获取场景的系统描述
+     *
+     * @param id 场景ID
+     * @return 系统描述
+     */
     String getSystem(int id);
 }

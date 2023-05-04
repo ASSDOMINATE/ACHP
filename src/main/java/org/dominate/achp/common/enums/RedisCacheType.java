@@ -1,34 +1,34 @@
 package org.dominate.achp.common.enums;
 
 /**
- * 场景分类类型
+ * Redis 缓存类型
  *
  * @author dominate
- * @since 2023-04-12
+ * @since 2023-04-14
  */
-public enum SceneCategoryType {
+public enum RedisCacheType {
     /**
-     * 类型
+     * 缓存类型
      */
-    SCENE("场景", 1),
-    ROLE("角色", 2),
-    ;
+    SET("键值对", 1),
+    H_SET("哈希键值对", 2),
+    LIST("列表", 3);
 
     final String name;
     final int code;
 
-    SceneCategoryType(String name, int code) {
+    RedisCacheType(String name, int code) {
         this.name = name;
         this.code = code;
     }
 
-    public static SceneCategoryType getValueByCode(int code) {
-        for (SceneCategoryType value : SceneCategoryType.values()) {
+    public static RedisCacheType getValueByCode(int code) {
+        for (RedisCacheType value : RedisCacheType.values()) {
             if (code == value.code) {
                 return value;
             }
         }
-        return SCENE;
+        return SET;
     }
 
     public String getName() {

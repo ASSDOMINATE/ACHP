@@ -2,7 +2,7 @@ package org.dominate.achp.schedule;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.dominate.achp.common.cache.CardCache;
+import org.dominate.achp.common.cache.ChatCache;
 import org.dominate.achp.entity.BaseCardRecord;
 import org.dominate.achp.entity.BaseUserRecord;
 import org.dominate.achp.entity.dto.CardRecordDTO;
@@ -14,6 +14,12 @@ import org.springframework.stereotype.Component;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * 记录更新
+ *
+ * @author dominate
+ * @since 2023-04-14
+ */
 @Slf4j
 @Component
 @AllArgsConstructor
@@ -32,7 +38,7 @@ public class RecordUpdate {
     }
 
     private void updateCardRecord() {
-        long listLength = CardCache.getUpdateUserUsingLength();
+        long listLength = ChatCache.getUpdateUserUsingLength();
         if (0 == listLength) {
             return;
         }
@@ -44,7 +50,7 @@ public class RecordUpdate {
         }
         List<BaseCardRecord> updateList = new ArrayList<>(targetLength);
         for (int i = 0; i < targetLength; i++) {
-            CardRecordDTO cardRecord = CardCache.getUpdateUserUsing();
+            CardRecordDTO cardRecord = ChatCache.getUpdateUserUsing();
             BaseCardRecord update = new BaseCardRecord();
             update.setId(cardRecord.getId());
             update.setRequestCount(cardRecord.getRequestCount());
@@ -55,9 +61,8 @@ public class RecordUpdate {
     }
 
 
-
     private void updateUserRecord() {
-        long listLength = CardCache.getUpdateUserRecordLength();
+        long listLength = ChatCache.getUpdateUserDailyLength();
         if (0 == listLength) {
             return;
         }
@@ -69,7 +74,7 @@ public class RecordUpdate {
         }
         List<BaseUserRecord> updateList = new ArrayList<>(targetLength);
         for (int i = 0; i < targetLength; i++) {
-            BaseUserRecord userRecord = CardCache.getUpdateUserRecord();
+            BaseUserRecord userRecord = ChatCache.getUpdateUserDaily();
             BaseUserRecord update = new BaseUserRecord();
             update.setId(userRecord.getId());
             update.setDailyRequestCount(userRecord.getDailyRequestCount());

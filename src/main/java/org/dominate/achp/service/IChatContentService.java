@@ -16,5 +16,11 @@ import java.util.List;
  */
 public interface IChatContentService extends IService<ChatContent> {
 
+    /**
+     * 获取聊天内容列表
+     *
+     * @param contentIdList ID列表
+     * @return 聊天内容列表
+     */
     List<ContentDTO> list(List<Integer> contentIdList);
 }

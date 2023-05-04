@@ -14,8 +14,16 @@ import com.aliyuncs.sts.model.v20150401.AssumeRoleResponse;
 import com.hwja.tool.utils.LoadUtil;
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * 阿里云工具
+ *
+ * @author dominate
+ * @since 2023-04-27
+ */
 @Slf4j
-public final class ALiYunHelper {
+public final class AliYunHelper {
+
+    private static final String REGION_ID = LoadUtil.getProperty("aliyun.region-id");
 
     // 短信配置
 
@@ -32,10 +40,6 @@ public final class ALiYunHelper {
     private static final String STS_ROLE_ARN = LoadUtil.getProperty("aliyun.sts.role.arn");
     private static final String STS_ROLE_SESSION_NAME = LoadUtil.getProperty("aliyun.sts.role.session.name");
 
-    private static final String OSS_UPLOAD_DEFAULT_BUCKET = LoadUtil.getProperty("aliyun.oss.default-bucket");
-    private static final String OSS_ENDPOINT = LoadUtil.getProperty("aliyun.oss.endpoint");
-    private static final String OSS_REGION_ID = LoadUtil.getProperty("aliyun.oss.region-id");
-
     // 常量配置
 
     private static final String STS_ENDPOINT = "sts.aliyuncs.com";
@@ -45,13 +49,15 @@ public final class ALiYunHelper {
     private static final String[] DEFAULT_READ_TIMEOUT = {"sun.net.client.defaultReadTimeout", "10000"};
     private static final String SEND_SUCCESS_SIGN = "OK";
     private static final String EMPTY_PARAM = "";
+    private static final Long DURATION_SECONDS = 3600L;
 
     // 开发者无需替换
+
     private static final String PRODUCT = "Dysmsapi";
     private static final String DOMAIN = "dysmsapi.aliyuncs.com";
 
 
-    public static AssumeRoleResponse getSTSKey() throws ClientException {
+    public static AssumeRoleResponse getStsKey() throws ClientException {
         ProtocolType protocolType = ProtocolType.HTTPS;
         try {
             DefaultProfile.addEndpoint(EMPTY_PARAM, EMPTY_PARAM, STS_PRODUCT, STS_ENDPOINT);
@@ -63,7 +69,7 @@ public final class ALiYunHelper {
             request.setRoleSessionName(STS_ROLE_SESSION_NAME);
             request.setPolicy(null);
             request.setProtocol(protocolType);
-            request.setDurationSeconds(3600L);
+            request.setDurationSeconds(DURATION_SECONDS);
             return client.getAcsResponse(request);
         } catch (com.aliyun.oss.ClientException e) {
             e.printStackTrace();
@@ -78,8 +84,8 @@ public final class ALiYunHelper {
      * @param templateCode 验证码
      * @return boolean 是否发送成功
      */
-    public static boolean sendSMSForValid(String mobile, String validCode, String templateCode) throws ClientException {
-        return sendSMSForValid(mobile, validCode, templateCode, SMS_SIGN_NAME);
+    public static boolean sendSmsForValid(String mobile, String validCode, String templateCode) throws ClientException {
+        return sendSmsForValid(mobile, validCode, templateCode, SMS_SIGN_NAME);
     }
 
 
@@ -91,14 +97,14 @@ public final class ALiYunHelper {
      * @param sign         短信标签
      * @return boolean 是否发送成功
      */
-    public static boolean sendSMSForValid(String mobile, String validCode, String templateCode, String sign) throws ClientException {
+    public static boolean sendSmsForValid(String mobile, String validCode, String templateCode, String sign) throws ClientException {
         // 可自助调整超时时间
         System.setProperty(DEFAULT_CONNECT_TIMEOUT[0], DEFAULT_CONNECT_TIMEOUT[1]);
         System.setProperty(DEFAULT_READ_TIMEOUT[0], DEFAULT_READ_TIMEOUT[1]);
 
         // 初始化acsClient,暂不支持region化
-        IClientProfile profile = DefaultProfile.getProfile(OSS_REGION_ID, SMS_ACCESS_KEY_ID, SMS_SECRET);
-        DefaultProfile.addEndpoint(OSS_REGION_ID, OSS_REGION_ID, PRODUCT, DOMAIN);
+        IClientProfile profile = DefaultProfile.getProfile(REGION_ID, SMS_ACCESS_KEY_ID, SMS_SECRET);
+        DefaultProfile.addEndpoint(REGION_ID, REGION_ID, PRODUCT, DOMAIN);
         IAcsClient acsClient = new DefaultAcsClient(profile);
 
         // 组装请求对象-具体描述见控制台-文档部分内容

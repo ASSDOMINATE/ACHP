@@ -16,5 +16,10 @@ import java.util.List;
  */
 public interface IBaseCardService extends IService<BaseCard> {
 
+    /**
+     * 获取启用的付费卡密
+     *
+     * @return 付费卡密列表
+     */
     List<CardDTO> enableList();
 }

@@ -13,6 +13,12 @@ import org.dominate.achp.common.enums.GptModelType;
 import javax.validation.constraints.NotNull;
 import java.util.*;
 
+/**
+ * Chat Token 计算工具
+ *
+ * @author dominate
+ * @since 2023-04-14
+ */
 @Slf4j
 public class ChatTokenUtil {
 

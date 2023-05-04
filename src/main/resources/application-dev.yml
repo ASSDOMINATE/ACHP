@@ -18,16 +18,13 @@ spring:
 jwt:
   secret: cuAihCz53DZRjZwbsGcZJ2Ai6At+T142uphtJMsk7iQ=
 aliyun:
+  region-id: cn-hangzhou
   sms:
     key: LTAI5tMhyGF8d98SMVVdkaJN
     secret: jGzH1XoytbrufIn3QyGGgLuiVFIVdJ
     sign: 聚点互动
     temp:
       common: SMS_276095238
-  oss:
-    default-bucket: public-src
-    endpoint: http://oss-cn-beijing.aliyuncs.com
-    region-id: cn-hangzhou
   sts:
     key: LTAI029m6fkGlEDf
     secret: Bdnmuhp6ZpGXMqC3ME5X7vJBdrOWKs

@@ -68,12 +68,12 @@ public class AuthController {
     @PostMapping(path = "loginCode")
     @ResponseBody
     public Response<String> loginCode(
-            @Validated @RequestBody LoginCodeReq LoginCodeReq
+            @Validated @RequestBody LoginCodeReq loginCodeReq
     ) {
-        if (!AuthHelper.checkMobileValid(LoginCodeReq.getMobile(), LoginCodeReq.getCode())) {
+        if (!AuthHelper.checkMobileValid(loginCodeReq.getMobile(), loginCodeReq.getCode())) {
             return Response.code(ResponseType.MOBILE_VALID_CODE_ERROR);
         }
-        int accountId = userInfoService.find(LoginCodeReq.getMobile());
+        int accountId = userInfoService.find(loginCodeReq.getMobile());
         return loginAccount(accountId);
     }
 

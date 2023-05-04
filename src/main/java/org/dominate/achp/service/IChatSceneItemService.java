@@ -15,5 +15,11 @@ import java.util.List;
  */
 public interface IChatSceneItemService extends IService<ChatSceneItem> {
 
+    /**
+     * 获取指定场景的场景项列表
+     *
+     * @param sceneId 场景ID
+     * @return 场景项列表
+     */
     List<ChatSceneItem> list(int sceneId);
 }

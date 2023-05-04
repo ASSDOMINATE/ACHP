@@ -5,7 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.dominate.achp.common.cache.PayOrderCache;
 import org.dominate.achp.common.enums.PayType;
-import org.dominate.achp.common.helper.ALiPayHelper;
+import org.dominate.achp.common.helper.AliPayHelper;
 import org.dominate.achp.common.helper.WeChatPayHelper;
 import org.dominate.achp.common.utils.ApplePayUtil;
 import org.dominate.achp.entity.BaseCard;
@@ -20,6 +20,12 @@ import org.springframework.stereotype.Component;
 import java.math.BigDecimal;
 import java.util.Collection;
 
+/**
+ * 订单检查
+ *
+ * @author dominate
+ * @since 2023-04-14
+ */
 @Slf4j
 @Component
 @AllArgsConstructor
@@ -102,7 +108,7 @@ public class OrderCheck {
                     return true;
                 case ALIPAY:
                     // 校验金额
-                    ALiPayHelper.verifyPayOrder(payOrder.getSysOrderCode(), targetBalance);
+                    AliPayHelper.verifyPayOrder(payOrder.getSysOrderCode(), targetBalance);
                     return true;
                 case WECHAT:
                 case WECHAT_NATIVE:

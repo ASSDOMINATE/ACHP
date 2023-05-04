@@ -2,6 +2,7 @@ package org.dominate.achp.entity.dto;
 
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 import lombok.experimental.Accessors;
 
 import java.io.Serializable;
@@ -18,6 +19,7 @@ import java.math.BigDecimal;
 @Getter
 @Setter
 @Accessors(chain = true)
+@ToString
 public class CardDTO implements Serializable {
 
     private static final long serialVersionUID = 1L;

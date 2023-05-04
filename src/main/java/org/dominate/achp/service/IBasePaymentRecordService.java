@@ -15,5 +15,12 @@ import org.dominate.achp.entity.dto.PayOrderDTO;
  */
 public interface IBasePaymentRecordService extends IService<BasePaymentRecord> {
 
+    /**
+     * 保存支付信息
+     *
+     * @param payOrder 支付订单信息
+     * @param card     支付卡密信息
+     * @return 保存ID，返回0为保存失败
+     */
     int save(PayOrderDTO payOrder, BaseCard card);
 }

@@ -3,11 +3,15 @@ package org.dominate.achp.common.enums;
 import java.math.BigDecimal;
 
 /**
- * 会员付费类型
+ * 支付类型
  *
  * @author dominate
+ * @since 2023-04-19
  */
 public enum PayType {
+    /**
+     * 三方支付
+     */
     NONE("无", 0),
     ALIPAY("支付宝", 1),
     WECHAT("微信", 2),

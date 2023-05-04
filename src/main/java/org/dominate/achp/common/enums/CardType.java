@@ -1,5 +1,11 @@
 package org.dominate.achp.common.enums;
 
+/**
+ * 卡密类型枚举
+ *
+ * @author dominate
+ * @since 2023-04-13
+ */
 public enum CardType {
     /**
      * 卡密类型

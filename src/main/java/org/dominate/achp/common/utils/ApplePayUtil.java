@@ -10,6 +10,12 @@ import org.dominate.achp.sys.exception.BusinessException;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * 苹果支付工具
+ *
+ * @author dominate
+ * @since 2023-04-27
+ */
 @Slf4j
 public class ApplePayUtil {
 

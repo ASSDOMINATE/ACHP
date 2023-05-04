@@ -23,6 +23,12 @@ import java.net.UnknownHostException;
 import java.security.KeyStore;
 import java.util.*;
 
+/**
+ * 微信支付工具
+ *
+ * @author dominate
+ * @since 2023-04-27
+ */
 @Slf4j
 public final class WeChatPayHelper {
 
@@ -68,7 +74,7 @@ public final class WeChatPayHelper {
     private static final SSLContext SSL_CONTEXT;
 
     static {
-        SSL_CONTEXT = loadSSLCertFile();
+        SSL_CONTEXT = loadSslCertFile();
         IP_ADDRESS = getIpAddress();
     }
 
@@ -77,7 +83,7 @@ public final class WeChatPayHelper {
      *
      * @return
      */
-    private static SSLContext loadSSLCertFile() {
+    private static SSLContext loadSslCertFile() {
         try (FileInputStream inStream = new FileInputStream(CERT_FILE_PATH)) {
             KeyStore keyStore = KeyStore.getInstance(SSL_KEY_INSTANCE);
             keyStore.load(inStream, MCH_ID.toCharArray());
@@ -119,7 +125,7 @@ public final class WeChatPayHelper {
         String[] values = {MCH_ID, APP_ID, tradeType, WX_PAY_CALLBACK, payTitle, parseParamPrice(payNum), uniqueOrderCode, nonceStr, IP_ADDRESS};
         try {
             String response = sendRequest(CREATE_ORDER_URL, CREATE_PAY_ORDER_FOR_APP_KEYS, values);
-            Map<String, Object> resultMap = WeChatPayHelper.parseXML(response);
+            Map<String, Object> resultMap = WeChatPayHelper.parseXml(response);
             String returnCode = (String) resultMap.get(RESULT_TYPE);
             if (!RESULT_SUCCESS.equals(returnCode)) {
                 return null;
@@ -142,20 +148,20 @@ public final class WeChatPayHelper {
      * 查询订单
      *
      * @param uniqueOrderCode 唯一订单号
-     *
-     * 未抛出异常则检查通过
-     * key:trade_state, value:SUCCESS—支付成功/REFUND—转入退款/NOTPAY—未支付/CLOSED—已关闭/REVOKED—已撤销（刷卡支付）/USERPAYING--用户支付中/PAYERROR--支付失败(其他原因，如银行返回失败)
-     * key:total_fee, value:0.00
+     *                        <p>
+     *                        未抛出异常则检查通过
+     *                        key:trade_state, value:SUCCESS—支付成功/REFUND—转入退款/NOTPAY—未支付/CLOSED—已关闭/REVOKED—已撤销（刷卡支付）/USERPAYING--用户支付中/PAYERROR--支付失败(其他原因，如银行返回失败)
+     *                        key:total_fee, value:0.00
      */
     public static void verifyPayOrder(String uniqueOrderCode, BigDecimal balance) {
         String nonceStr = createNonceStr();
         String[] values = {MCH_ID, APP_ID, uniqueOrderCode, nonceStr};
         String response = sendRequest(QUERY_ORDER_URL, QUERY_PAY_ORDER_KEYS, values);
-        Map<String, Object> responseMap = parseXML(response);
+        Map<String, Object> responseMap = parseXml(response);
         if (!isSuccess(responseMap)) {
             throw BusinessException.create(ExceptionType.PAY_NOT_COMPLETED);
         }
-        if(!responseMap.get(TRADE_STATE).equals(RESULT_SUCCESS)){
+        if (!responseMap.get(TRADE_STATE).equals(RESULT_SUCCESS)) {
             throw BusinessException.create(ExceptionType.PAY_NOT_COMPLETED);
         }
         if (balance.compareTo(parsePayNum(responseMap)) != 0) {
@@ -177,7 +183,7 @@ public final class WeChatPayHelper {
     public static String refundPayOrder(String uniqueOrderCode, String refundOrderCode, int totalFee, int refundFee) {
         String firstResponse = refundPayOrder(uniqueOrderCode, refundOrderCode, totalFee, refundFee, REFUND_TYPE_UNSETTLED);
 
-        Map<String, Object> firstResponseMap = parseXML(firstResponse);
+        Map<String, Object> firstResponseMap = parseXml(firstResponse);
         if (isSuccess(firstResponseMap)) {
             return firstResponse;
         }
@@ -221,7 +227,7 @@ public final class WeChatPayHelper {
      * @return 是否成功
      */
     public static boolean isSuccess(String resultXml) {
-        return RESULT_SUCCESS.equals(parseXML(resultXml).get(RESULT_TYPE));
+        return RESULT_SUCCESS.equals(parseXml(resultXml).get(RESULT_TYPE));
     }
 
     /**
@@ -261,8 +267,8 @@ public final class WeChatPayHelper {
     }
 
 
-    private static Map<String, Object> parseXML(String xml) {
-        Map<String, Object> map = new HashMap<>();
+    private static Map<String, Object> parseXml(String xml) {
+        Map<String, Object> map = new HashMap<>(8);
         Document doc;
         try {
             doc = DocumentHelper.parseText(xml);
@@ -308,7 +314,7 @@ public final class WeChatPayHelper {
      * @param values 值数组
      * @return XML字符串
      */
-    private static String formatRequestXML(String[] keys, String[] values) {
+    private static String formatRequestXml(String[] keys, String[] values) {
         assert keys.length == values.length;
 
         Map<String, String> paramMap = new HashMap<>(keys.length);
@@ -346,9 +352,9 @@ public final class WeChatPayHelper {
      * @param values
      * @return
      */
-    private static String sendRequest(String url, String[] keys, String[] values, boolean useSSL) {
-        String xml = formatRequestXML(keys, values);
-        if (useSSL) {
+    private static String sendRequest(String url, String[] keys, String[] values, boolean useSsl) {
+        String xml = formatRequestXml(keys, values);
+        if (useSsl) {
             return HttpUtil.sendPostWithSsl(url, xml, SSL_CONTEXT);
         }
         return HttpUtil.sendPost(url, xml);

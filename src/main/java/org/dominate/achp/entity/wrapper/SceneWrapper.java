@@ -11,13 +11,19 @@ import org.dominate.achp.entity.dto.SceneInfoDTO;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * 场景相关包装工具
+ *
+ * @author dominate
+ * @since 2023-04-14
+ */
 public class SceneWrapper {
 
     public static SceneWrapper build() {
         return new SceneWrapper();
     }
 
-    public SceneInfoDTO entityInfoDTO(ChatScene entity){
+    public SceneInfoDTO entityInfoDTO(ChatScene entity) {
         SceneInfoDTO dto = new SceneInfoDTO();
         setScene(dto, entity);
         dto.setNotice(entity.getNotice());
@@ -75,4 +81,4 @@ public class SceneWrapper {
         return dtoList;
     }
 
-    }
+}

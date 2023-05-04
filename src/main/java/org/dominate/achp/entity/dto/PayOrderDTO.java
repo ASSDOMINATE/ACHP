@@ -59,7 +59,6 @@ public class PayOrderDTO implements Serializable {
     public PayOrderDTO(){}
 
     public PayOrderDTO(PayReq payReq) {
-        this.sysOrderCode = payReq.getOrderCode();
         this.cardId = payReq.getCardId();
         this.payType = payReq.getPayType();
         this.auth = payReq.getAuth();

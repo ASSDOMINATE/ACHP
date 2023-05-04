@@ -2,6 +2,7 @@ package org.dominate.achp.entity.dto;
 
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 import lombok.experimental.Accessors;
 import org.dominate.achp.entity.ChatSceneCategory;
 import org.dominate.achp.entity.ChatSceneConf;
@@ -20,6 +21,7 @@ import java.io.Serializable;
 @Getter
 @Setter
 @Accessors(chain = true)
+@ToString
 public class SceneInfoDTO extends SceneDTO implements Serializable {
 
     private static final long serialVersionUID = 1L;

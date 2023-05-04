@@ -4,7 +4,7 @@ import lombok.AllArgsConstructor;
 import org.dominate.achp.common.cache.PayOrderCache;
 import org.dominate.achp.common.enums.ExceptionType;
 import org.dominate.achp.common.enums.PayType;
-import org.dominate.achp.common.helper.ALiPayHelper;
+import org.dominate.achp.common.helper.AliPayHelper;
 import org.dominate.achp.common.helper.AuthHelper;
 import org.dominate.achp.common.helper.WeChatPayHelper;
 import org.dominate.achp.common.utils.ApplePayUtil;
@@ -18,6 +18,7 @@ import org.dominate.achp.entity.dto.PayResultDTO;
 import org.dominate.achp.entity.req.ExchangeReq;
 import org.dominate.achp.entity.req.PayOrderReq;
 import org.dominate.achp.entity.req.PayReq;
+import org.dominate.achp.service.CardService;
 import org.dominate.achp.service.IBaseCardRecordService;
 import org.dominate.achp.service.IBaseCardService;
 import org.dominate.achp.service.IBasePaymentRecordService;
@@ -37,6 +38,8 @@ import java.util.Optional;
 @RequestMapping("/card")
 @AllArgsConstructor
 public class ApiCardController {
+
+    private final CardService cardService;
 
     private final IBaseCardService baseCardService;
     private final IBaseCardRecordService baseCardRecordService;
@@ -65,7 +68,7 @@ public class ApiCardController {
             @RequestHeader String token
     ) {
         int accountId = AuthHelper.parseWithValidForId(token);
-        CardRecordDTO record = baseCardRecordService.checkUserRecord(accountId);
+        CardRecordDTO record = cardService.checkUserRecord(accountId);
         String waitRecordInfo = baseCardRecordService.getRecordWaitInfo(accountId);
         record.setInfo(record.getInfo() + waitRecordInfo);
         return Response.data(record);
@@ -96,6 +99,7 @@ public class ApiCardController {
         payResult.setSysOrderCode(sysOrderCode);
         PayOrderDTO payOrder = new PayOrderDTO(payReq);
         payOrder.setAccountId(accountId);
+        payOrder.setSysOrderCode(sysOrderCode);
         payOrder.setPartyOrderCode(payResult.getPartyOrderCode());
         PayOrderCache.save(payOrder);
         return Response.data(payResult);
@@ -125,6 +129,7 @@ public class ApiCardController {
         payReq.setOrderCode(sysOrderCode);
         PayOrderDTO payOrder = new PayOrderDTO(payReq);
         payOrder.setAccountId(accountId);
+        payOrder.setSysOrderCode(sysOrderCode);
         payOrder.setPartyOrderCode(partyOrderCode);
         PayOrderCache.save(payOrder);
         return Response.data(partyOrderCode);
@@ -140,6 +145,7 @@ public class ApiCardController {
         String sysOrderCode = UniqueCodeUtil.createPayOrder(payReq.getPayType());
         PayOrderDTO order = new PayOrderDTO(payReq);
         order.setAccountId(accountId);
+        order.setPartyOrderCode(payReq.getOrderCode());
         order.setSysOrderCode(sysOrderCode);
         PayOrderCache.save(order);
         return Response.success();
@@ -166,7 +172,7 @@ public class ApiCardController {
                 break;
             case ALIPAY:
                 // 校验金额
-                ALiPayHelper.verifyPayOrder(cacheOrder.getPartyOrderCode(), card.getBalance());
+                AliPayHelper.verifyPayOrder(cacheOrder.getPartyOrderCode(), card.getBalance());
                 break;
             case WECHAT:
             case WECHAT_NATIVE:
@@ -200,7 +206,7 @@ public class ApiCardController {
             throw BusinessException.create(ExceptionType.NOT_FOUND_CARD);
         }
         try {
-            baseCardRecordService.checkUserRecord(accountId);
+            cardService.checkUserRecord(accountId);
             throw BusinessException.create(ExceptionType.HAS_CARD_BINDING);
         } catch (BusinessException e) {
             // 检查记录状态出现异常代表没有可以用的卡

@@ -8,6 +8,12 @@ import org.dominate.achp.entity.dto.GroupDTO;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * 对话相关包装类型
+ *
+ * @author dominate
+ * @since 2023-04-14
+ */
 public class ChatWrapper {
 
     public static ChatWrapper build() {
