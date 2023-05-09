@@ -59,6 +59,9 @@ public class ChatSceneConf implements Serializable {
     @TableField("seq")
     private Integer seq;
 
+    @TableField("item_type")
+    private Integer itemType;
+
     @TableField("create_time")
     private Date createTime;
 

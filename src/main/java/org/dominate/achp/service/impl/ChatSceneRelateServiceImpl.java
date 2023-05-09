@@ -29,6 +29,7 @@ public class ChatSceneRelateServiceImpl extends ServiceImpl<ChatSceneRelateMappe
         query.lambda().eq(ChatSceneRelate::getCategoryId, categoryId)
                 .eq(ChatSceneRelate::getDel, false)
                 .select(ChatSceneRelate::getSceneId)
+                .orderByDesc(ChatSceneRelate::getId)
                 .last(SqlUtil.pageLimit(page.getSize(), page.getPage()));
         List<ChatSceneRelate> relateList = list(query);
         List<Integer> sceneIdList = new ArrayList<>(relateList.size());

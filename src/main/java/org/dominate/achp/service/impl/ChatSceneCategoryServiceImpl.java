@@ -28,7 +28,7 @@ public class ChatSceneCategoryServiceImpl extends ServiceImpl<ChatSceneCategoryM
     @Override
     public List<SceneCategoryDTO> enabledList() {
         QueryWrapper<ChatSceneCategory> query = new QueryWrapper<>();
-        query.lambda().eq(ChatSceneCategory::getDel, false);
+        query.lambda().eq(ChatSceneCategory::getDel, false).orderByAsc(ChatSceneCategory::getSeq);
         List<ChatSceneCategory> categoryList = list(query);
         return SceneWrapper.build().entityCategoryDTO(categoryList);
     }
@@ -40,7 +40,8 @@ public class ChatSceneCategoryServiceImpl extends ServiceImpl<ChatSceneCategoryM
         }
         QueryWrapper<ChatSceneCategory> query = new QueryWrapper<>();
         query.lambda().in(ChatSceneCategory::getId, ids)
-                .eq(ChatSceneCategory::getDel, false);
+                .eq(ChatSceneCategory::getDel, false)
+                .orderByAsc(ChatSceneCategory::getSeq);
         return list(query);
     }
 }

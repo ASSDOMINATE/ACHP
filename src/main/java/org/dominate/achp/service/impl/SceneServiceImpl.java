@@ -1,6 +1,8 @@
 package org.dominate.achp.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
+import com.hwja.tool.utils.SqlUtil;
 import com.hwja.tool.utils.StringUtil;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -72,6 +74,10 @@ public class SceneServiceImpl implements SceneService {
         List<ChatSceneConf> confList = chatSceneConfService.list(sendScene.getSceneId());
         StringBuilder content = new StringBuilder();
         for (ChatSceneConf conf : confList) {
+            // 排序数为0 或为展示类型 不进行拼接
+            if (0 == conf.getSeq() || SceneItemType.isExplain(conf.getItemType())) {
+                continue;
+            }
             if (StringUtil.isNotEmpty(conf.getStart())) {
                 content.append(conf.getStart());
             }
@@ -126,12 +132,42 @@ public class SceneServiceImpl implements SceneService {
         if (CollectionUtils.isEmpty(delCategoryIdList)) {
             return true;
         }
-        List<Integer> delIdList = new ArrayList<>(delCategoryIdList.size());
+        List<ChatSceneRelate> delRelateList = new ArrayList<>(delCategoryIdList.size());
         for (ChatSceneRelate relate : oldRelateIdList) {
             if (delCategoryIdList.contains(relate.getCategoryId())) {
-                delIdList.add(relate.getId());
+                ChatSceneRelate delRelate = new ChatSceneRelate();
+                delRelate.setId(relate.getId());
+                delRelate.setDel(true);
+                delRelate.setUpdateBy(accountId);
+                delRelateList.add(delRelate);
             }
         }
-        return chatSceneRelateService.removeByIds(delIdList);
+        return chatSceneRelateService.updateBatchById(delRelateList);
+    }
+
+    @Override
+    public boolean setSceneRelateFirst(int sceneId, int categoryId, int accountId) {
+        QueryWrapper<ChatSceneRelate> query = new QueryWrapper<>();
+        query.lambda().eq(ChatSceneRelate::getSceneId, sceneId)
+                .eq(ChatSceneRelate::getCategoryId, categoryId)
+                .last(SqlUtil.limitOne());
+        ChatSceneRelate relate = chatSceneRelateService.getOne(query);
+        if (null == relate) {
+            return false;
+        }
+        ChatSceneRelate delRelate = new ChatSceneRelate();
+        delRelate.setId(relate.getId());
+        delRelate.setDel(true);
+        delRelate.setUpdateBy(accountId);
+        if (!chatSceneRelateService.updateById(delRelate)) {
+            return false;
+        }
+        ChatSceneRelate insert = new ChatSceneRelate();
+        relate.setSceneId(sceneId);
+        relate.setCategoryId(categoryId);
+        relate.setCategoryType(relate.getCategoryType());
+        relate.setCreateBy(relate.getCreateBy());
+        relate.setUpdateBy(accountId);
+        return chatSceneRelateService.save(insert);
     }
 }

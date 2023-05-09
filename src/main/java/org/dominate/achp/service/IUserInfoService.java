@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.extension.service.IService;
 import org.dominate.achp.common.enums.ExistedType;
 import org.dominate.achp.entity.UserInfo;
 import org.dominate.achp.entity.dto.UserDTO;
+import org.dominate.achp.entity.dto.UserInfoDTO;
 import org.dominate.achp.entity.req.InfoReq;
 
 import java.util.Collection;
@@ -35,7 +36,7 @@ public interface IUserInfoService extends IService<UserInfo> {
      * @param keyword 关键字
      * @return 用户列表
      */
-    List<UserDTO> search(String keyword);
+    List<UserInfoDTO> search(String keyword);
 
     /**
      * 保存用户信息 根据AccountId判断是否为更新

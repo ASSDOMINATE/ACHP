@@ -18,6 +18,7 @@ import org.dominate.achp.sys.Response;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -113,6 +114,16 @@ public class SceneController {
         return Response.success();
     }
 
+    @PostMapping(path = "setCategoryFirst")
+    @ResponseBody
+    public Response<Boolean> setCategoryFirst(
+            @RequestHeader(name = "token", required = false) String token,
+            @RequestBody @Validated SetRelateReq setCategoryReq
+    ) {
+        int accountId = AuthHelper.parseWithValidAdminForId(token);
+        return Response.data(sceneService.setSceneRelateFirst(setCategoryReq.getSceneId(), setCategoryReq.getCategoryId(), accountId));
+    }
+
 
     @PostMapping(path = "setRecommend")
     @ResponseBody
@@ -197,21 +208,25 @@ public class SceneController {
     }
 
     private void saveItemAndConfig(SceneInfoReq infoReq, int accountId) {
-        // 不会数量很多，暂先用循环添加
-        // TODO 可优化
+        List<ChatSceneItem> itemSaveList = new ArrayList<>(infoReq.getItems().length);
+        List<ChatSceneConf> configSaveList = new ArrayList<>(infoReq.getConfigs().length);
         for (int i = 0; i < infoReq.getItems().length; i++) {
             ChatSceneItem item = infoReq.getItems()[i];
             item.setSceneId(infoReq.getId());
             item.setCreateBy(accountId);
             item.setUpdateBy(accountId);
-            chatSceneItemService.save(item);
+            itemSaveList.add(item);
+
             ChatSceneConf config = infoReq.getConfigs()[i];
             config.setSceneId(infoReq.getId());
-            config.setItemId(item.getId());
             config.setCreateBy(accountId);
             config.setUpdateBy(accountId);
-            chatSceneConfService.save(config);
+            config.setItemType(item.getType());
+            config.setItemId(item.getId());
+            configSaveList.add(config);
         }
+        chatSceneItemService.saveBatch(itemSaveList);
+        chatSceneConfService.saveBatch(configSaveList);
     }
 
 

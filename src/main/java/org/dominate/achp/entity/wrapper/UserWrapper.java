@@ -4,6 +4,7 @@ import org.dominate.achp.entity.UserBind;
 import org.dominate.achp.entity.UserInfo;
 import org.dominate.achp.entity.dto.UserBindDTO;
 import org.dominate.achp.entity.dto.UserDTO;
+import org.dominate.achp.entity.dto.UserInfoDTO;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -31,6 +32,22 @@ public class UserWrapper {
         dto.setName(entity.getName());
         dto.setIdentity(entity.getIdentity());
         dto.setState(entity.getState());
+    }
+
+    public UserInfoDTO entityInfoDTO(UserInfo entity) {
+        UserInfoDTO dto = new UserInfoDTO();
+        setDTO(dto, entity);
+        dto.setCreateTime(entity.getCreateTime());
+        dto.setUpdateTime(entity.getUpdateTime());
+        return dto;
+    }
+
+    public List<UserInfoDTO> entityInfoDTO(List<UserInfo> entityList) {
+        List<UserInfoDTO> list = new ArrayList<>(entityList.size());
+        for (UserInfo entity : entityList) {
+            list.add(entityInfoDTO(entity));
+        }
+        return list;
     }
 
     public UserDTO entityDTO(UserInfo entity) {

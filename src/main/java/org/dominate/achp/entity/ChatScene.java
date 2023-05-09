@@ -75,6 +75,12 @@ public class ChatScene implements Serializable {
     @TableField("chat_count")
     private Integer chatCount;
 
+    @TableField("for_recommend")
+    private Boolean forRecommend;
+
+    @TableField("seq")
+    private Integer seq;
+
     @TableField("create_time")
     private Date createTime;
 

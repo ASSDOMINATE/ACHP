@@ -28,7 +28,6 @@ import java.util.List;
 @AllArgsConstructor
 public class ApiSceneController {
 
-    private final ChatService chatService;
     private final SceneService sceneService;
 
     private final IChatRecordService chatRecordService;

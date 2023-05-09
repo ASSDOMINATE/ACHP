@@ -25,6 +25,8 @@ public enum SceneItemType {
     SINGLE_SELECT("单选", 3, new SceneItemSelectDTO()),
 
     WORDS_LIMIT("字数限制", 4, new SceneItemLimitDTO()),
+
+    EXPLAIN("说明", 5, new SceneItemInputDTO()),
     ;
 
     final String name;
@@ -35,6 +37,10 @@ public enum SceneItemType {
         this.name = name;
         this.code = code;
         this.item = item;
+    }
+
+    public static boolean isExplain(int code){
+        return EXPLAIN.code == code;
     }
 
     public static SceneItemType getValueByCode(int code) {

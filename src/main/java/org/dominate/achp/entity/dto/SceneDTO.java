@@ -57,6 +57,8 @@ public class SceneDTO implements Serializable {
      */
     private Integer chatCount;
 
+    private Boolean forRecommend;
+
 
 
 

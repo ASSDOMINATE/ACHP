@@ -1,5 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="org.dominate.achp.mapper.ChatRecordMapper">
-
+    <select id="getUserLatestSceneIdList" resultType="Integer" parameterType="java.lang.Integer">
+        SELECT t.scene_id
+        FROM (SELECT cr.scene_id
+              FROM chat_record cr
+              WHERE cr.scene_id > 0
+                AND cr.account_id = #{accountId}
+              ORDER BY cr.id DESC) t
+        GROUP BY t.scene_id
+            LIMIT #{limit}, #{size};
+    </select>
 </mapper>

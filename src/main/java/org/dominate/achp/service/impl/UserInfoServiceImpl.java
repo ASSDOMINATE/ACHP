@@ -13,6 +13,7 @@ import org.dominate.achp.common.enums.SexType;
 import org.dominate.achp.common.enums.UserState;
 import org.dominate.achp.entity.UserInfo;
 import org.dominate.achp.entity.dto.UserDTO;
+import org.dominate.achp.entity.dto.UserInfoDTO;
 import org.dominate.achp.entity.req.InfoReq;
 import org.dominate.achp.entity.wrapper.UserWrapper;
 import org.dominate.achp.mapper.UserInfoMapper;
@@ -69,7 +70,7 @@ public class UserInfoServiceImpl extends ServiceImpl<UserInfoMapper, UserInfo> i
     }
 
     @Override
-    public List<UserDTO> search(String keyword) {
+    public List<UserInfoDTO> search(String keyword) {
         List<UserInfo> infoList = new ArrayList<>(SqlConstants.SEARCH_LIMIT);
         List<Integer> infoIdList = new ArrayList<>(SqlConstants.SEARCH_LIMIT);
         for (SFunction<UserInfo, ?> function : SEARCH_FUNCTION) {
@@ -82,10 +83,10 @@ public class UserInfoServiceImpl extends ServiceImpl<UserInfoMapper, UserInfo> i
                 infoIdList.add(info.getAccountId());
             }
             if (SqlConstants.SEARCH_LIMIT <= infoList.size()) {
-                return UserWrapper.build().entityDTO(infoList);
+                return UserWrapper.build().entityInfoDTO(infoList);
             }
         }
-        return UserWrapper.build().entityDTO(infoList);
+        return UserWrapper.build().entityInfoDTO(infoList);
     }
 
     @Override
@@ -178,7 +179,9 @@ public class UserInfoServiceImpl extends ServiceImpl<UserInfoMapper, UserInfo> i
             return Collections.emptyList();
         }
         QueryWrapper<UserInfo> query = new QueryWrapper<>();
-        query.lambda().eq(filterLeave, UserInfo::getState, UserState.NORMAL.getCode()).ge(UserInfo::getId, latestId).last(SqlUtil.indexLimit(size, 0));
+        query.lambda().eq(filterLeave, UserInfo::getState, UserState.NORMAL.getCode())
+                .ge(UserInfo::getId, latestId)
+                .last(SqlUtil.indexLimit(size, 0));
         return UserWrapper.build().entityDTO(list(query));
     }
 

@@ -7,6 +7,8 @@ import org.dominate.achp.sys.exception.BusinessException;
 import org.springframework.validation.BindException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingRequestHeaderException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -32,8 +34,20 @@ public class GlobalExceptionHandler {
         return Response.code(ResponseType.SERVER_ERROR);
     }
 
+    @ExceptionHandler(MissingRequestHeaderException.class)
+    public Response<String> bindExceptionHandler(MissingRequestHeaderException e) {
+        log.warn("请求头缺少: {}", e.getMessage());
+        return Response.error(e.getMessage());
+    }
+
+    @ExceptionHandler(MissingServletRequestParameterException.class)
+    public Response<String> bindExceptionHandler(MissingServletRequestParameterException e) {
+        log.warn("请求参数缺少: {}", e.getMessage());
+        return Response.error(e.getMessage());
+    }
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public Response<String> handleBindException(MethodArgumentNotValidException ex) {
+    public Response<String> bindExceptionHandler(MethodArgumentNotValidException ex) {
         FieldError fieldError = ex.getBindingResult().getFieldError();
         if (null == fieldError) {
             return Response.failed();
@@ -43,7 +57,7 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(BindException.class)
-    public Response<String> handleBindException(BindException ex) {
+    public Response<String> bindExceptionHandler(BindException ex) {
         FieldError fieldError = ex.getBindingResult().getFieldError();
         if (null == fieldError) {
             return Response.failed();
@@ -53,7 +67,7 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(BusinessException.class)
-    public Response<String> handleBindException(BusinessException ex) {
+    public Response<String> bindExceptionHandler(BusinessException ex) {
         return Response.failed(ex);
     }
 }

@@ -1,12 +1,17 @@
 package org.dominate.achp.controller;
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.hwja.tool.utils.SqlUtil;
+import com.hwja.tool.utils.StringUtil;
 import lombok.AllArgsConstructor;
 import org.dominate.achp.common.enums.UserState;
 import org.dominate.achp.common.helper.AuthHelper;
 import org.dominate.achp.entity.UserInfo;
 import org.dominate.achp.entity.dto.UserDTO;
+import org.dominate.achp.entity.dto.UserInfoDTO;
 import org.dominate.achp.entity.req.IdReq;
 import org.dominate.achp.entity.req.PageReq;
+import org.dominate.achp.entity.wrapper.UserWrapper;
 import org.dominate.achp.service.IUserAccountService;
 import org.dominate.achp.service.IUserInfoService;
 import org.dominate.achp.service.IUserRoleBindService;
@@ -16,6 +21,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @author dominate
@@ -33,26 +39,29 @@ public class UserController {
 
     @GetMapping(path = "list")
     @ResponseBody
-    public Response<List<UserDTO>> list(
+    public Response<List<UserInfoDTO>> list(
             @RequestHeader(name = "token", required = false) String token,
             @Validated PageReq page
     ) {
         AuthHelper.checkAdminUser(token);
-        List<UserDTO> userList = userInfoService.getDTOList(page.getIndex(), page.getSize(), false);
-        setAdmin(userList);
-        return Response.data(userList);
+
+        QueryWrapper<UserInfo> query = new QueryWrapper<>();
+        query.lambda().orderByDesc(UserInfo::getId)
+                .last(SqlUtil.pageLimit(page.getSize(), page.getPage()));
+        List<UserInfoDTO> userInfoList = UserWrapper.build().entityInfoDTO(userInfoService.list(query));
+        setAdmin(userInfoList);
+        return Response.data(userInfoList);
     }
 
 
     @GetMapping(path = "search")
     @ResponseBody
-    public Response<List<UserDTO>> list(
+    public Response<List<UserInfoDTO>> list(
             @RequestHeader(name = "token", required = false) String token,
             @RequestParam String keyword
-
     ) {
         AuthHelper.checkAdminUser(token);
-        List<UserDTO> userList = userInfoService.search(keyword);
+        List<UserInfoDTO> userList = userInfoService.search(keyword);
         setAdmin(userList);
         return Response.data(userList);
     }
@@ -73,13 +82,34 @@ public class UserController {
         return Response.success();
     }
 
-    private void setAdmin(List<UserDTO> userList) {
+    @GetMapping(path = "adminList")
+    @ResponseBody
+    public Response<List<UserInfoDTO>> adminList(
+            @RequestHeader(name = "token", required = false) String token,
+            @RequestParam(name = "keyword", required = false, defaultValue = "") String keyword,
+            @Validated PageReq page
+    ) {
+        AuthHelper.checkAdminUser(token);
+        if (StringUtil.isNotEmpty(keyword)) {
+            List<UserInfoDTO> userList = userInfoService.search(keyword);
+            setAdmin(userList);
+            return Response.data(userList.stream().filter(UserDTO::getIsAdmin).collect(Collectors.toList()));
+        }
+        List<Integer> accountIdList = userRoleBindService.roleUserList(AuthHelper.ADMIN_ROLE_ID, page.getIndex(), page.getSize());
+        QueryWrapper<UserInfo> query = new QueryWrapper<>();
+        query.lambda().in(UserInfo::getAccountId, accountIdList);
+        List<UserInfoDTO> userList = UserWrapper.build().entityInfoDTO(userInfoService.list(query));
+        return Response.data(userList);
+    }
+
+
+    private void setAdmin(List<UserInfoDTO> userList) {
         List<Integer> accountIdList = new ArrayList<>(userList.size());
-        for (UserDTO user : userList) {
+        for (UserInfoDTO user : userList) {
             accountIdList.add(user.getAccountId());
         }
         List<Integer> adminIdList = userRoleBindService.hasRoleUserList(AuthHelper.ADMIN_ROLE_ID, accountIdList);
-        for (UserDTO user : userList) {
+        for (UserInfoDTO user : userList) {
             user.setIsAdmin(adminIdList.contains(user.getAccountId()));
         }
     }

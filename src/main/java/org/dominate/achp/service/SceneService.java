@@ -39,4 +39,6 @@ public interface SceneService {
      * @return 是否保存成功
      */
     boolean saveSceneRelate(int sceneId, List<Integer> categoryIdList, int accountId);
+
+    boolean setSceneRelateFirst(int sceneId,int categoryId,int accountId);
 }

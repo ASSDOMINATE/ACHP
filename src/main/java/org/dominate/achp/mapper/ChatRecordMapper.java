@@ -1,7 +1,10 @@
 package org.dominate.achp.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import org.apache.ibatis.annotations.Param;
 import org.dominate.achp.entity.ChatRecord;
+
+import java.util.List;
 
 /**
  * <p>
@@ -13,4 +16,5 @@ import org.dominate.achp.entity.ChatRecord;
  */
 public interface ChatRecordMapper extends BaseMapper<ChatRecord> {
 
+    List<Integer> getUserLatestSceneIdList(@Param("accountId") Integer accountId, @Param("limit") Integer limit, @Param("size") Integer size);
 }
