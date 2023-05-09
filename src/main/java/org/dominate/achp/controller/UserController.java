@@ -99,6 +99,9 @@ public class UserController {
         QueryWrapper<UserInfo> query = new QueryWrapper<>();
         query.lambda().in(UserInfo::getAccountId, accountIdList);
         List<UserInfoDTO> userList = UserWrapper.build().entityInfoDTO(userInfoService.list(query));
+        for (UserInfoDTO info : userList) {
+            info.setIsAdmin(true);
+        }
         return Response.data(userList);
     }
 

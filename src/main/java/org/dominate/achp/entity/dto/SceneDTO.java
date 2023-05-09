@@ -59,6 +59,8 @@ public class SceneDTO implements Serializable {
 
     private Boolean forRecommend;
 
+    private Integer seq;
+
 
 
 

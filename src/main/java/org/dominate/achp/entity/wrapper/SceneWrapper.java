@@ -46,6 +46,7 @@ public class SceneWrapper {
         dto.setReadCount(entity.getReadCount());
         dto.setSendCount(entity.getSendCount());
         dto.setForRecommend(entity.getForRecommend());
+        dto.setSeq(entity.getSeq());
     }
 
     public SceneDetailDTO entityDetailDTO(ChatScene entity) {
