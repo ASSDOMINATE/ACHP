@@ -84,6 +84,7 @@ public class SceneController {
         int accountId = AuthHelper.parseWithValidAdminForId(token);
         ChatScene saveScene = new ChatScene();
         saveScene.setTitle(infoReq.getTitle());
+        saveScene.setSeq(infoReq.getSeq());
         saveScene.setDesr(infoReq.getDesr());
         saveScene.setNotice(infoReq.getNotice());
         saveScene.setDel(infoReq.getDel());
@@ -142,8 +143,31 @@ public class SceneController {
             @RequestHeader(name = "token", required = false) String token,
             @RequestBody @Validated IdReq idReq
     ) {
-        AuthHelper.checkAdminUser(token);
+        int accountId = AuthHelper.parseWithValidAdminForId(token);
         RecommendCache.addSceneIdList(idReq.getId());
+        ChatScene update = new ChatScene();
+        update.setId(idReq.getId());
+        update.setForRecommend(true);
+        update.setUpdateBy(accountId);
+        chatSceneService.updateById(update);
+        return Response.success();
+    }
+
+    @PostMapping(path = "removeRecommend")
+    @ResponseBody
+    public Response<Boolean> removeRecommend(
+            @RequestHeader(name = "token", required = false) String token,
+            @RequestBody @Validated IdReq idReq
+    ) {
+        int accountId = AuthHelper.parseWithValidAdminForId(token);
+        List<Integer> idList = RecommendCache.getSceneIdList();
+        idList.remove(idReq.getId());
+        RecommendCache.updateSceneIdList(idList);
+        ChatScene update = new ChatScene();
+        update.setId(idReq.getId());
+        update.setForRecommend(false);
+        update.setUpdateBy(accountId);
+        chatSceneService.updateById(update);
         return Response.success();
     }
 
@@ -175,6 +199,7 @@ public class SceneController {
     ) {
         int accountId = AuthHelper.parseWithValidAdminForId(token);
         ChatSceneCategory save = new ChatSceneCategory();
+        save.setSeq(categoryReq.getSeq());
         save.setType(categoryReq.getType());
         save.setName(categoryReq.getName());
         save.setDesr(categoryReq.getDesr());
@@ -208,14 +233,14 @@ public class SceneController {
     }
 
     private void saveItemAndConfig(SceneInfoReq infoReq, int accountId) {
-        List<ChatSceneItem> itemSaveList = new ArrayList<>(infoReq.getItems().length);
         List<ChatSceneConf> configSaveList = new ArrayList<>(infoReq.getConfigs().length);
         for (int i = 0; i < infoReq.getItems().length; i++) {
             ChatSceneItem item = infoReq.getItems()[i];
             item.setSceneId(infoReq.getId());
             item.setCreateBy(accountId);
             item.setUpdateBy(accountId);
-            itemSaveList.add(item);
+            // 因为需要返回值 item id
+            chatSceneItemService.save(item);
 
             ChatSceneConf config = infoReq.getConfigs()[i];
             config.setSceneId(infoReq.getId());
@@ -225,7 +250,6 @@ public class SceneController {
             config.setItemId(item.getId());
             configSaveList.add(config);
         }
-        chatSceneItemService.saveBatch(itemSaveList);
         chatSceneConfService.saveBatch(configSaveList);
     }
 

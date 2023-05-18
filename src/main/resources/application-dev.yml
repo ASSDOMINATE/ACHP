@@ -53,3 +53,7 @@ wechat:
     mch:
       id: 1299428401
     callback: https://www.thadhff.site/
+apple:
+  pay:
+    bundle-id: com.jd.aiSuperCreation
+    sandbox: true

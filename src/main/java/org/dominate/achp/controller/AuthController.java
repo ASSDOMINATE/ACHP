@@ -140,7 +140,7 @@ public class AuthController {
         return Response.success();
     }
 
-    @PostMapping(path = "logOff")
+    @GetMapping(path = "logOff")
     @ResponseBody
     public Response<Boolean> logOff(
             @RequestHeader String token

@@ -15,7 +15,10 @@ import org.dominate.achp.sys.Response;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 场景相关接口
@@ -66,7 +69,7 @@ public class ApiSceneController {
         }
         List<Integer> sceneIdList = chatSceneRelateService.getSceneIdList(categoryId, pageReq);
         List<SceneDTO> sceneList = chatSceneService.list(sceneIdList);
-        return Response.data(sceneList);
+        return Response.data(sorted(sceneIdList, sceneList));
     }
 
 
@@ -86,7 +89,7 @@ public class ApiSceneController {
         int accountId = AuthHelper.parseWithValidForId(token);
         List<Integer> sceneIdList = chatRecordService.getUserSceneIdList(accountId, pageReq);
         List<SceneDTO> sceneList = chatSceneService.list(sceneIdList);
-        return Response.data(sceneList);
+        return Response.data(sorted(sceneIdList, sceneList));
     }
 
     /**
@@ -99,7 +102,7 @@ public class ApiSceneController {
     public Response<List<SceneDTO>> getRecommendSceneList() {
         List<Integer> sceneIdList = RecommendCache.getSceneIdList();
         List<SceneDTO> sceneList = chatSceneService.list(sceneIdList);
-        return Response.data(sceneList);
+        return Response.data(sorted(sceneIdList, sceneList));
     }
 
 
@@ -139,4 +142,18 @@ public class ApiSceneController {
         return Response.data(ChatGptHelper.modelList());
     }
 
+    private static List<SceneDTO> sorted(List<Integer> sceneIdList, List<SceneDTO> sceneList) {
+        Map<Integer, SceneDTO> sceneMap = new HashMap<>(sceneList.size());
+        for (SceneDTO scene : sceneList) {
+            sceneMap.put(scene.getId(), scene);
+        }
+        List<SceneDTO> target = new ArrayList<>(sceneList.size());
+        for (Integer id : sceneIdList) {
+            if (!sceneMap.containsKey(id)) {
+                continue;
+            }
+            target.add(sceneMap.get(id));
+        }
+        return target;
+    }
 }

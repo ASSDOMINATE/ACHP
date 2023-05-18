@@ -30,9 +30,7 @@ public class ChatSceneServiceImpl extends ServiceImpl<ChatSceneMapper, ChatScene
     public List<SceneDTO> list(PageReq page) {
         QueryWrapper<ChatScene> query = new QueryWrapper<>();
         query.lambda().eq(ChatScene::getDel, false)
-                .eq(ChatScene::getForRecommend,false)
-                .select(ChatScene::getId, ChatScene::getTitle, ChatScene::getDesr, ChatScene::getReadCount,
-                        ChatScene::getSendCount, ChatScene::getChatCount)
+                .eq(ChatScene::getForRecommend, false)
                 .orderByAsc(ChatScene::getSeq)
                 .last(SqlUtil.pageLimit(page.getSize(), page.getPage()));
         return dtoList(query);
@@ -44,7 +42,7 @@ public class ChatSceneServiceImpl extends ServiceImpl<ChatSceneMapper, ChatScene
             return Collections.emptyList();
         }
         QueryWrapper<ChatScene> query = new QueryWrapper<>();
-        query.lambda().in(ChatScene::getId, sceneIdList).orderByAsc(ChatScene::getSeq);
+        query.lambda().in(ChatScene::getId, sceneIdList);
         return dtoList(query);
     }
 

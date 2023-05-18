@@ -43,6 +43,8 @@ public class SceneCategoryReq implements Serializable {
      */
     private Boolean del;
 
+    private Integer seq;
+
 
 
 }

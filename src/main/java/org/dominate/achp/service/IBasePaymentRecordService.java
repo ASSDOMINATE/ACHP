@@ -23,4 +23,6 @@ public interface IBasePaymentRecordService extends IService<BasePaymentRecord> {
      * @return 保存ID，返回0为保存失败
      */
     int save(PayOrderDTO payOrder, BaseCard card);
+
+    boolean isUniqueOrder(PayOrderDTO payOrder);
 }

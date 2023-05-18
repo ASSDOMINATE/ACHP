@@ -7,7 +7,7 @@ import org.dominate.achp.common.cache.PayOrderCache;
 import org.dominate.achp.common.enums.PayType;
 import org.dominate.achp.common.helper.AliPayHelper;
 import org.dominate.achp.common.helper.WeChatPayHelper;
-import org.dominate.achp.common.utils.ApplePayUtil;
+import org.dominate.achp.common.utils.ApplePayHelper;
 import org.dominate.achp.entity.BaseCard;
 import org.dominate.achp.entity.BasePaymentRecord;
 import org.dominate.achp.entity.dto.PayOrderDTO;
@@ -73,7 +73,7 @@ public class OrderCheck {
 
             BaseCard card = baseCardService.getById(payOrder.getCardId());
             // 3.订单支付检查
-            if (!checkPay(payOrder, card.getBalance())) {
+            if (!checkPay(payOrder, card)) {
                 // 支付失败
                 payOrder.setCheckedTime(thisTime);
                 PayOrderCache.updateCheckTime(payOrder);
@@ -99,27 +99,28 @@ public class OrderCheck {
         }
     }
 
-    private static boolean checkPay(PayOrderDTO payOrder, BigDecimal targetBalance) {
+    private static boolean checkPay(PayOrderDTO payOrder, BaseCard card) {
         PayType payType = PayType.getValueByDbCode(payOrder.getPayType());
         try {
             switch (payType) {
                 case APPLE:
-                    ApplePayUtil.verifyPay(payOrder.getAuth());
+                    ApplePayHelper.verifyPay(payOrder.getAuth(), payOrder.getPartyOrderCode(), card.getProductCode());
                     return true;
                 case ALIPAY:
                     // 校验金额
-                    AliPayHelper.verifyPayOrder(payOrder.getSysOrderCode(), targetBalance);
+                    AliPayHelper.verifyPayOrder(payOrder.getSysOrderCode(), card.getBalance());
                     return true;
                 case WECHAT:
                 case WECHAT_NATIVE:
                     // 校验金额
-                    WeChatPayHelper.verifyPayOrder(payOrder.getSysOrderCode(), targetBalance);
+                    WeChatPayHelper.verifyPayOrder(payOrder.getSysOrderCode(), card.getBalance());
                     return true;
                 default:
                     return false;
             }
         } catch (Exception e) {
-            log.info("订单检查未通过 系统订单号 {} ，三方订单号 {}", payOrder.getSysOrderCode(), payOrder.getPartyOrderCode());
+            log.info("订单检查未通过 系统订单号 {} ，三方订单号 {}，订单生成时间 {}",
+                    payOrder.getSysOrderCode(), payOrder.getPartyOrderCode(), payOrder.getCreateTime());
             return false;
         }
 

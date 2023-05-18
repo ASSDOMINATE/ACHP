@@ -1,5 +1,6 @@
 package org.dominate.achp.controller;
 
+import com.hwja.tool.utils.StringUtil;
 import lombok.AllArgsConstructor;
 import org.dominate.achp.common.cache.PayOrderCache;
 import org.dominate.achp.common.enums.ExceptionType;
@@ -7,7 +8,7 @@ import org.dominate.achp.common.enums.PayType;
 import org.dominate.achp.common.helper.AliPayHelper;
 import org.dominate.achp.common.helper.AuthHelper;
 import org.dominate.achp.common.helper.WeChatPayHelper;
-import org.dominate.achp.common.utils.ApplePayUtil;
+import org.dominate.achp.common.utils.ApplePayHelper;
 import org.dominate.achp.common.utils.UniqueCodeUtil;
 import org.dominate.achp.entity.BaseCard;
 import org.dominate.achp.entity.BaseCardRecord;
@@ -141,6 +142,9 @@ public class ApiCardController {
             @RequestHeader String token,
             @Validated @RequestBody PayReq payReq
     ) {
+        if (StringUtil.isEmpty(payReq.getOrderCode())) {
+            return Response.failed();
+        }
         int accountId = AuthHelper.parseWithValidForId(token);
         String sysOrderCode = UniqueCodeUtil.createPayOrder(payReq.getPayType());
         PayOrderDTO order = new PayOrderDTO(payReq);
@@ -168,7 +172,7 @@ public class ApiCardController {
         BaseCard card = baseCardService.getById(cacheOrder.getCardId());
         switch (PayType.getValueByDbCode(payOrderReq.getPayType())) {
             case APPLE:
-                ApplePayUtil.verifyPay(cacheOrder.getAuth());
+                ApplePayHelper.verifyPay(cacheOrder.getAuth(), cacheOrder.getPartyOrderCode(), card.getProductCode());
                 break;
             case ALIPAY:
                 // 校验金额

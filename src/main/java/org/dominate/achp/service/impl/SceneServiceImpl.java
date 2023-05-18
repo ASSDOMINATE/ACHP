@@ -149,25 +149,28 @@ public class SceneServiceImpl implements SceneService {
     public boolean setSceneRelateFirst(int sceneId, int categoryId, int accountId) {
         QueryWrapper<ChatSceneRelate> query = new QueryWrapper<>();
         query.lambda().eq(ChatSceneRelate::getSceneId, sceneId)
-                .eq(ChatSceneRelate::getCategoryId, categoryId)
-                .last(SqlUtil.limitOne());
-        ChatSceneRelate relate = chatSceneRelateService.getOne(query);
-        if (null == relate) {
+                .eq(ChatSceneRelate::getCategoryId, categoryId);
+        List<ChatSceneRelate> relateList = chatSceneRelateService.list(query);
+        if (CollectionUtils.isEmpty(relateList)) {
             return false;
         }
-        ChatSceneRelate delRelate = new ChatSceneRelate();
-        delRelate.setId(relate.getId());
-        delRelate.setDel(true);
-        delRelate.setUpdateBy(accountId);
-        if (!chatSceneRelateService.updateById(delRelate)) {
+        List<ChatSceneRelate> deleteList = new ArrayList<>(relateList.size());
+        for (ChatSceneRelate relate : relateList) {
+            ChatSceneRelate delRelate = new ChatSceneRelate();
+            delRelate.setId(relate.getId());
+            delRelate.setDel(true);
+            delRelate.setUpdateBy(accountId);
+            deleteList.add(delRelate);
+        }
+        if (!chatSceneRelateService.updateBatchById(deleteList)) {
             return false;
         }
         ChatSceneRelate insert = new ChatSceneRelate();
-        relate.setSceneId(sceneId);
-        relate.setCategoryId(categoryId);
-        relate.setCategoryType(relate.getCategoryType());
-        relate.setCreateBy(relate.getCreateBy());
-        relate.setUpdateBy(accountId);
+        insert.setSceneId(sceneId);
+        insert.setCategoryId(categoryId);
+        insert.setCategoryType(relateList.get(0).getCategoryType());
+        insert.setCreateBy(relateList.get(0).getCreateBy());
+        insert.setUpdateBy(accountId);
         return chatSceneRelateService.save(insert);
     }
 }

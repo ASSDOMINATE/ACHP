@@ -45,6 +45,8 @@ public class SceneInfoReq implements Serializable {
      */
     private String notice;
 
+    private Integer seq;
+
     private String imgSrc;
 
     private Boolean del;
@@ -54,6 +56,5 @@ public class SceneInfoReq implements Serializable {
     private ChatSceneConf[] configs;
 
     private Integer[] categoryIds;
-
 
 }

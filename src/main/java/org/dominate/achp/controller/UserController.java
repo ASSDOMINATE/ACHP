@@ -74,10 +74,11 @@ public class UserController {
     ) {
         AuthHelper.checkAdminUser(token);
         userAccountService.updateState(idReq.getId(), UserState.DISABLED);
+        QueryWrapper<UserInfo> userQuery = new QueryWrapper<>();
+        userQuery.lambda().eq(UserInfo::getAccountId, idReq.getId());
         UserInfo info = new UserInfo();
-        info.setId(idReq.getId());
         info.setState(UserState.DISABLED.getCode());
-        userInfoService.updateById(info);
+        userInfoService.update(info, userQuery);
         AuthHelper.setLogout(idReq.getId());
         return Response.success();
     }
