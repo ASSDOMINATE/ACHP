@@ -1,4 +1,4 @@
-package org.dominate.achp.common.utils;
+package org.dominate.achp.common.helper;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
