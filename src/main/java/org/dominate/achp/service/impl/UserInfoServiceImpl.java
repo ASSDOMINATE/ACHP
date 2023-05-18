@@ -91,10 +91,20 @@ public class UserInfoServiceImpl extends ServiceImpl<UserInfoMapper, UserInfo> i
 
     @Override
     public boolean saveInfo(InfoReq req) {
+        return saveInfo(req,false);
+    }
+
+    @Override
+    public boolean saveInfo(InfoReq req, boolean bindPhone) {
         // 无账号ID新增
         UserInfo dbInfo = getInfo(req.getAccountId());
         if (null == dbInfo) {
             return insert(req);
+        }
+        if(bindPhone){
+            if(StringUtils.isNotEmpty(dbInfo.getPhone())){
+                throw BusinessException.create(ExceptionType.IS_BIND_PHONE);
+            }
         }
         return update(req, dbInfo);
     }

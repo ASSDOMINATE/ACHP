@@ -83,7 +83,6 @@ public class ApiUserController {
         }
         AuthHelper.setMobileValid(userAuth.getPhone());
         return Response.success();
-
     }
 
     @PostMapping(path = "modifyPwd")
@@ -117,13 +116,29 @@ public class ApiUserController {
             @RequestHeader String token,
             @Validated @RequestBody ValidMobileReq validMobileReq
     ) {
-        int accountId = AuthHelper.parseWithValidForId(token);
+        UserAuthDTO user = AuthHelper.parseWithValid(token);
         if (!AuthHelper.checkMobileValid(validMobileReq.getMobile(), validMobileReq.getCode())) {
             return Response.code(ResponseType.MOBILE_VALID_CODE_ERROR);
         }
         InfoReq info = new InfoReq();
-        info.setAccountId(accountId);
+        info.setAccountId(user.getAccountId());
         info.setPhone(validMobileReq.getMobile());
+        return Response.data(userInfoService.saveInfo(info, true));
+    }
+
+    @PostMapping(path = "unbindPhone")
+    @ResponseBody
+    public Response<Boolean> unbindPhone(
+            @RequestHeader String token,
+            @Validated @RequestBody ValidMobileReq validMobileReq
+    ) {
+        UserAuthDTO user = AuthHelper.parseWithValid(token);
+        if (!AuthHelper.checkMobileValid(validMobileReq.getMobile(), validMobileReq.getCode())) {
+            return Response.code(ResponseType.MOBILE_VALID_CODE_ERROR);
+        }
+        InfoReq info = new InfoReq();
+        info.setAccountId(user.getAccountId());
+        info.setPhone(StringUtil.EMPTY);
         return Response.data(userInfoService.saveInfo(info));
     }
 

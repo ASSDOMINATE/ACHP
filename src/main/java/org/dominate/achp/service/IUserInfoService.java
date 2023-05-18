@@ -24,7 +24,7 @@ public interface IUserInfoService extends IService<UserInfo> {
     /**
      * 是否存在
      *
-     * @param keyword         值
+     * @param keyword     值
      * @param existedType 查询的类型
      * @return 是否存在
      */
@@ -44,6 +44,8 @@ public interface IUserInfoService extends IService<UserInfo> {
      * @param req 用户信息数据
      * @return 是否保存成功
      */
+    boolean saveInfo(InfoReq req, boolean bindPhone);
+
     boolean saveInfo(InfoReq req);
 
     /**
@@ -101,8 +103,8 @@ public interface IUserInfoService extends IService<UserInfo> {
     /**
      * 分页查询用户
      *
-     * @param index 开始位置
-     * @param size  数量
+     * @param index       开始位置
+     * @param size        数量
      * @param filterLeave 是否过滤离职
      * @return 用户数据列表
      */
@@ -116,7 +118,6 @@ public interface IUserInfoService extends IService<UserInfo> {
      * @return 用户邮箱
      */
     String getEmail(int accountId);
-
 
 
 }

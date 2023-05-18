@@ -28,6 +28,8 @@ public enum ExceptionType {
     USER_INFO_EXISTED(ResponseType.ERROR.getCode(), "用户信息已存在"),
     SEND_SMS_ERROR(ResponseType.ERROR.getCode(), "验证码发送失败，可能手机号已到发送限制"),
     NOT_BIND_PHONE(ResponseType.ERROR.getCode(), "未绑定手机号"),
+    IS_BIND_PHONE(ResponseType.ERROR.getCode(), "已绑定手机号，请解除绑后再进行绑定"),
+
 
     NOT_BUY_USING(ResponseType.CARD_NOT_BUY_ERROR.getCode(), "没有购买过会员卡"),
     NOT_CARD_USING(ResponseType.CARD_NOT_VALID_ERROR.getCode(), "没有生效的会员卡"),
