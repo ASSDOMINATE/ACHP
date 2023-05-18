@@ -38,4 +38,17 @@ public enum CardType {
     public int getCode() {
         return code;
     }
+
+    public static boolean checkRecordUsed(int cardType, long expireTime, int remainCount) {
+        switch (getValueByCode(cardType)) {
+            case DAY:
+                // 已过期
+                return expireTime < System.currentTimeMillis();
+            case COUNT:
+                // 次数使用完
+                return remainCount <= 0;
+            default:
+                return true;
+        }
+    }
 }

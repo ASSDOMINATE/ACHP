@@ -68,7 +68,6 @@ public class ApplePayHelper {
             response = ApplePayHelper.sendVerify(receiptDate, true);
             states = JsonUtil.parseResponseValueForString(response, RESPONSE_STATUS);
         }
-        System.out.println(response);
         // 只有返回状态值为0是成功
         if (!SUCCESS_STATUS_CODE.equals(states)) {
             log.error("苹果验证不通过 结果 {} 支付凭证 {}", states, receiptDate);
@@ -86,15 +85,21 @@ public class ApplePayHelper {
             JSONObject app = apps.getJSONObject(i);
             String resultOrderCode = app.getString(RESPONSE_TRANSACTION_ID);
             if (!orderCode.equals(resultOrderCode)) {
-                log.error("苹果验证订单错误，有刷单嫌疑，请求订单号 [{}]，苹果订单号 [{}]", orderCode, resultOrderCode);
-                throw BusinessException.create(ExceptionType.PAY_ORDER_NOT_FOUND);
+                continue;
             }
+            // 检查当前订单号
             String resultProductId = app.getString(RESPONSE_PRODUCT_ID);
-            if (!productCode.equals(resultProductId)) {
-                log.error("苹果验证订单错误，有刷单嫌疑，请求订单号 [{}]，请求产品ID [{}]，苹果产品ID [{}]", orderCode, productCode, resultProductId);
-                throw BusinessException.create(ExceptionType.PAY_ORDER_NOT_FOUND);
+            // 产品ID确认
+            if (productCode.equals(resultProductId)) {
+                return;
             }
+            // 产品ID不对
+            log.error("苹果验证订单错误，有刷单嫌疑，请求订单号 [{}]，请求产品ID [{}]，苹果产品ID [{}]", orderCode, productCode, resultProductId);
+            throw BusinessException.create(ExceptionType.PAY_ORDER_NOT_FOUND);
         }
+        // 凭证中无该订单号
+        log.error("苹果验证订单错误，有刷单嫌疑，请求订单号 [{}]", orderCode);
+        throw BusinessException.create(ExceptionType.PAY_ORDER_NOT_FOUND);
     }
 
     private static String sendVerify(String receiptDate, boolean onSandbox) {

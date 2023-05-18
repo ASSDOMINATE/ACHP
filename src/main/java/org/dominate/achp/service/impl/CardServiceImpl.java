@@ -17,7 +17,6 @@ import org.dominate.achp.entity.wrapper.CardWrapper;
 import org.dominate.achp.service.*;
 import org.dominate.achp.sys.exception.BusinessException;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Date;
 
@@ -29,7 +28,6 @@ import java.util.Date;
  */
 @Slf4j
 @Service
-@Transactional(rollbackFor = Exception.class)
 @AllArgsConstructor
 public class CardServiceImpl implements CardService {
 
@@ -94,10 +92,17 @@ public class CardServiceImpl implements CardService {
         CardRecordDTO cardRecord = ChatCache.getUsingCard(accountId);
         // 1.缓存中有记录，检查是否过期
         if (null != cardRecord) {
-            if (checkRecordUsed(cardRecord.getCardTypeCode(), cardRecord.getExpireTime(), cardRecord.getRemainCount())) {
+            if (CardType.checkRecordUsed(cardRecord.getCardTypeCode(), cardRecord.getExpireTime(), cardRecord.getRemainCount())) {
                 baseCardRecordService.saveRecordUsed(accountId, cardRecord.getId(), cardRecord.getRequestCount(), cardRecord.getRemainCount());
+                // 如果过期，尝试启用待使用的卡
+                cardRecord = startWaitingCard(accountId);
+                if (null != cardRecord) {
+                    return cardRecord;
+                }
+
 //                throw BusinessException.create(ExceptionType.SEND_CARD_LIMIT);
-                //TODO 前端问题暂时隐藏报错
+//TODO 前端问题暂时隐藏报错
+
                 throw BusinessException.create(ExceptionType.EMPTY_ERROR);
             }
             return cardRecord;
@@ -107,8 +112,10 @@ public class CardServiceImpl implements CardService {
         query.lambda().eq(BaseCardRecord::getAccountId, accountId);
         // 从来没有开通过
         if (0 == baseCardRecordService.count(query)) {
+
 //            throw BusinessException.create(ExceptionType.NOT_BUY_USING);
-            //TODO 前端问题暂时隐藏报错
+//TODO 前端问题暂时隐藏报错
+
             throw BusinessException.create(ExceptionType.EMPTY_ERROR);
         }
         // 3.查询可用的记录
@@ -116,46 +123,44 @@ public class CardServiceImpl implements CardService {
                 .last(SqlUtil.limitOne());
         BaseCardRecord record = baseCardRecordService.getOne(query);
         if (null != record) {
-            cardRecord = CardWrapper.build().entityDTO(record);
-            ChatCache.saveUsingCard(accountId, cardRecord);
-            // 重新执行 checkUserRecord->1 进行状态检查
-            return checkUserRecord(accountId);
+            return parseAndSaveCache(accountId, record);
         }
+        // 4.启用待使用的卡
+        cardRecord = startWaitingCard(accountId);
+        if (null != cardRecord) {
+            return cardRecord;
+        }
+        // 5.没有可用卡密
+
+//            throw BusinessException.create(ExceptionType.NOT_CARD_USING);
+//TODO 前端问题暂时隐藏报错
+
+        throw BusinessException.create(ExceptionType.EMPTY_ERROR);
+    }
+
+    private CardRecordDTO startWaitingCard(int accountId) {
         // 4.查找待使用的卡
         QueryWrapper<BaseCardRecord> waitQuery = new QueryWrapper<>();
         waitQuery.lambda().eq(BaseCardRecord::getAccountId, accountId)
                 .eq(BaseCardRecord::getState, CardRecordState.WAIT.getCode())
                 .last(SqlUtil.limitOne());
-        record = baseCardRecordService.getOne(waitQuery);
-        if (null != record) {
-            // 设置为启用后清理缓存
-            // TODO 这个方法应该调整到上一层Service
-            BaseCard card = baseCardService.getById(record.getCardId());
-            if (baseCardRecordService.saveRecordUsing(accountId, record.getId(), card)) {
-                CardRecordState.setUsing(record, card);
-                cardRecord = CardWrapper.build().entityDTO(record);
-                ChatCache.saveUsingCard(accountId, cardRecord);
-                // 才设置为启用的卡不需要检查，直接返回即可
-                return cardRecord;
-            }
+        BaseCardRecord record = baseCardRecordService.getOne(waitQuery);
+        if (null == record) {
+            return null;
         }
-//            throw BusinessException.create(ExceptionType.NOT_CARD_USING);
-        //TODO 前端问题暂时隐藏报错
-        throw BusinessException.create(ExceptionType.EMPTY_ERROR);
-
+        // 设置为启用后清理缓存
+        BaseCard card = baseCardService.getById(record.getCardId());
+        if (baseCardRecordService.saveRecordUsing(accountId, record.getId(), card)) {
+            CardRecordState.setUsing(record, card);
+            return parseAndSaveCache(accountId, record);
+        }
+        return null;
     }
 
-    private static boolean checkRecordUsed(int cardType, long expireTime, int remainCount) {
-        switch (CardType.getValueByCode(cardType)) {
-            case DAY:
-                // 已过期
-                return expireTime < System.currentTimeMillis();
-            case COUNT:
-                // 次数使用完
-                return remainCount <= 0;
-            default:
-                return true;
-        }
+    private static CardRecordDTO parseAndSaveCache(int accountId, BaseCardRecord record) {
+        CardRecordDTO cardRecord = CardWrapper.build().entityDTO(record);
+        ChatCache.saveUsingCard(accountId, cardRecord);
+        return cardRecord;
     }
 
     private static boolean checkFreq(int freqSecond, Date requestDate) {

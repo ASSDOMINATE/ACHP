@@ -153,5 +153,4 @@ public class ApiUserController {
         return Response.data(userInfoService.saveInfo(infoReq));
     }
 
-
 }

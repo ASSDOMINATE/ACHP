@@ -8,6 +8,7 @@ import com.hwja.tool.utils.StringUtil;
 import lombok.AllArgsConstructor;
 import org.dominate.achp.common.cache.ChatCache;
 import org.dominate.achp.common.enums.CardRecordState;
+import org.dominate.achp.common.enums.CardType;
 import org.dominate.achp.common.utils.UniqueCodeUtil;
 import org.dominate.achp.entity.BaseCard;
 import org.dominate.achp.entity.BaseCardRecord;
@@ -33,8 +34,6 @@ import java.util.List;
 @AllArgsConstructor
 @Service
 public class BaseCardRecordServiceImpl extends ServiceImpl<BaseCardRecordMapper, BaseCardRecord> implements IBaseCardRecordService {
-
-    private final IBaseCardService baseCardService;
 
     @Override
     public List<CardRecordDTO> userRecordList(int accountId) {
@@ -69,14 +68,13 @@ public class BaseCardRecordServiceImpl extends ServiceImpl<BaseCardRecordMapper,
         StringBuilder info = new StringBuilder();
         info.append("；待使用的有：");
         for (int i = 0; i < recordList.size(); i++) {
-            if(0 != i){
+            if (0 != i) {
                 info.append("，");
             }
             info.append(recordList.get(i).getCardName());
         }
         return info.toString();
     }
-
 
 
     @Override
@@ -91,14 +89,18 @@ public class BaseCardRecordServiceImpl extends ServiceImpl<BaseCardRecordMapper,
     public boolean bindRecord(int accountId, int id, BaseCard card) {
         QueryWrapper<BaseCardRecord> query = new QueryWrapper<>();
         query.lambda().eq(BaseCardRecord::getAccountId, accountId)
-                .eq(BaseCardRecord::getState, CardRecordState.USING.getCode());
+                .eq(BaseCardRecord::getState, CardRecordState.USING.getCode())
+                .last(SqlUtil.limitOne());
         // 当前有启用的卡，设置为待使用
-        if (0 < count(query)) {
-            BaseCardRecord update = new BaseCardRecord();
-            update.setId(id);
-            update.setAccountId(accountId);
-            update.setState(CardRecordState.WAIT.getCode());
-            return updateById(update);
+        if (count(query) > 0) {
+            BaseCardRecord record = getOne(query);
+            if (CardType.checkRecordUsed(record.getCardType(), record.getExpireTime().getTime(), record.getRemainCount())) {
+                BaseCardRecord update = new BaseCardRecord();
+                update.setId(id);
+                update.setAccountId(accountId);
+                update.setState(CardRecordState.WAIT.getCode());
+                return updateById(update);
+            }
         }
         return saveRecordUsing(accountId, id, card);
     }
@@ -112,7 +114,6 @@ public class BaseCardRecordServiceImpl extends ServiceImpl<BaseCardRecordMapper,
         ChatCache.removeUsingCard(accountId);
         return updateById(update);
     }
-
 
 
     @Override
