@@ -50,14 +50,12 @@ public class ChatServiceImpl implements ChatService {
 
     private final IBaseKeyService baseKeyService;
 
-    private final static Long SSE_OUT_TIME = 60L;
-
     @Override
     public SseEmitter startChat(ChatDTO chat) {
         if (StringUtils.isBlank(chat.getChatGroupId())) {
             chat.setChatGroupId(UniqueCodeUtil.createChatId());
         }
-        ChatSseEmitter sseEmitter = new ChatSseEmitter(SSE_OUT_TIME);
+        ChatSseEmitter sseEmitter = new ChatSseEmitter(0L);
         // 启用线程池接收GPT返回结果
         CompletableFuture.runAsync(() -> {
             String apiKey = baseKeyService.getBestApiKey();

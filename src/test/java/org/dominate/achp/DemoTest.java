@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.hwja.tool.utils.DateUtil;
 import com.hwja.tool.utils.RandomUtil;
 import com.theokanning.openai.completion.chat.ChatMessage;
+import org.dominate.achp.common.cache.PayOrderCache;
 import org.dominate.achp.common.enums.ChatRoleType;
 import org.dominate.achp.common.enums.GptModelType;
 import org.dominate.achp.common.enums.SceneItemType;
@@ -20,6 +21,15 @@ import java.math.BigDecimal;
 import java.util.*;
 
 public class DemoTest {
+
+
+    @Test
+    public void testCache(){
+        Collection<PayOrderDTO> payOrders = PayOrderCache.getList();
+        for (PayOrderDTO payOrder : payOrders) {
+            System.out.println(payOrder.getSysOrderCode());
+        }
+    }
 
 
     @Test
