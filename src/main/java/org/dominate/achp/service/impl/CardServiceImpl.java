@@ -89,57 +89,58 @@ public class CardServiceImpl implements CardService {
 
     @Override
     public CardRecordDTO checkUserRecord(int accountId) throws BusinessException {
+        // 1.先检查缓存中的记录
         CardRecordDTO cardRecord = ChatCache.getUsingCard(accountId);
-        // 1.缓存中有记录，检查是否过期
         if (null != cardRecord) {
-            if (CardType.checkRecordUsed(cardRecord.getCardTypeCode(), cardRecord.getExpireTime(), cardRecord.getRemainCount())) {
-                baseCardRecordService.saveRecordUsed(accountId, cardRecord.getId(), cardRecord.getRequestCount(), cardRecord.getRemainCount());
-                // 如果过期，尝试启用待使用的卡
-                cardRecord = startWaitingCard(accountId);
-                if (null != cardRecord) {
-                    return cardRecord;
-                }
-
-//                throw BusinessException.create(ExceptionType.SEND_CARD_LIMIT);
-//TODO 前端问题暂时隐藏报错
-
-                throw BusinessException.create(ExceptionType.EMPTY_ERROR);
+            // 1.1.记录是否过期
+            if (!CardType.checkRecordUsed(cardRecord.getCardTypeCode(), cardRecord.getExpireTime(), cardRecord.getRemainCount())) {
+                return cardRecord;
             }
-            return cardRecord;
+            // 1.2.设置过期，并清理缓存
+            baseCardRecordService.saveRecordUsed(accountId, cardRecord.getId(), cardRecord.getRequestCount(), cardRecord.getRemainCount());
+            // 1.3.尝试启用待使用的卡并设置缓存
+            cardRecord = startWaitingCard(accountId);
+            if (null != cardRecord) {
+                return cardRecord;
+            }
+
+//TODO 前端问题暂时隐藏报错
+//          throw BusinessException.create(ExceptionType.SEND_CARD_LIMIT);
+            throw BusinessException.create(ExceptionType.EMPTY_ERROR);
+
         }
-        // 2.查询数据库中用户是否有记录
+        // 2.查询数据库中用户是否有过记录
         QueryWrapper<BaseCardRecord> query = new QueryWrapper<>();
         query.lambda().eq(BaseCardRecord::getAccountId, accountId);
-        // 从来没有开通过
+        // 3.从来没有开通过
         if (0 == baseCardRecordService.count(query)) {
 
-//            throw BusinessException.create(ExceptionType.NOT_BUY_USING);
 //TODO 前端问题暂时隐藏报错
-
+//          throw BusinessException.create(ExceptionType.NOT_BUY_USING);
             throw BusinessException.create(ExceptionType.EMPTY_ERROR);
+
         }
-        // 3.查询可用的记录
-        query.lambda().eq(BaseCardRecord::getState, CardRecordState.USING.getCode())
-                .last(SqlUtil.limitOne());
+        // 4.查找到可用的记录并设置到缓存
+        query.lambda().eq(BaseCardRecord::getState, CardRecordState.USING.getCode()).last(SqlUtil.limitOne());
         BaseCardRecord record = baseCardRecordService.getOne(query);
         if (null != record) {
             return parseAndSaveCache(accountId, record);
         }
-        // 4.启用待使用的卡
+        // 5.尝试启用待使用的卡并设置缓存
         cardRecord = startWaitingCard(accountId);
         if (null != cardRecord) {
             return cardRecord;
         }
-        // 5.没有可用卡密
+        // 6.没有可用卡密
 
-//            throw BusinessException.create(ExceptionType.NOT_CARD_USING);
 //TODO 前端问题暂时隐藏报错
-
+//      throw BusinessException.create(ExceptionType.NOT_CARD_USING);
         throw BusinessException.create(ExceptionType.EMPTY_ERROR);
+
     }
 
     private CardRecordDTO startWaitingCard(int accountId) {
-        // 4.查找待使用的卡
+        // 待使用的卡
         QueryWrapper<BaseCardRecord> waitQuery = new QueryWrapper<>();
         waitQuery.lambda().eq(BaseCardRecord::getAccountId, accountId)
                 .eq(BaseCardRecord::getState, CardRecordState.WAIT.getCode())
@@ -148,13 +149,15 @@ public class CardServiceImpl implements CardService {
         if (null == record) {
             return null;
         }
-        // 设置为启用后清理缓存
+        // 设置为启用
         BaseCard card = baseCardService.getById(record.getCardId());
-        if (baseCardRecordService.saveRecordUsing(accountId, record.getId(), card)) {
-            CardRecordState.setUsing(record, card);
-            return parseAndSaveCache(accountId, record);
+        if (!baseCardRecordService.saveRecordUsing(accountId, record.getId(), card)) {
+            // 启用失败
+            return null;
         }
-        return null;
+        // 修改数据的启用状态再设置缓存
+        CardRecordState.setUsing(record, card);
+        return parseAndSaveCache(accountId, record);
     }
 
     private static CardRecordDTO parseAndSaveCache(int accountId, BaseCardRecord record) {

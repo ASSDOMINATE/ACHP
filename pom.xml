@@ -43,6 +43,7 @@
         <jtokkit.version>0.1.0</jtokkit.version>
 
         <openai.gpt.version>0.12.0</openai.gpt.version>
+        <retrofit2.version>2.9.0</retrofit2.version>
 
         <alibaba.fastjson.version>1.2.54.sec06</alibaba.fastjson.version>
         <alibaba.alipay.version>3.3.87.ALL</alibaba.alipay.version>
@@ -117,10 +118,11 @@
             <artifactId>client</artifactId>
             <version>${openai.gpt.version}</version>
         </dependency>
+
         <dependency>
-            <groupId>com.theokanning.openai-gpt3-java</groupId>
-            <artifactId>service</artifactId>
-            <version>${openai.gpt.version}</version>
+            <groupId>com.squareup.retrofit2</groupId>
+            <artifactId>converter-jackson</artifactId>
+            <version>${retrofit2.version}</version>
         </dependency>
 
         <!-- spring -->

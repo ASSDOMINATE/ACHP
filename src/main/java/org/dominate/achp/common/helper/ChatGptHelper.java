@@ -1,12 +1,12 @@
 package org.dominate.achp.common.helper;
 
 import com.hwja.tool.utils.StringUtil;
+import com.openai.theokanning.OpenAiService;
 import com.theokanning.openai.completion.chat.ChatCompletionChunk;
 import com.theokanning.openai.completion.chat.ChatCompletionRequest;
 import com.theokanning.openai.completion.chat.ChatCompletionResult;
 import com.theokanning.openai.completion.chat.ChatMessage;
 import com.theokanning.openai.model.Model;
-import com.theokanning.openai.service.OpenAiService;
 import io.reactivex.Flowable;
 import lombok.extern.slf4j.Slf4j;
 import org.dominate.achp.common.enums.ChatRoleType;
@@ -33,7 +33,7 @@ import java.util.*;
 public final class ChatGptHelper {
 
     public static final String DEFAULT_MODEL_ID = "gpt-3.5-turbo";
-    private static final String DEFAULT_API_KEY = "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";
+    private static final String DEFAULT_API_KEY = "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";
     private static final int DEFAULT_TOKENS = 100;
     private static final double DEFAULT_TEMPERATURE = 0.8;
 
@@ -162,6 +162,7 @@ public final class ChatGptHelper {
         sseEmitter.onCompletion(service::shutdownExecutor);
         Flowable<ChatCompletionChunk> serviceFlow = service.streamChatCompletion(request);
         serviceFlow.blockingForEach((result) -> {
+            log.info("GPT Result {}",result.toString());
             ChatMessage message = result.getChoices().get(FIRST_ANSWER_INDEX).getMessage();
             if (StringUtil.isEmpty(message.getContent())) {
                 return;

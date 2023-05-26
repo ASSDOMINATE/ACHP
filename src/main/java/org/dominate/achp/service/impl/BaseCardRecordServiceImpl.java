@@ -17,7 +17,6 @@ import org.dominate.achp.entity.req.PageReq;
 import org.dominate.achp.entity.wrapper.CardWrapper;
 import org.dominate.achp.mapper.BaseCardRecordMapper;
 import org.dominate.achp.service.IBaseCardRecordService;
-import org.dominate.achp.service.IBaseCardService;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;

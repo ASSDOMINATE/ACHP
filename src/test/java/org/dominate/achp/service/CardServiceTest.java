@@ -2,7 +2,6 @@ package org.dominate.achp.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.hwja.tool.utils.SqlUtil;
-import lombok.AllArgsConstructor;
 import org.dominate.achp.common.enums.CardRecordState;
 import org.dominate.achp.common.enums.CardType;
 import org.dominate.achp.common.enums.ExceptionType;

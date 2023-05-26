@@ -23,6 +23,11 @@ public class DemoTest {
 
 
     @Test
+    public void models(){
+        ChatGptHelper.modelList();
+    }
+
+    @Test
     public void testWechatPay(){
         String orderCode = UniqueCodeUtil.createPayOrder(3);
         String wxCode = WeChatPayHelper.createAppPayOrder(orderCode, BigDecimal.ONE,"测试订单");
