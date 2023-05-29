@@ -22,6 +22,14 @@ import java.util.*;
 
 public class DemoTest {
 
+    @Test
+    public void test(){
+        for (int i = 0; i < 50; i++) {
+
+            System.out.println(RandomUtil.getStringRandom(12));
+        }
+    }
+
 
     @Test
     public void testCache(){

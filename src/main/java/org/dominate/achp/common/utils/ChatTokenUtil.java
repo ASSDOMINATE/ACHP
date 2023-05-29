@@ -50,6 +50,7 @@ public class ChatTokenUtil {
         for (ChatMessage msg : messages) {
             sum += token(encoding, msg, baseToken);
         }
+        sum += 3;
         return sum;
     }
 
@@ -70,9 +71,7 @@ public class ChatTokenUtil {
         int sum = 0;
         sum += tokens(encoding, message.getRole());
         sum += tokens(encoding, message.getContent());
-        if (ChatRoleType.AI.getRole().equals(message.getRole())) {
-            sum += baseToken;
-        }
+        sum += baseToken;
         return sum;
     }
 

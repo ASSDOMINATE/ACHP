@@ -13,7 +13,7 @@ server:
       charset: UTF-8
 spring:
   profiles:
-    active: dev
+    active: local
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
     #driver-class-name: org.postgresql.Driver

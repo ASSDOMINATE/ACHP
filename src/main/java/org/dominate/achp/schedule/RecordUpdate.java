@@ -1,5 +1,6 @@
 package org.dominate.achp.schedule;
 
+import com.hwja.tool.utils.LoadUtil;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.dominate.achp.common.cache.ChatCache;
@@ -33,6 +34,9 @@ public class RecordUpdate {
 
     @Scheduled(cron = "0 0 * * * ?")
     public void updateSendRecord() {
+        if(!LoadUtil.onProd()){
+            return;
+        }
         updateCardRecord();
         updateUserRecord();
     }

@@ -1,5 +1,6 @@
 package org.dominate.achp.schedule;
 
+import com.hwja.tool.utils.LoadUtil;
 import com.hwja.tool.utils.StringUtil;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -48,6 +49,9 @@ public class OrderCheck {
 
     @Scheduled(cron = "*/10 * * * * ?")
     public void checkList() {
+        if(!LoadUtil.onProd()){
+            return;
+        }
         long thisTime = System.currentTimeMillis();
         Collection<PayOrderDTO> payOrders = PayOrderCache.getList();
         for (PayOrderDTO payOrder : payOrders) {
