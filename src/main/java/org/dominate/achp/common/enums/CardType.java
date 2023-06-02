@@ -12,6 +12,7 @@ public enum CardType {
      */
     DAY("天数限制", 1),
     COUNT("次数限制", 2),
+    NO_LIMIT("无限制", 3),
     ;
 
     final String name;
@@ -22,9 +23,9 @@ public enum CardType {
         this.code = code;
     }
 
-    public static CardType getValueByCode(int code){
+    public static CardType getValueByCode(int code) {
         for (CardType value : CardType.values()) {
-            if(code == value.code){
+            if (code == value.code) {
                 return value;
             }
         }
@@ -47,6 +48,9 @@ public enum CardType {
             case COUNT:
                 // 次数使用完
                 return remainCount <= 0;
+            case NO_LIMIT:
+                // 无限制卡
+                return false;
             default:
                 return true;
         }

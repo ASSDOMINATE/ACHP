@@ -26,10 +26,16 @@ public enum ExceptionType {
     NOT_FOUND_CARD(ResponseType.ERROR.getCode(), "无效的会员卡"),
 
     USER_INFO_EXISTED(ResponseType.ERROR.getCode(), "用户信息已存在"),
+    USER_INFO_NAME_EXISTED(ResponseType.ERROR.getCode(), "该用户名称已存在"),
+    USER_INFO_PHONE_EXISTED(ResponseType.ERROR.getCode(), "该手机号已绑定其他账号"),
+    USER_INFO_EMAIL_EXISTED(ResponseType.ERROR.getCode(), "该邮箱已绑定其他账号"),
+    USER_INFO_IDENTITY_EXISTED(ResponseType.ERROR.getCode(), "该身份证号已存在"),
+
+    LOGIN_NOT_BIND_PHONE(ResponseType.ERROR.getCode(), "此手机号未绑定任何账号"),
     SEND_SMS_ERROR(ResponseType.ERROR.getCode(), "验证码发送失败，可能手机号已到发送限制"),
     NOT_BIND_PHONE(ResponseType.ERROR.getCode(), "未绑定手机号"),
     IS_BIND_PHONE(ResponseType.ERROR.getCode(), "已绑定手机号，请解除绑后再进行绑定"),
-
+    USER_PASSWORD_ERROR(ResponseType.WRONG_PASSWORD),
 
     NOT_BUY_USING(ResponseType.CARD_NOT_BUY_ERROR.getCode(), "没有购买过会员卡"),
     NOT_CARD_USING(ResponseType.CARD_NOT_VALID_ERROR.getCode(), "没有生效的会员卡"),

@@ -38,6 +38,9 @@ public class CardWrapper {
         CardType type = CardType.getValueByCode(entity.getType());
         dto.setCardTypeCode(type.getCode());
         dto.setCardTypeName(type.getName());
+        dto.setOrgBalance(entity.getOrgBalance());
+        dto.setTag(entity.getTag());
+        dto.setBuyType(entity.getBuyType());
         return dto;
     }
 
@@ -74,6 +77,8 @@ public class CardWrapper {
                     case DAY:
                         dto.setInfo("当前会员：" + formatTime(entity.getExpireTime()) + "到期");
                         break;
+                    case NO_LIMIT:
+                        dto.setInfo("当前为永久会员");
                     default:
                         dto.setInfo(StringUtil.EMPTY);
                         break;

@@ -186,15 +186,15 @@ public class ApiCardController {
             default:
                 throw BusinessException.create(ExceptionType.PARAM_ERROR);
         }
-        int paymentId = basePaymentRecordService.save(cacheOrder, card);
-        if (paymentId == 0) {
-            return Response.failed();
+        if (!basePaymentRecordService.isUniqueOrder(cacheOrder)) {
+            throw BusinessException.create(ExceptionType.PAY_ORDER_NOT_FOUND);
         }
-        if (baseCardRecordService.bindRecord(accountId, card)) {
+        int cardRecordId = baseCardRecordService.bindRecord(accountId, card);
+        if (cardRecordId != 0) {
+            basePaymentRecordService.save(cacheOrder, card, cardRecordId);
             PayOrderCache.remove(cacheOrder.getSysOrderCode());
             return Response.success();
         }
-        basePaymentRecordService.removeById(paymentId);
         return Response.failed();
 
     }

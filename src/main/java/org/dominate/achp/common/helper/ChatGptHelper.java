@@ -32,10 +32,11 @@ import java.util.*;
 @Slf4j
 public final class ChatGptHelper {
 
-    public static final String DEFAULT_MODEL_ID = "gpt-3.5-turbo";
+    public static final String DEFAULT_MODEL_ID = "gpt-3.5-turbo-0301";
     private static final String DEFAULT_API_KEY = "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";
     private static final int DEFAULT_TOKENS = 1000;
     private static final double DEFAULT_TEMPERATURE = 0.8;
+    private static final int TOKEN_RESERVE = 256;
 
     private static final int ANSWER_LIMIT = 1;
     private static final int FIRST_ANSWER_INDEX = 0;
@@ -88,6 +89,17 @@ public final class ChatGptHelper {
      */
     public static ReplyDTO send(String sentence, List<ContentDTO> contentList) {
         return send(sentence, StringUtil.EMPTY, contentList, DEFAULT_MODEL_ID, DEFAULT_TOKENS, DEFAULT_TEMPERATURE, DEFAULT_API_KEY);
+    }
+
+    /**
+     * 发送消息
+     *
+     * @param sentence    用户发起的话
+     * @param contentList 会话历史
+     * @return AI回复
+     */
+    public static ReplyDTO send(String sentence, String system, List<ContentDTO> contentList) {
+        return send(sentence, system, contentList, DEFAULT_MODEL_ID, DEFAULT_TOKENS, DEFAULT_TEMPERATURE, DEFAULT_API_KEY);
     }
 
 
@@ -156,7 +168,7 @@ public final class ChatGptHelper {
     private static ReplyDTO send(String sentence, String system, List<ContentDTO> contentList, SseEmitter sseEmitter, String modelId,
                                  int resultTokens, Double temperature, String apiKey) {
         OpenAiService service = new OpenAiService(apiKey, DEFAULT_DURATION);
-        ChatCompletionRequest request = createChatRequest(modelId, resultTokens, temperature, parseMessages(contentList, sentence, system, modelId,resultTokens), true);
+        ChatCompletionRequest request = createChatRequest(modelId, resultTokens, temperature, parseMessages(contentList, sentence, system, modelId, resultTokens), true);
         StringBuilder reply = new StringBuilder();
         // SSE 关闭
         sseEmitter.onCompletion(service::shutdownExecutor);
@@ -194,7 +206,7 @@ public final class ChatGptHelper {
      */
     private static ReplyDTO send(String sentence, String system, List<ContentDTO> contentList, String modelId, int resultTokens, double temperature, String apiKey) {
         OpenAiService service = new OpenAiService(apiKey, DEFAULT_DURATION);
-        ChatCompletionRequest request = createChatRequest(modelId, resultTokens, temperature, parseMessages(contentList, sentence, system, modelId,resultTokens), false);
+        ChatCompletionRequest request = createChatRequest(modelId, resultTokens, temperature, parseMessages(contentList, sentence, system, modelId, resultTokens), false);
         ChatCompletionResult result = service.createChatCompletion(request);
         String content = result.getChoices().get(FIRST_ANSWER_INDEX).getMessage().getContent();
         service.shutdownExecutor();
@@ -231,7 +243,7 @@ public final class ChatGptHelper {
     }
 
 
-    public static List<ChatMessage> parseMessages(List<ContentDTO> contentList, String sentence, String system, String modelId,int resultTokens) {
+    public static List<ChatMessage> parseMessages(List<ContentDTO> contentList, String sentence, String system, String modelId, int resultTokens) {
         if (CollectionUtils.isEmpty(contentList)) {
             // 无上下文
             List<ChatMessage> messageList = new ArrayList<>(2);
@@ -252,8 +264,8 @@ public final class ChatGptHelper {
         messageList.add(createMessage(sentence, true));
         // Tokens 限制检查
         int tokens = ChatTokenUtil.tokens(modelId, messageList);
-        int limitTokens = GptModelType.getModelType(modelId).getTokenLimit() - resultTokens;
-        System.out.println("限制Token " + limitTokens + " ,请求Token " + tokens);
+        int limitTokens = GptModelType.getModelType(modelId).getTokenLimit() - resultTokens - TOKEN_RESERVE;
+        log.info("最大发送Token {}, 本次请求Token {}", limitTokens, tokens);
         if (limitTokens >= tokens) {
             return messageList;
         }
@@ -263,6 +275,7 @@ public final class ChatGptHelper {
     private static List<ChatMessage> filter(List<ChatMessage> messageList, String modelId, int deleteTokens) {
         Iterator<ChatMessage> iterator = messageList.listIterator();
         int totalTokens = 0;
+        log.info("本次连续会话条数 {}", messageList.size());
         while (iterator.hasNext()) {
             ChatMessage message = iterator.next();
             totalTokens += ChatTokenUtil.token(modelId, message);
@@ -271,7 +284,7 @@ public final class ChatGptHelper {
             }
             iterator.remove();
             if (totalTokens >= deleteTokens) {
-                System.out.println("过滤Token " + totalTokens);
+                log.info("需过滤Token {}, 已过滤Token {}, 过滤后会话条数 {} ", deleteTokens, totalTokens, messageList.size());
                 return messageList;
             }
         }

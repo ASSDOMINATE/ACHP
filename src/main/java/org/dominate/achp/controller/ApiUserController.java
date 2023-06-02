@@ -92,9 +92,8 @@ public class ApiUserController {
             @Validated @RequestBody ModifyPasswordReq modifyPasswordReq
     ) {
         int accountId = AuthHelper.parseWithValidForId(token);
-        boolean modifySuccess = userAccountService.modifyPassword(accountId,
-                modifyPasswordReq.getOldPwd(), modifyPasswordReq.getNewPwd());
-        return Response.data(modifySuccess);
+        userAccountService.modifyPassword(accountId, modifyPasswordReq.getOldPwd(), modifyPasswordReq.getNewPwd());
+        return Response.success();
     }
 
     @PostMapping(path = "setPwd")

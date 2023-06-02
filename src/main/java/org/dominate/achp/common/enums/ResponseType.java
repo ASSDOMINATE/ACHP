@@ -43,7 +43,7 @@ public enum ResponseType {
      * code：406
      * 登录标识不存在
      */
-    LOGIN_SIGN_NOT_FOUND(406, "登录信息不存在", false),
+    LOGIN_SIGN_NOT_FOUND(406, "登陆账号不存在", false),
     /**
      * code：407
      * 身份状态错误
@@ -53,7 +53,7 @@ public enum ResponseType {
      * code :408
      * 无效 Token
      */
-    INVALID_TOKEN(408, "无效 Token", false),
+    INVALID_TOKEN(408, "请登录后使用", false),
     /**
      * code :410
      * 冲突
@@ -78,6 +78,7 @@ public enum ResponseType {
     CARD_NOT_VALID_ERROR(420, "会员卡无效", false),
     CARD_NOT_BUY_ERROR(421, "没有购买过会员", false),
 
+    LOGIN_NOT_BIND_PHONE(ERROR.code, "此手机号未绑定任何账号",false),
 
     /**
      * code:500

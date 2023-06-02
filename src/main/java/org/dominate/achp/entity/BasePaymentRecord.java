@@ -76,5 +76,11 @@ public class BasePaymentRecord implements Serializable {
     @TableField("create_time")
     private Date createTime;
 
+    @TableField("target_type")
+    private Integer targetType;
+
+    @TableField("target_id")
+    private Integer targetId;
+
 
 }

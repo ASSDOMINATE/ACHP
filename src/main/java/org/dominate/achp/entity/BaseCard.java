@@ -50,6 +50,24 @@ public class BaseCard implements Serializable {
     private BigDecimal balance;
 
     /**
+     * 原始价格
+     */
+    @TableField("org_balance")
+    private BigDecimal orgBalance;
+
+    /**
+     * 购买类型
+     */
+    @TableField("buy_type")
+    private Integer buyType;
+
+    /**
+     * 标签信息
+     */
+    @TableField("tag")
+    private String tag;
+
+    /**
      * 产品编码
      */
     @TableField("product_code")
@@ -78,6 +96,12 @@ public class BaseCard implements Serializable {
      */
     @TableField("stock")
     private Integer stock;
+
+    /**
+     * 排序数
+     */
+    @TableField("seq")
+    private Integer seq;
 
     @TableField("create_time")
     private Date createTime;

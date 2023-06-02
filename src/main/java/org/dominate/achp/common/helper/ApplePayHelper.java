@@ -2,12 +2,15 @@ package org.dominate.achp.common.helper;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.hwja.tool.utils.HttpUtil;
 import com.hwja.tool.utils.JsonUtil;
 import com.hwja.tool.utils.LoadUtil;
 import com.hwja.tool.utils.StringUtil;
 import lombok.extern.slf4j.Slf4j;
+import org.dominate.achp.common.enums.AppleNoticeType;
 import org.dominate.achp.common.enums.ExceptionType;
+import org.dominate.achp.entity.dto.AppleNoticeDTO;
 import org.dominate.achp.sys.exception.BusinessException;
 
 import java.util.HashMap;
@@ -29,6 +32,7 @@ public class ApplePayHelper {
     private static final String[] RESPONSE_STATUS = {"status"};
     private static final String[] RESPONSE_APP_LIST = {"receipt", "in_app"};
     private static final String[] RESPONSE_BUNDLE = {"receipt", "bundle_id"};
+    private static final String RESPONSE_ORG_TRANSACTION_ID = "original_transaction_id";
     private static final String RESPONSE_TRANSACTION_ID = "transaction_id";
     private static final String RESPONSE_PRODUCT_ID = "product_id";
 
@@ -83,7 +87,7 @@ public class ApplePayHelper {
         JSONArray apps = JsonUtil.parseResponseValueForJsonArray(response, RESPONSE_APP_LIST);
         for (int i = 0; i < apps.size(); ++i) {
             JSONObject app = apps.getJSONObject(i);
-            String resultOrderCode = app.getString(RESPONSE_TRANSACTION_ID);
+            String resultOrderCode = app.getString(RESPONSE_ORG_TRANSACTION_ID);
             if (!orderCode.equals(resultOrderCode)) {
                 continue;
             }
@@ -101,6 +105,52 @@ public class ApplePayHelper {
         log.error("苹果验证订单错误，有刷单嫌疑，请求订单号 [{}]", orderCode);
         throw BusinessException.create(ExceptionType.PAY_ORDER_NOT_FOUND);
     }
+
+
+    private static final String RESPONSE_NOTIFICATION_TYPE = "notification_type";
+    private static final String RESPONSE_UNIFIED_RECEIPT = "unified_receipt";
+    private static final String RESPONSE_LATEST_RECEIPT_INFO = "latest_receipt_info";
+
+    private static final String RESULT_DID_RENEW = "DID_RENEW";
+    private static final String RESULT_CANCEL = "CANCEL";
+
+    public static AppleNoticeDTO notice(String requestData) {
+        JSONObject data = JSONObject.parseObject(requestData);
+        // 原始transaction_id
+        String originalTransactionId = data.getString(RESPONSE_ORG_TRANSACTION_ID);
+        AppleNoticeDTO notice = new AppleNoticeDTO();
+        notice.setOrgTransactionId(originalTransactionId);
+        // 获取订阅通知类型
+        String notificationType = data.getString(RESPONSE_NOTIFICATION_TYPE);
+        log.info("renewal notify: [ original_transaction_id: {} ], [ notification_type: {} ]", originalTransactionId, notificationType);
+        // 回调收据信息
+        JSONObject unifiedReceipt = data.getJSONObject(RESPONSE_UNIFIED_RECEIPT);
+        JSONArray latestReceiptInfo = unifiedReceipt.getJSONArray(RESPONSE_LATEST_RECEIPT_INFO);
+        if (CollectionUtils.isEmpty(latestReceiptInfo)) {
+            notice.setType(AppleNoticeType.INVALID);
+            return notice;
+        }
+        JSONObject receipt = latestReceiptInfo.getJSONObject(0);
+        String productId = receipt.getString(RESPONSE_PRODUCT_ID);
+        notice.setCardProductCode(productId);
+        String transactionId = receipt.getString(RESPONSE_TRANSACTION_ID);
+        notice.setTransactionId(transactionId);
+        // 处理自动续订成功
+        if (RESULT_DID_RENEW.equals(notificationType)) {
+            // 新增卡密
+            notice.setType(AppleNoticeType.RENEW);
+            return notice;
+        }
+        // 退款
+        if (RESULT_CANCEL.equals(notificationType)) {
+            // 禁用卡密
+            notice.setType(AppleNoticeType.CANCEL_BUY);
+            return notice;
+        }
+        notice.setType(AppleNoticeType.INVALID);
+        return notice;
+    }
+
 
     private static String sendVerify(String receiptDate, boolean onSandbox) {
         Map<String, Object> params = new HashMap<>(1);

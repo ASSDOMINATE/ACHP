@@ -22,4 +22,6 @@ public interface IBaseCardService extends IService<BaseCard> {
      * @return 付费卡密列表
      */
     List<CardDTO> enableList();
+
+    BaseCard findCardForRenew(String productCode);
 }

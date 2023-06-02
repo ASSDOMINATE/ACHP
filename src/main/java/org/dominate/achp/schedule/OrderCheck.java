@@ -49,7 +49,7 @@ public class OrderCheck {
 
     @Scheduled(cron = "*/10 * * * * ?")
     public void checkList() {
-        if(!LoadUtil.onProd()){
+        if (!LoadUtil.onProd()) {
             return;
         }
         long thisTime = System.currentTimeMillis();
@@ -84,20 +84,19 @@ public class OrderCheck {
                 continue;
             }
             log.info("支付订单校验通过 {} - {}", payOrder.getSysOrderCode(), payOrder.getPartyOrderCode());
-            int paymentId = basePaymentRecordService.save(payOrder, card);
-            if (paymentId == 0) {
-                // 保存失败下一次重试
+            if (!basePaymentRecordService.isUniqueOrder(payOrder.getPartyOrderCode(), payOrder.getPayType())) {
                 payOrder.setCheckedTime(thisTime);
                 PayOrderCache.updateCheckTime(payOrder);
                 continue;
             }
+            int cardRecordId = baseCardRecordService.bindRecord(payOrder.getAccountId(), card);
             // 4.完成订单
-            if (baseCardRecordService.bindRecord(payOrder.getAccountId(), card)) {
+            if (cardRecordId != 0) {
+                basePaymentRecordService.save(payOrder, card, cardRecordId);
                 PayOrderCache.remove(payOrder.getSysOrderCode());
                 continue;
             }
             // 5.数据库异常导致保存失败，清理数据，等待下一次重试
-            basePaymentRecordService.removeById(paymentId);
             payOrder.setCheckedTime(thisTime);
             PayOrderCache.updateCheckTime(payOrder);
         }

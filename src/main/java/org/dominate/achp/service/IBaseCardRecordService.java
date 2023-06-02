@@ -69,7 +69,7 @@ public interface IBaseCardRecordService extends IService<BaseCardRecord> {
      * @param card      付费卡密
      * @return 是否绑定成功
      */
-    boolean bindRecord(int accountId, BaseCard card);
+    int bindRecord(int accountId, BaseCard card);
 
     /**
      * 创建卡密记录

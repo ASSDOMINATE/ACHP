@@ -6,9 +6,7 @@ import com.hwja.tool.utils.StringUtil;
 import lombok.AllArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.dominate.achp.common.cache.PermissionCache;
-import org.dominate.achp.common.enums.PlatformClientType;
-import org.dominate.achp.common.enums.ResponseType;
-import org.dominate.achp.common.enums.UserState;
+import org.dominate.achp.common.enums.*;
 import org.dominate.achp.common.helper.AuthHelper;
 import org.dominate.achp.entity.UserInfo;
 import org.dominate.achp.entity.dto.InitAccountDTO;
@@ -16,6 +14,7 @@ import org.dominate.achp.entity.dto.UserAuthDTO;
 import org.dominate.achp.entity.req.*;
 import org.dominate.achp.service.*;
 import org.dominate.achp.sys.Response;
+import org.dominate.achp.sys.exception.BusinessException;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -74,6 +73,9 @@ public class AuthController {
             return Response.code(ResponseType.MOBILE_VALID_CODE_ERROR);
         }
         int accountId = userInfoService.find(loginCodeReq.getMobile());
+        if(0 == accountId){
+            return Response.code(ResponseType.LOGIN_NOT_BIND_PHONE);
+        }
         return loginAccount(accountId);
     }
 

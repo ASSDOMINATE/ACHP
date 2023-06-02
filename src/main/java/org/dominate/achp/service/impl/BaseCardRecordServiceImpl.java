@@ -116,9 +116,12 @@ public class BaseCardRecordServiceImpl extends ServiceImpl<BaseCardRecordMapper,
 
 
     @Override
-    public boolean bindRecord(int accountId, BaseCard card) {
+    public int bindRecord(int accountId, BaseCard card) {
         int recordId = createRecord(card);
-        return bindRecord(accountId, recordId, card);
+        if (bindRecord(accountId, recordId, card)) {
+            return recordId;
+        }
+        return 0;
     }
 
     @Override

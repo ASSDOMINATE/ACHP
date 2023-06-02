@@ -68,5 +68,11 @@ public class CardDTO implements Serializable {
      */
     private BigDecimal balance;
 
+    private BigDecimal orgBalance;
+
+    private Integer buyType;
+
+    private String tag;
+
 
 }

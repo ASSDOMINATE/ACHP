@@ -48,6 +48,23 @@ public class ApiRecordController {
     }
 
     /**
+     * 获取用户最后对话组列表
+     *
+     * @param token   用户标识
+     * @return 对话组列表
+     */
+    @GetMapping(path = "getUserLastGroup")
+    @ResponseBody
+    public Response<List<GroupDTO>> getUserLastGroup(
+            @RequestHeader(name = "token", required = false) String token
+    ) {
+        int accountId = AuthHelper.parseWithValidForId(token);
+        List<String> groupIdList = chatRecordService.getUserGroupIdList(accountId, PageReq.recordPage());
+        List<GroupDTO> groupList = chatGroupService.list(groupIdList);
+        return Response.data(groupList);
+    }
+
+    /**
      * 获取对话内容列表
      *
      * @param id      对话组ID

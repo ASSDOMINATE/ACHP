@@ -3,6 +3,7 @@ package org.dominate.achp.service;
 import com.baomidou.mybatisplus.extension.service.IService;
 import org.dominate.achp.common.enums.UserState;
 import org.dominate.achp.entity.UserAccount;
+import org.dominate.achp.sys.exception.BusinessException;
 
 /**
  * <p>
@@ -35,13 +36,15 @@ public interface IUserAccountService extends IService<UserAccount> {
 
     /**
      * 修改密码
+     * <p>
+     * 修改失败会抛出失败原因异常
      *
      * @param id             账号ID
      * @param oldPassword    旧密码
      * @param updatePassword 新密码
      * @return 是否修改成功
      */
-    boolean modifyPassword(int id, String oldPassword, String updatePassword);
+    boolean modifyPassword(int id, String oldPassword, String updatePassword) throws BusinessException;
 
     /**
      * 重置密码

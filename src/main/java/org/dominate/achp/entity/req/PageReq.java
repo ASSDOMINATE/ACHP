@@ -22,10 +22,17 @@ public class PageReq {
     @Max(value = 200, message = "分页大小最大 200")
     private Integer size;
 
+    public static PageReq recordPage() {
+        PageReq page = new PageReq();
+        page.setPage(1);
+        page.setSize(6);
+        return page;
+    }
+
     public static PageReq chatPage() {
         PageReq page = new PageReq();
         page.setPage(1);
-        page.setSize(50);
+        page.setSize(24);
         return page;
     }
 

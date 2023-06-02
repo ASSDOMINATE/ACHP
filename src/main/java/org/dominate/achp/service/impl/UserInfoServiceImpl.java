@@ -331,7 +331,7 @@ public class UserInfoServiceImpl extends ServiceImpl<UserInfoMapper, UserInfo> i
         UserInfo update = new UserInfo();
         if (StringUtils.isNotEmpty(req.getName()) && !req.getName().equals(dbInfo.getName())) {
             if (isExisted(UserInfo::getName, req.getName())) {
-                throw BusinessException.create(ExceptionType.USER_INFO_EXISTED);
+                throw BusinessException.create(ExceptionType.USER_INFO_NAME_EXISTED);
             }
             update.setName(req.getName()).setId(dbInfo.getId());
         }
@@ -340,13 +340,13 @@ public class UserInfoServiceImpl extends ServiceImpl<UserInfoMapper, UserInfo> i
         }
         if (StringUtils.isNotEmpty(req.getPhone()) && !req.getPhone().equals(dbInfo.getPhone())) {
             if (isExisted(UserInfo::getPhone, req.getPhone())) {
-                throw BusinessException.create(ExceptionType.USER_INFO_EXISTED);
+                throw BusinessException.create(ExceptionType.USER_INFO_PHONE_EXISTED);
             }
             update.setPhone(req.getPhone()).setId(dbInfo.getId());
         }
         if (StringUtils.isNotEmpty(req.getEmail()) && !req.getEmail().equals(dbInfo.getEmail())) {
             if (isExisted(UserInfo::getEmail, req.getEmail())) {
-                throw BusinessException.create(ExceptionType.USER_INFO_EXISTED);
+                throw BusinessException.create(ExceptionType.USER_INFO_EMAIL_EXISTED);
             }
             update.setEmail(req.getEmail()).setId(dbInfo.getId());
         }
@@ -355,7 +355,7 @@ public class UserInfoServiceImpl extends ServiceImpl<UserInfoMapper, UserInfo> i
         }
         if (StringUtils.isNotEmpty(req.getIdentity()) && !req.getIdentity().equals(dbInfo.getIdentity())) {
             if (isExisted(UserInfo::getIdentity, req.getIdentity())) {
-                throw BusinessException.create(ExceptionType.USER_INFO_EXISTED);
+                throw BusinessException.create(ExceptionType.USER_INFO_IDENTITY_EXISTED);
             }
             update.setIdentity(req.getIdentity()).setId(dbInfo.getId());
         }

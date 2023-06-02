@@ -3,11 +3,13 @@ package org.dominate.achp.service.impl;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import lombok.extern.slf4j.Slf4j;
 import org.dominate.achp.common.constant.SqlConstants;
+import org.dominate.achp.common.enums.ExceptionType;
 import org.dominate.achp.common.enums.UserState;
 import org.dominate.achp.common.utils.PasswordUtil;
 import org.dominate.achp.entity.UserAccount;
 import org.dominate.achp.mapper.UserAccountMapper;
 import org.dominate.achp.service.IUserAccountService;
+import org.dominate.achp.sys.exception.BusinessException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -53,17 +55,20 @@ public class UserAccountServiceImpl extends ServiceImpl<UserAccountMapper, UserA
     }
 
     @Override
-    public boolean modifyPassword(int id, String oldPassword, String updatePassword) {
+    public boolean modifyPassword(int id, String oldPassword, String updatePassword) throws BusinessException {
         UserAccount account = getById(id);
         if (!validPassword(oldPassword, account)) {
-            return false;
+            throw BusinessException.create(ExceptionType.USER_PASSWORD_ERROR);
         }
         // 修改密码需要重置盐值
         UserAccount update = new UserAccount();
         update.setId(account.getId());
         update.setSalt(PasswordUtil.createSalt());
         update.setPassword(PasswordUtil.encryptPassword(updatePassword, update.getSalt()));
-        return updateById(update);
+        if (!updateById(update)) {
+            throw BusinessException.create(ExceptionType.ERROR);
+        }
+        return true;
     }
 
     @Override

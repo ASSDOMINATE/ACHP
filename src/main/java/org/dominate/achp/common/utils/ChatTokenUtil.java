@@ -22,6 +22,8 @@ import java.util.*;
 @Slf4j
 public class ChatTokenUtil {
 
+    private static final int BASE_NUM_FOR_APPEND = 3;
+
     /**
      * 通过模型名称, 计算指定字符串的tokens
      *
@@ -50,7 +52,8 @@ public class ChatTokenUtil {
         for (ChatMessage msg : messages) {
             sum += token(encoding, msg, baseToken);
         }
-        sum += 3;
+        // every reply is primed with <|start|>assistant<|message|>
+        sum += BASE_NUM_FOR_APPEND;
         return sum;
     }
 
@@ -64,14 +67,44 @@ public class ChatTokenUtil {
     public static int token(@NotNull String modelId, @NotNull ChatMessage message) {
         Encoding encoding = getEncoding(modelId);
         int baseToken = GptModelType.getModelType(modelId).getTokenNum();
-        return token(encoding, message, baseToken);
+        // every reply is primed with <|start|>assistant<|message|>
+        return token(encoding, message, baseToken) + BASE_NUM_FOR_APPEND;
     }
 
     private static int token(Encoding encoding, ChatMessage message, int baseToken) {
         int sum = 0;
         sum += tokens(encoding, message.getRole());
         sum += tokens(encoding, message.getContent());
+        // for name
+        sum += tokens(encoding, message.getRole());
+        // every message follows <|start|>{role/name}\n{content}<|end|>\n
         sum += baseToken;
+        return sum;
+    }
+
+    public static int baseTokens(@NotNull String modelName, @NotNull List<ChatMessage> messages) {
+        Encoding encoding = getEncoding(modelName);
+        int tokensPerMessage = 0;
+        int tokensPerName = 0;
+        //3.5统一处理
+        if (modelName.equals("gpt-3.5-turbo-0301") || modelName.equals("gpt-3.5-turbo")) {
+            tokensPerMessage = 4;
+            tokensPerName = -1;
+        }
+        //4.0统一处理
+        if (modelName.equals("gpt-4") || modelName.equals("gpt-4-0314")) {
+            tokensPerMessage = 3;
+            tokensPerName = 1;
+        }
+        int sum = 0;
+        for (ChatMessage msg : messages) {
+            sum += tokensPerMessage;
+            sum += tokens(encoding, msg.getContent());
+            sum += tokens(encoding, msg.getRole());
+            sum += tokens(encoding, msg.getRole());
+            sum += tokensPerName;
+        }
+        sum += 3;
         return sum;
     }
 

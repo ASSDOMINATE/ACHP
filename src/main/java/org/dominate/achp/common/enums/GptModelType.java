@@ -12,8 +12,9 @@ public enum GptModelType {
     /**
      * 模型
      */
-    DEFAULT("gpt-3.5-turbo", 3, 4096),
-    GPT_3_5_TURBO("gpt-3.5-turbo", 3, 4096);
+    DEFAULT("gpt-3.5-turbo", 4, 4096),
+    GPT_3_5_TURBO_0301("gpt-3.5-turbo-0301",4,4096),
+    GPT_3_5_TURBO("gpt-3.5-turbo", 4, 4096);
     /**
      * 模型ID
      */

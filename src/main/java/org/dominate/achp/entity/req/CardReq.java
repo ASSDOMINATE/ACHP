@@ -1,5 +1,6 @@
 package org.dominate.achp.entity.req;
 
+import com.baomidou.mybatisplus.annotation.TableField;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
@@ -40,6 +41,11 @@ public class CardReq implements Serializable {
     private BigDecimal balance;
 
     /**
+     * 原始价格
+     */
+    private BigDecimal orgBalance;
+
+    /**
      * 产品编码
      */
     private String productCode;
@@ -48,6 +54,8 @@ public class CardReq implements Serializable {
      * 类型
      */
     private Integer type;
+
+    private Integer buyType;
 
     /**
      * 限制次数，根据type决定是否启用
@@ -60,11 +68,22 @@ public class CardReq implements Serializable {
     private Integer dayLimit;
 
     /**
+     * 标签信息
+     */
+    private String tag;
+
+    /**
      * 库存
      */
     private Integer stock;
 
     private Integer state;
+
+
+    /**
+     * 排序数
+     */
+    private Integer seq;
 
 
 
