@@ -11,7 +11,6 @@ import org.dominate.achp.entity.wrapper.CardWrapper;
 import org.dominate.achp.mapper.BaseCardMapper;
 import org.dominate.achp.service.IBaseCardService;
 import org.springframework.stereotype.Service;
-import org.springframework.test.context.jdbc.Sql;
 
 import java.util.List;
 

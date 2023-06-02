@@ -7,7 +7,6 @@ import com.knuddels.jtokkit.api.EncodingRegistry;
 import com.knuddels.jtokkit.api.ModelType;
 import com.theokanning.openai.completion.chat.ChatMessage;
 import lombok.extern.slf4j.Slf4j;
-import org.dominate.achp.common.enums.ChatRoleType;
 import org.dominate.achp.common.enums.GptModelType;
 
 import javax.validation.constraints.NotNull;

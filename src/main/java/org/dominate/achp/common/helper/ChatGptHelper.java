@@ -2,12 +2,10 @@ package org.dominate.achp.common.helper;
 
 import com.hwja.tool.utils.StringUtil;
 import com.openai.theokanning.OpenAiService;
-import com.theokanning.openai.completion.chat.ChatCompletionChunk;
 import com.theokanning.openai.completion.chat.ChatCompletionRequest;
 import com.theokanning.openai.completion.chat.ChatCompletionResult;
 import com.theokanning.openai.completion.chat.ChatMessage;
 import com.theokanning.openai.model.Model;
-import io.reactivex.Flowable;
 import lombok.extern.slf4j.Slf4j;
 import org.dominate.achp.common.enums.ChatRoleType;
 import org.dominate.achp.common.enums.ExceptionType;
@@ -34,7 +32,7 @@ public final class ChatGptHelper {
 
     public static final String DEFAULT_MODEL_ID = "gpt-3.5-turbo-0301";
     private static final String DEFAULT_API_KEY = "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";
-    private static final int DEFAULT_TOKENS = 1000;
+    private static final int DEFAULT_TOKENS = 100000;
     private static final double DEFAULT_TEMPERATURE = 0.8;
     private static final int TOKEN_RESERVE = 256;
 
@@ -59,16 +57,54 @@ public final class ChatGptHelper {
     /**
      * 发送消息，回复到 sseEmitter
      *
-     * @param chat        会话对象
-     * @param contentList 前置对话
      * @param sseEmitter  本次客户端的请求流
+     * @param contentList 前置对话
      * @param apiKey      apiKey
-     * @return
+     * @param chat        会话对象
+     * @return AI回复
      */
-    public static ReplyDTO send(ChatDTO chat, List<ContentDTO> contentList, SseEmitter sseEmitter, String apiKey) {
-        return send(chat.getSentence(), chat.getSystem(), contentList, sseEmitter, chat.getModelId(), chat.getMaxResultTokens(), chat.getTemperature(), apiKey);
+    public static ReplyDTO send(SseEmitter sseEmitter, List<ContentDTO> contentList, String apiKey, ChatDTO chat) {
+        return send(sseEmitter, contentList, apiKey, chat.getSentence(), chat.getSystem(), chat.getModelId(), chat.getMaxResultTokens(), chat.getTemperature());
     }
 
+    /**
+     * 发送消息，回复到 sseEmitter
+     *
+     * @param sseEmitter   本次客户端的请求流
+     * @param contentList  会话历史
+     * @param sentence     用户发起的话
+     * @param system       系统预设角色
+     * @param modelId      模型ID
+     * @param resultTokens 返回结果限制Tokens
+     * @param temperature  返回结果热度设置
+     * @param apiKey       本次使用的ApiKey
+     * @return ReplyDTO 回复
+     */
+    public static ReplyDTO send(SseEmitter sseEmitter, List<ContentDTO> contentList, String apiKey, String sentence, String system, String modelId,
+                                int resultTokens, Double temperature) {
+        OpenAiService service = new OpenAiService(apiKey, DEFAULT_DURATION);
+        ChatCompletionRequest request = createChatRequest(modelId, resultTokens, temperature, parseMessages(contentList, sentence, system, modelId, resultTokens), true);
+        StringBuilder reply = new StringBuilder();
+        service.streamChatCompletion(request).blockingForEach((result) -> {
+            ChatMessage message = result.getChoices().get(FIRST_ANSWER_INDEX).getMessage();
+            if (StringUtil.isEmpty(message.getContent())) {
+                return;
+            }
+            if (StringUtil.isEmpty(message.getRole())) {
+                message.setRole(ChatRoleType.AI.getRole());
+            }
+            try {
+                sseEmitter.send(message);
+            } catch (Exception e) {
+                log.info("SSE closed , so shutdown Chat-GPT stream");
+                // 抛异常即可中断 blockingForEach
+                throw BusinessException.create(ExceptionType.EMPTY_ERROR);
+            }
+            reply.append(message.getContent());
+        });
+        service.shutdownExecutor();
+        return new ReplyDTO(modelId, sentence, reply.toString());
+    }
 
     /**
      * 发送消息
@@ -102,6 +138,23 @@ public final class ChatGptHelper {
         return send(sentence, system, contentList, DEFAULT_MODEL_ID, DEFAULT_TOKENS, DEFAULT_TEMPERATURE, DEFAULT_API_KEY);
     }
 
+    /**
+     * 发送消息
+     *
+     * @param sentence    用户发起的话
+     * @param contentList 会话历史
+     * @param modelId     模型ID
+     * @param apiKey      OpenAi ApiKey
+     * @return AI回复
+     */
+    public static ReplyDTO send(String sentence, String system, List<ContentDTO> contentList, String modelId, int resultTokens, double temperature, String apiKey) {
+        OpenAiService service = new OpenAiService(apiKey, DEFAULT_DURATION);
+        ChatCompletionRequest request = createChatRequest(modelId, resultTokens, temperature, parseMessages(contentList, sentence, system, modelId, resultTokens), false);
+        ChatCompletionResult result = service.createChatCompletion(request);
+        String content = result.getChoices().get(FIRST_ANSWER_INDEX).getMessage().getContent();
+        service.shutdownExecutor();
+        return new ReplyDTO(modelId, sentence, content);
+    }
 
     /**
      * 生成对话消息对象
@@ -154,64 +207,53 @@ public final class ChatGptHelper {
         return sentence.substring(0, maxTitleLength);
     }
 
-
     /**
-     * 发送消息，回复到 sseEmitter
+     * 解析生成对话消息列表
+     * <p>
+     * 可能会过滤掉消息中的部分历史对话
+     * 消息列表+返回结果的Tokens数量需要小于请求模型的Tokens限制
      *
-     * @param sentence    用户发起的话
-     * @param contentList 会话历史
-     * @param sseEmitter  本次客户端的请求流
-     * @param modelId     模型ID
-     * @param apiKey      OpenAi ApiKey
-     * @return ReplyDTO 回复
+     * @param contentList  历史对话列表
+     * @param sentence     本次提问
+     * @param system       系统预设
+     * @param modelId      模型ID
+     * @param resultTokens 返回结果的Tokens限制
+     * @return 对话消息列表
      */
-    private static ReplyDTO send(String sentence, String system, List<ContentDTO> contentList, SseEmitter sseEmitter, String modelId,
-                                 int resultTokens, Double temperature, String apiKey) {
-        OpenAiService service = new OpenAiService(apiKey, DEFAULT_DURATION);
-        ChatCompletionRequest request = createChatRequest(modelId, resultTokens, temperature, parseMessages(contentList, sentence, system, modelId, resultTokens), true);
-        StringBuilder reply = new StringBuilder();
-        // SSE 关闭
-        sseEmitter.onCompletion(service::shutdownExecutor);
-        Flowable<ChatCompletionChunk> serviceFlow = service.streamChatCompletion(request);
-        serviceFlow.blockingForEach((result) -> {
-            ChatMessage message = result.getChoices().get(FIRST_ANSWER_INDEX).getMessage();
-            if (StringUtil.isEmpty(message.getContent())) {
-                return;
+    public static List<ChatMessage> parseMessages(List<ContentDTO> contentList, String sentence, String system, String modelId, int resultTokens) {
+        if (CollectionUtils.isEmpty(contentList)) {
+            // 无上下文
+            List<ChatMessage> messageList = new ArrayList<>(2);
+            if (StringUtil.isNotEmpty(system)) {
+                // 1.添加系统角色
+                messageList.add(createMessage(system, ChatRoleType.SYS));
             }
-            if (StringUtil.isEmpty(message.getRole())) {
-                message.setRole(ChatRoleType.AI.getRole());
-            }
-            try {
-                sseEmitter.send(message);
-            } catch (Exception e) {
-                log.info("SSE closed , so shutdown stream");
-                service.shutdownExecutor();
-                throw BusinessException.create(ExceptionType.EMPTY_ERROR);
-            }
-            reply.append(message.getContent());
-        });
-        service.shutdownExecutor();
-        return new ReplyDTO(modelId, sentence, reply.toString());
+            // 2.本次提问
+            messageList.add(createMessage(sentence, true));
+            return messageList;
+        }
+        List<ChatMessage> messageList = new ArrayList<>(contentList.size() * 2);
+        if (StringUtil.isNotEmpty(system)) {
+            // 1.添加系统角色
+            messageList.add(createMessage(system, ChatRoleType.SYS));
+        }
+        // 2.添加历史对话
+        for (ContentDTO content : contentList) {
+            messageList.add(createMessage(content.getSentence(), true));
+            messageList.add(createMessage(content.getReply(), false));
+        }
+        // 3.本次提问
+        messageList.add(createMessage(sentence, true));
+        // 4.Tokens限制检查
+        int tokens = ChatTokenUtil.tokens(modelId, messageList);
+        int limitTokens = GptModelType.getModelType(modelId).getTokenLimit() - resultTokens - TOKEN_RESERVE;
+        if (limitTokens >= tokens) {
+            return messageList;
+        }
+        log.info("需过滤连续对话，最大发送Token {}, 本次请求Token {}", limitTokens, tokens);
+        return filter(messageList, modelId, tokens - limitTokens);
     }
 
-
-    /**
-     * 发送消息
-     *
-     * @param sentence    用户发起的话
-     * @param contentList 会话历史
-     * @param modelId     模型ID
-     * @param apiKey      OpenAi ApiKey
-     * @return AI回复
-     */
-    private static ReplyDTO send(String sentence, String system, List<ContentDTO> contentList, String modelId, int resultTokens, double temperature, String apiKey) {
-        OpenAiService service = new OpenAiService(apiKey, DEFAULT_DURATION);
-        ChatCompletionRequest request = createChatRequest(modelId, resultTokens, temperature, parseMessages(contentList, sentence, system, modelId, resultTokens), false);
-        ChatCompletionResult result = service.createChatCompletion(request);
-        String content = result.getChoices().get(FIRST_ANSWER_INDEX).getMessage().getContent();
-        service.shutdownExecutor();
-        return new ReplyDTO(modelId, sentence, content);
-    }
 
     /**
      * prompt: 指定与Chatbot进行交互的初始提示。这可以是一个问题、一句话或一段文本。
@@ -240,36 +282,6 @@ public final class ChatGptHelper {
                 .n(ANSWER_LIMIT)
                 .stream(useStream)
                 .build();
-    }
-
-
-    public static List<ChatMessage> parseMessages(List<ContentDTO> contentList, String sentence, String system, String modelId, int resultTokens) {
-        if (CollectionUtils.isEmpty(contentList)) {
-            // 无上下文
-            List<ChatMessage> messageList = new ArrayList<>(2);
-            if (StringUtil.isNotEmpty(system)) {
-                messageList.add(createMessage(system, ChatRoleType.SYS));
-            }
-            messageList.add(createMessage(sentence, true));
-            return messageList;
-        }
-        List<ChatMessage> messageList = new ArrayList<>(contentList.size() * 2);
-        if (StringUtil.isNotEmpty(system)) {
-            messageList.add(createMessage(system, ChatRoleType.SYS));
-        }
-        for (ContentDTO content : contentList) {
-            messageList.add(createMessage(content.getSentence(), true));
-            messageList.add(createMessage(content.getReply(), false));
-        }
-        messageList.add(createMessage(sentence, true));
-        // Tokens 限制检查
-        int tokens = ChatTokenUtil.tokens(modelId, messageList);
-        int limitTokens = GptModelType.getModelType(modelId).getTokenLimit() - resultTokens - TOKEN_RESERVE;
-        log.info("最大发送Token {}, 本次请求Token {}", limitTokens, tokens);
-        if (limitTokens >= tokens) {
-            return messageList;
-        }
-        return filter(messageList, modelId, tokens - limitTokens);
     }
 
     private static List<ChatMessage> filter(List<ChatMessage> messageList, String modelId, int deleteTokens) {

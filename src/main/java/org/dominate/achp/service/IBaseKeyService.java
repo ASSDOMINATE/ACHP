@@ -24,6 +24,7 @@ public interface IBaseKeyService extends IService<BaseKey> {
 
     /**
      * 获取最好的Key
+     *
      * @return ApiKey
      */
     String getBestApiKey();

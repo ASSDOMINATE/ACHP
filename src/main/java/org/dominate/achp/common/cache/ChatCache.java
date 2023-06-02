@@ -3,12 +3,16 @@ package org.dominate.achp.common.cache;
 import com.hwja.tool.clients.redis.RedisClient;
 import com.hwja.tool.utils.RandomUtil;
 import com.hwja.tool.utils.StringUtil;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.time.DateUtils;
 import org.dominate.achp.entity.BaseKey;
 import org.dominate.achp.entity.BaseUserRecord;
 import org.dominate.achp.entity.dto.CardRecordDTO;
 
 import java.util.*;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 /**
  * 对话缓存工具
@@ -16,6 +20,7 @@ import java.util.*;
  * @author dominate
  * @since 2023-04-27
  */
+@Slf4j
 public final class ChatCache {
 
     /**
@@ -199,6 +204,25 @@ public final class ChatCache {
             return Collections.emptyList();
         }
         return (List<BaseKey>) RedisClient.get(TEMP_CARD_KEY_LIST);
+    }
+
+    public static BaseKey selectByWeight(List<BaseKey> keyList) {
+        if (keyList.size() == 1) {
+            return keyList.get(0);
+        }
+        int totalWeight = 0;
+        for (BaseKey key : keyList) {
+            totalWeight += key.getWeight();
+        }
+        int target = RandomUtil.getRandNum(0, totalWeight);
+        int index = 0;
+        for (BaseKey key : keyList) {
+            index += key.getWeight();
+            if (target <= index) {
+                return key;
+            }
+        }
+        return keyList.get(0);
     }
 
     /**

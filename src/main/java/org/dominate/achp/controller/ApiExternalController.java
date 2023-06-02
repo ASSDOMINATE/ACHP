@@ -2,26 +2,21 @@ package org.dominate.achp.controller;
 
 import lombok.AllArgsConstructor;
 import org.dominate.achp.common.cache.ChatCache;
-import org.dominate.achp.common.cache.PayOrderCache;
 import org.dominate.achp.common.enums.CardRecordState;
 import org.dominate.achp.common.enums.PayType;
 import org.dominate.achp.common.enums.PaymentTargetType;
 import org.dominate.achp.common.helper.ApplePayHelper;
-import org.dominate.achp.common.helper.AuthHelper;
 import org.dominate.achp.entity.BaseCard;
 import org.dominate.achp.entity.BaseCardRecord;
 import org.dominate.achp.entity.BasePaymentRecord;
 import org.dominate.achp.entity.dto.AppleNoticeDTO;
-import org.dominate.achp.entity.dto.ContentDTO;
-import org.dominate.achp.entity.dto.GroupDTO;
-import org.dominate.achp.entity.req.PageReq;
-import org.dominate.achp.service.*;
+import org.dominate.achp.service.IBaseCardRecordService;
+import org.dominate.achp.service.IBaseCardService;
+import org.dominate.achp.service.IBasePaymentRecordService;
 import org.dominate.achp.sys.Response;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
-import java.util.List;
 
 /**
  * 对话记录相关接口

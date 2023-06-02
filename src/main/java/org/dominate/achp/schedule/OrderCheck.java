@@ -74,7 +74,6 @@ public class OrderCheck {
                     }
                 }
             }
-
             BaseCard card = baseCardService.getById(payOrder.getCardId());
             // 3.订单支付检查
             if (!checkPay(payOrder, card)) {
