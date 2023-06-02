@@ -5,7 +5,6 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.hwja.tool.utils.StringUtil;
 import org.dominate.achp.common.cache.ChatCache;
 import org.dominate.achp.common.enums.State;
-import org.dominate.achp.common.utils.FreqUtil;
 import org.dominate.achp.entity.BaseKey;
 import org.dominate.achp.mapper.BaseKeyMapper;
 import org.dominate.achp.service.IBaseKeyService;

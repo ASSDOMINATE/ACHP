@@ -10,9 +10,6 @@ import org.dominate.achp.entity.BaseUserRecord;
 import org.dominate.achp.entity.dto.CardRecordDTO;
 
 import java.util.*;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 
 /**
  * 对话缓存工具

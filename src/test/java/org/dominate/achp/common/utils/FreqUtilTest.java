@@ -5,7 +5,7 @@ import org.junit.Test;
 public class FreqUtilTest {
 
     @Test
-    public void testApiKeyFreq() throws InterruptedException {
+    public void testApiKeyFreq() {
         for (int i = 0; i < 1000; i++) {
             System.out.println(i);
             boolean canUse = FreqUtil.waitFreqForApiKey("1");
