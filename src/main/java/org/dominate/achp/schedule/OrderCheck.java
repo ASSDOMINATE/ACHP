@@ -42,9 +42,9 @@ public class OrderCheck {
     private static final long CHECK_BETWEEN_TIME = 60 * 1000;
 
     /**
-     * 30分钟还未完成算超时
+     * 60分钟还未完成算超时
      */
-    private static final long ORDER_OUT_TIME = 30 * 60 * 1000;
+    private static final long ORDER_OUT_TIME = 60 * 60 * 1000;
 
 
     @Scheduled(cron = "*/10 * * * * ?")
@@ -66,7 +66,7 @@ public class OrderCheck {
                     continue;
                 }
                 // 2.超过过期时间
-                if (payOrder.getCheckedTime() + ORDER_OUT_TIME < thisTime) {
+                if (payOrder.getCreateTime() + ORDER_OUT_TIME < thisTime) {
                     BasePaymentRecord paymentRecord = createFailedRecord(payOrder);
                     if (basePaymentRecordService.save(paymentRecord)) {
                         PayOrderCache.remove(payOrder.getSysOrderCode());
@@ -121,8 +121,8 @@ public class OrderCheck {
                     return false;
             }
         } catch (Exception e) {
-            log.info("订单检查未通过 系统订单号 {} ，三方订单号 {}，订单生成时间 {}",
-                    payOrder.getSysOrderCode(), payOrder.getPartyOrderCode(), payOrder.getCreateTime());
+            log.info("订单检查未通过 用户ID {} ，系统订单号 {} ，三方订单号 {}，订单生成时间 {}",
+                    payOrder.getAccountId(), payOrder.getSysOrderCode(), payOrder.getPartyOrderCode(), payOrder.getCreateTime());
             return false;
         }
 

@@ -96,7 +96,7 @@ public final class ChatGptHelper {
             try {
                 sseEmitter.send(message);
             } catch (Exception e) {
-                log.info("SSE closed , so shutdown Chat-GPT stream");
+                log.info("ChatGptHelper.send SSE closed , so shutdown Chat-GPT stream , {}", e.getMessage());
                 // 抛异常即可中断 blockingForEach
                 throw BusinessException.create(ExceptionType.EMPTY_ERROR);
             }

@@ -1,6 +1,8 @@
 package org.dominate.achp.controller;
 
+import com.baomidou.mybatisplus.core.conditions.query.Query;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.hwja.tool.utils.BaseUtil;
 import com.hwja.tool.utils.SqlUtil;
 import com.hwja.tool.utils.StringUtil;
 import lombok.AllArgsConstructor;
@@ -67,7 +69,9 @@ public class CardController {
             @RequestHeader(name = "token", required = false) String token
     ) {
         AuthHelper.checkAdminUser(token);
-        List<BaseCard> cardList = baseCardService.list();
+        QueryWrapper<BaseCard> query = new QueryWrapper<>();
+        query.lambda().orderByAsc(BaseCard::getSeq);
+        List<BaseCard> cardList = baseCardService.list(query);
         return Response.data(cardList);
     }
 
@@ -88,6 +92,10 @@ public class CardController {
         save.setDayLimit(keyReq.getDayLimit());
         save.setStock(keyReq.getStock());
         save.setState(keyReq.getState());
+        save.setBuyType(keyReq.getBuyType());
+        save.setSeq(keyReq.getSeq());
+        save.setOrgBalance(keyReq.getOrgBalance());
+        save.setTag(keyReq.getTag());
         save.setUpdateBy(accountId);
         if (null == keyReq.getId()) {
             save.setCreateBy(accountId);

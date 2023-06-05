@@ -91,7 +91,7 @@ public class UserInfoServiceImpl extends ServiceImpl<UserInfoMapper, UserInfo> i
 
     @Override
     public boolean saveInfo(InfoReq req) {
-        return saveInfo(req,false);
+        return saveInfo(req, false);
     }
 
     @Override
@@ -101,8 +101,8 @@ public class UserInfoServiceImpl extends ServiceImpl<UserInfoMapper, UserInfo> i
         if (null == dbInfo) {
             return insert(req);
         }
-        if(bindPhone){
-            if(StringUtils.isNotEmpty(dbInfo.getPhone())){
+        if (bindPhone) {
+            if (StringUtils.isNotEmpty(dbInfo.getPhone())) {
                 throw BusinessException.create(ExceptionType.IS_BIND_PHONE);
             }
         }
@@ -128,7 +128,12 @@ public class UserInfoServiceImpl extends ServiceImpl<UserInfoMapper, UserInfo> i
             return user;
         }
         // 邮箱查询
-        return findByEmail(keyword, onlyAccountId);
+        user = findByEmail(keyword, onlyAccountId);
+        if (null != user) {
+            return user;
+        }
+        // 唯一标识模糊查询
+        return getOne(createSearchQuery(UserInfo::getUniqueCode, keyword, 1));
     }
 
     @Override

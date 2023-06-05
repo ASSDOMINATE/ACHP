@@ -6,13 +6,16 @@ public class FreqUtilTest {
 
     @Test
     public void testApiKeyFreq() {
-        for (int i = 0; i < 1000; i++) {
-            System.out.println(i);
-            boolean canUse = FreqUtil.waitFreqForApiKey("1");
-            System.out.println("请求次数 " + i + " 是否可用 " + canUse);
-            if (i > 300) {
-                FreqUtil.releaseApiKey("1");
+        String key = "key";
+        for (int i = 0; i < 10000; i++) {
+            if (i % 10 == 0) {
+                FreqUtil.releaseApiKeyDelay(key);
+                System.out.println("延迟释放一次Key");
+            } else {
+                boolean isAvailable = FreqUtil.waitFreqForApiKey(key);
+                System.out.println("拿到可以用的key " + isAvailable);
             }
+            System.out.println("请求次数 " + i);
         }
     }
 }

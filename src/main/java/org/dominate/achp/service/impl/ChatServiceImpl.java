@@ -63,50 +63,6 @@ public class ChatServiceImpl implements ChatService {
     }
 
 
-    private void send(ChatSseEmitter sseEmitter, ChatDTO chat) {
-        // 1.发送 -> 开始标记
-        sendStartSign(chat, sseEmitter);
-        // 2.获取当前最合适的 Api-Key
-        String apiKey = baseKeyService.getBestApiKey();
-        // 3.等待 Api-key 的频率
-        boolean isAvailableKey = FreqUtil.waitFreqForApiKey(apiKey);
-        if (!isAvailableKey) {
-            try {
-                sseEmitter.send(ChatGptHelper.createMessage("当前请求过多，已达服务器限制，请稍后再试", false));
-            } catch (IOException e) {
-                log.error("Client SSE is closed ", e);
-            } finally {
-                FreqUtil.releaseApiKey(apiKey);
-                sseEmitter.complete();
-            }
-            return;
-        }
-        // 4.读取上下文
-        List<ContentDTO> contentList = loadGroupContentList(chat.getChatGroupId());
-        // 5.设置场景的系统角色
-        setSceneSystem(chat);
-        try {
-            // 6.发送 -> ChatGPT返回消息，时间较长
-            ReplyDTO reply = ChatGptHelper.send(sseEmitter, contentList, apiKey, chat);
-            // 7.保存结果到数据库
-            int contentId = recordContent(chat, reply.getReply());
-            // 8.发送 -> 本次会话ID
-            sseEmitter.send(ChatGptHelper.createMessage(String.valueOf(contentId), ChatRoleType.CONTENT_CODE));
-        } catch (IOException e) {
-            log.error("ChatService.startChat send error ", e);
-            try {
-                // 把ChatGPT的报错消息发送到前端
-                sseEmitter.send(ChatGptHelper.createMessage(e.getMessage(), false));
-            } catch (IOException ex) {
-                log.error("Client SSE is closed ", e);
-            }
-        } finally {
-            // 9.释放 ApiKey 的频率
-            FreqUtil.releaseApiKey(apiKey);
-            sseEmitter.complete();
-        }
-    }
-
     @Override
     public String question(ChatDTO chatDTO) {
         return ChatGptHelper.send(chatDTO.getSentence(), Collections.emptyList()).getReply();
@@ -137,6 +93,50 @@ public class ChatServiceImpl implements ChatService {
         return content.getId();
     }
 
+    private void send(ChatSseEmitter sseEmitter, ChatDTO chat) {
+        // 1.发送 -> 开始标记
+        sendStartSign(chat, sseEmitter);
+        // 2.获取当前最合适的 Api-Key
+        String apiKey = baseKeyService.getBestApiKey();
+        // 3.等待 Api-key 的频率
+        if (!FreqUtil.waitFreqForApiKey(apiKey)) {
+            // 等待后仍然超过频率限制
+            try {
+                sseEmitter.send(ChatGptHelper.createMessage("当前请求过多，已达服务器限制，请稍后再试", false));
+            } catch (IOException e) {
+                log.error("ChatService.sendFreqLimit Client SSE is closed {}", e.getMessage());
+            } finally {
+                FreqUtil.releaseApiKey(apiKey);
+                sseEmitter.complete();
+            }
+            return;
+        }
+        // 4.读取上下文
+        List<ContentDTO> contentList = loadGroupContentList(chat.getChatGroupId());
+        // 5.设置场景的系统角色
+        setSceneSystem(chat);
+        try {
+            // 6.发送 -> ChatGPT返回消息，时间较长
+            ReplyDTO reply = ChatGptHelper.send(sseEmitter, contentList, apiKey, chat);
+            // 7.保存结果到数据库
+            int contentId = recordContent(chat, reply.getReply());
+            // 8.发送 -> 本次会话ID
+            sseEmitter.send(ChatGptHelper.createMessage(String.valueOf(contentId), ChatRoleType.CONTENT_CODE));
+        } catch (IOException e) {
+            log.error("ChatService.startChat send error ", e);
+            try {
+                // 把ChatGPT的报错消息发送到前端
+                sseEmitter.send(ChatGptHelper.createMessage(e.getMessage(), false));
+            } catch (IOException ex) {
+                log.error("ChatService.sendError Client SSE is closed {}", e.getMessage());
+            }
+        } finally {
+            // 9.释放 ApiKey 的频率
+            FreqUtil.releaseApiKeyDelay(apiKey);
+            sseEmitter.complete();
+        }
+    }
+
     private void sendStartSign(ChatDTO chat, ChatSseEmitter sseEmitter) {
         try {
             ChatMessage[] messages = ChatGptHelper.createStartMessages(chat);
@@ -144,7 +144,7 @@ public class ChatServiceImpl implements ChatService {
                 sseEmitter.send(message);
             }
         } catch (IOException e) {
-            log.error("ChatService.startChat send start message error ", e);
+            log.error("ChatService.sendStartSign Client SSE is closed {}", e.getMessage());
         }
     }
 

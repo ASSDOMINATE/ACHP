@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.hwja.tool.utils.DateUtil;
 import com.hwja.tool.utils.RandomUtil;
 import com.theokanning.openai.completion.chat.ChatMessage;
+import org.dominate.achp.common.cache.ChatCache;
 import org.dominate.achp.common.cache.PayOrderCache;
 import org.dominate.achp.common.enums.ChatRoleType;
 import org.dominate.achp.common.enums.GptModelType;
@@ -23,16 +24,15 @@ import java.util.*;
 public class DemoTest {
 
     @Test
-    public void test(){
+    public void createRandomStr(){
         for (int i = 0; i < 50; i++) {
-
             System.out.println(RandomUtil.getStringRandom(12));
         }
     }
 
 
     @Test
-    public void testCache(){
+    public void showCacheOrder(){
         Collection<PayOrderDTO> payOrders = PayOrderCache.getList();
         for (PayOrderDTO payOrder : payOrders) {
             System.out.println(payOrder.getSysOrderCode());
@@ -41,7 +41,7 @@ public class DemoTest {
 
 
     @Test
-    public void models(){
+    public void getGptModels(){
         ChatGptHelper.modelList();
     }
 
@@ -58,7 +58,7 @@ public class DemoTest {
     }
 
     @Test
-    public void testOrder(){
+    public void testWeChatOrderCheck(){
         try {
             WeChatPayHelper.verifyPayOrder("2168208273588298465833413", new BigDecimal(18));
             System.out.println("支付完成");

@@ -104,10 +104,10 @@ public final class ChatCache {
      * @return 列表长度
      */
     public static long getUpdateUserUsingLength() {
-        if (!RedisClient.hasKey(CACHE_CARD_USER_USING_HASH_KEY)) {
+        if (!RedisClient.hasKey(LIST_UPDATE_USER_USING_ID)) {
             return 0L;
         }
-        return RedisClient.listLength(CACHE_CARD_USER_USING_HASH_KEY);
+        return RedisClient.listLength(LIST_UPDATE_USER_USING_ID);
     }
 
 
