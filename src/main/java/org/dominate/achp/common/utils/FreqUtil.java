@@ -67,7 +67,7 @@ public class FreqUtil {
      *
      * @param apiKey ApiKey
      */
-    public static synchronized void releaseApiKeyDelay(String apiKey) {
+    public static void releaseApiKeyDelay(String apiKey) {
         if (!API_KEY_FREQ_RECORD_MAP.containsKey(apiKey)) {
             return;
         }
