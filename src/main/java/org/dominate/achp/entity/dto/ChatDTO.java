@@ -4,7 +4,10 @@ import com.hwja.tool.utils.StringUtil;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
+import org.apache.commons.lang3.StringUtils;
 import org.dominate.achp.common.helper.ChatGptHelper;
+import org.dominate.achp.entity.BaseConfig;
+import org.dominate.achp.entity.req.PreSendReq;
 
 import java.io.Serializable;
 
@@ -55,12 +58,36 @@ public class ChatDTO implements Serializable {
      */
     private Integer accountId;
 
-    public ChatDTO(String chatGroupId, String sentence,int sceneId) {
+    public ChatDTO(String chatGroupId, String sentence, int sceneId) {
         this.chatGroupId = chatGroupId;
         this.sentence = sentence;
         this.sceneId = sceneId;
-        this.modelId = ChatGptHelper.DEFAULT_MODEL_ID;
-        this.system = StringUtil.EMPTY;
         this.accountId = 0;
+        this.system = StringUtil.EMPTY;
+        this.modelId = ChatGptHelper.DEFAULT_MODEL_ID;
+        this.maxResultTokens = ChatGptHelper.DEFAULT_TOKENS;
+        this.temperature = ChatGptHelper.DEFAULT_TEMPERATURE;
+    }
+
+    public ChatDTO(String chatGroupId, String sentence, int sceneId, BaseConfig config) {
+        this.chatGroupId = chatGroupId;
+        this.sentence = sentence;
+        this.sceneId = sceneId;
+        this.accountId = 0;
+        this.system = config.getSetSystem();
+        this.modelId = config.getModelId();
+        this.maxResultTokens = config.getMaxResultTokens();
+        this.temperature = config.getTemperature().doubleValue();
+    }
+
+    public ChatDTO(PreSendReq preSendReq, BaseConfig config) {
+        this.chatGroupId = StringUtils.isEmpty(preSendReq.getChatId()) ? StringUtils.EMPTY : preSendReq.getChatId();
+        this.sceneId = null == preSendReq.getSceneId() ? 0 : preSendReq.getSceneId();
+        this.sentence = preSendReq.getSentence();
+        this.accountId = 0;
+        this.system = config.getSetSystem();
+        this.modelId = config.getModelId();
+        this.maxResultTokens = config.getMaxResultTokens();
+        this.temperature = config.getTemperature().doubleValue();
     }
 }

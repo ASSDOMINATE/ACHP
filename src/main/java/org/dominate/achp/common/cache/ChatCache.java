@@ -8,6 +8,7 @@ import org.apache.commons.lang3.time.DateUtils;
 import org.dominate.achp.entity.BaseKey;
 import org.dominate.achp.entity.BaseUserRecord;
 import org.dominate.achp.entity.dto.CardRecordDTO;
+import org.dominate.achp.entity.dto.ChatDTO;
 
 import java.util.*;
 
@@ -26,6 +27,8 @@ public final class ChatCache {
      */
     private static final String TEMP_CARD_KEY_LIST = "temp:card:key:list";
     private static final int[] TEMP_OUT_TIME = {60 * 3, 60 * 6};
+
+    private static final String TEMP_CHAT_SEND_CACHE_HEAD = "temp:chat:send:cache:";
 
     /**
      * 哈希缓存
@@ -49,6 +52,19 @@ public final class ChatCache {
      */
     private static final String LIST_UPDATE_USER_DAILY_RECORD_ID = "list:update:user:daily:record:id";
 
+
+    public static String saveChatSendTemp(ChatDTO chat) {
+        String key = RandomUtil.createRandStr(chat.getChatGroupId(), 16);
+        RedisClient.set(TEMP_CHAT_SEND_CACHE_HEAD + key, chat,
+                RandomUtil.getRandNum(TEMP_OUT_TIME[0], TEMP_OUT_TIME[1]));
+        return key;
+    }
+
+    public static ChatDTO getChatSend(String key) {
+        ChatDTO chat = RedisClient.get(TEMP_CHAT_SEND_CACHE_HEAD + key, ChatDTO.class);
+        RedisClient.removeKey(TEMP_CHAT_SEND_CACHE_HEAD + key);
+        return chat;
+    }
 
     /**
      * 设置 用户每日记录 待更新

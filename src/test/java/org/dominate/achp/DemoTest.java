@@ -4,7 +4,6 @@ import com.alibaba.fastjson.JSON;
 import com.hwja.tool.utils.DateUtil;
 import com.hwja.tool.utils.RandomUtil;
 import com.theokanning.openai.completion.chat.ChatMessage;
-import org.dominate.achp.common.cache.ChatCache;
 import org.dominate.achp.common.cache.PayOrderCache;
 import org.dominate.achp.common.enums.ChatRoleType;
 import org.dominate.achp.common.enums.GptModelType;

@@ -1,4 +1,5 @@
 server:
+  max-http-header-size: 102400
   port: 7001
   undertow:
     # 以下的配置会影响buffer,这些buffer会用于服务器连接的IO操作,有点类似netty的池化内存管理

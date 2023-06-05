@@ -122,7 +122,7 @@ public class ChatServiceImpl implements ChatService {
             int contentId = recordContent(chat, reply.getReply());
             // 8.发送 -> 本次会话ID
             sseEmitter.send(ChatGptHelper.createMessage(String.valueOf(contentId), ChatRoleType.CONTENT_CODE));
-        } catch (IOException e) {
+        } catch (Exception e) {
             log.error("ChatService.startChat send error ", e);
             try {
                 // 把ChatGPT的报错消息发送到前端

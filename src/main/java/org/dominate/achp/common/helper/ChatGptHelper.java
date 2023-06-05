@@ -31,9 +31,10 @@ import java.util.*;
 public final class ChatGptHelper {
 
     public static final String DEFAULT_MODEL_ID = "gpt-3.5-turbo-0301";
+    public static final double DEFAULT_TEMPERATURE = 0.8;
+    public static final int DEFAULT_TOKENS = 100000;
+
     private static final String DEFAULT_API_KEY = "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";
-    private static final int DEFAULT_TOKENS = 100000;
-    private static final double DEFAULT_TEMPERATURE = 0.8;
     private static final int TOKEN_RESERVE = 256;
 
     private static final int ANSWER_LIMIT = 1;
@@ -297,6 +298,9 @@ public final class ChatGptHelper {
             iterator.remove();
             if (totalTokens >= deleteTokens) {
                 log.info("需过滤Token {}, 已过滤Token {}, 过滤后会话条数 {} ", deleteTokens, totalTokens, messageList.size());
+                if (CollectionUtils.isEmpty(messageList)) {
+                    throw BusinessException.create(ExceptionType.ERROR, "请求内容超过长度限制，请调整后发送");
+                }
                 return messageList;
             }
         }
