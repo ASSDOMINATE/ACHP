@@ -30,6 +30,7 @@
 
         <spring.jwt.version>1.0.10.RELEASE</spring.jwt.version>
         <jjwt.version>0.11.2</jjwt.version>
+        <auth.jwt.version>3.10.3</auth.jwt.version>
 
         <junit.version>4.13</junit.version>
 
@@ -181,6 +182,11 @@
             <groupId>io.jsonwebtoken</groupId>
             <artifactId>jjwt-jackson</artifactId>
             <version>${jjwt.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.auth0</groupId>
+            <artifactId>java-jwt</artifactId>
+            <version>${auth.jwt.version}</version>
         </dependency>
 
         <!-- MySql -->

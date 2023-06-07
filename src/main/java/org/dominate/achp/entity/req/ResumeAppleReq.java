@@ -4,7 +4,6 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 
-import javax.validation.constraints.NotNull;
 import java.io.Serializable;
 
 /**
@@ -18,7 +17,7 @@ import java.io.Serializable;
 @Data
 @EqualsAndHashCode(callSuper = false)
 @Accessors(chain = true)
-public class PayReq implements Serializable {
+public class ResumeAppleReq implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
@@ -27,21 +26,9 @@ public class PayReq implements Serializable {
      */
     private Integer cardId;
 
-    private String productCode;
-
-    /**
-     * 支付类型
-     */
-    @NotNull
-    private Integer payType;
-
     /**
      * 支付编码
      */
     private String orderCode;
 
-    /**
-     * 支付凭证
-     */
-    private String auth;
 }

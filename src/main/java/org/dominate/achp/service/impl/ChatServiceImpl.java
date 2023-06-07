@@ -5,6 +5,7 @@ import com.theokanning.openai.completion.chat.ChatMessage;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.dominate.achp.common.cache.ChatCache;
 import org.dominate.achp.common.enums.ChatRoleType;
 import org.dominate.achp.common.helper.ChatGptHelper;
 import org.dominate.achp.common.utils.FreqUtil;
@@ -13,20 +14,21 @@ import org.dominate.achp.entity.ChatContent;
 import org.dominate.achp.entity.ChatRecord;
 import org.dominate.achp.entity.dto.ChatDTO;
 import org.dominate.achp.entity.dto.ContentDTO;
+import org.dominate.achp.entity.dto.GroupCacheDTO;
 import org.dominate.achp.entity.dto.ReplyDTO;
 import org.dominate.achp.entity.req.PageReq;
+import org.dominate.achp.entity.wrapper.ChatWrapper;
 import org.dominate.achp.service.*;
 import org.dominate.achp.sys.ChatSseEmitter;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
-import javax.annotation.Resource;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 
 
 /**
@@ -40,9 +42,6 @@ import java.util.concurrent.Executor;
 @Transactional(rollbackFor = Exception.class)
 @AllArgsConstructor
 public class ChatServiceImpl implements ChatService {
-
-    @Resource(name = "commonExecutor")
-    private Executor commonExecutor;
 
     private final IChatGroupService chatGroupService;
     private final IChatContentService chatContentService;
@@ -58,10 +57,9 @@ public class ChatServiceImpl implements ChatService {
         }
         ChatSseEmitter sseEmitter = new ChatSseEmitter(0L);
         // 启用线程池发送消息
-        CompletableFuture.runAsync(() -> send(sseEmitter, chat), commonExecutor);
+        CompletableFuture.runAsync(() -> send(sseEmitter, chat), Executors.newCachedThreadPool());
         return sseEmitter;
     }
-
 
     @Override
     public String question(ChatDTO chatDTO) {
@@ -90,13 +88,14 @@ public class ChatServiceImpl implements ChatService {
         if (!chatRecordService.save(record)) {
             log.error("Save chat record error " + chat);
         }
+        ChatCache.saveChatGroupContentTemp(chat.getChatGroupId(), ChatWrapper.build().entityDTO(content));
         return content.getId();
     }
 
     private void send(ChatSseEmitter sseEmitter, ChatDTO chat) {
         // 1.发送 -> 开始标记
         sendStartSign(chat, sseEmitter);
-        // 2.获取当前最合适的 Api-Key
+        // 2.获取当前最合适的 Api-Key  from DB or Cache
         String apiKey = baseKeyService.getBestApiKey();
         // 3.等待 Api-key 的频率
         if (!FreqUtil.waitFreqForApiKey(apiKey)) {
@@ -111,14 +110,14 @@ public class ChatServiceImpl implements ChatService {
             }
             return;
         }
-        // 4.读取上下文
+        // 4.读取上下文 from DB or Cache
         List<ContentDTO> contentList = loadGroupContentList(chat.getChatGroupId());
-        // 5.设置场景的系统角色
+        // 5.设置场景的系统角色 from DB
         setSceneSystem(chat);
         try {
             // 6.发送 -> ChatGPT返回消息，时间较长
             ReplyDTO reply = ChatGptHelper.send(sseEmitter, contentList, apiKey, chat);
-            // 7.保存结果到数据库
+            // 7.保存结果到数据库 to DB
             int contentId = recordContent(chat, reply.getReply());
             // 8.发送 -> 本次会话ID
             sseEmitter.send(ChatGptHelper.createMessage(String.valueOf(contentId), ChatRoleType.CONTENT_CODE));
@@ -149,8 +148,14 @@ public class ChatServiceImpl implements ChatService {
     }
 
     private List<ContentDTO> loadGroupContentList(String groupId) {
+        GroupCacheDTO groupCache = ChatCache.getChatGroup(groupId);
+        if (null != groupCache) {
+            return groupCache.getContentList();
+        }
         List<Integer> contentIdList = chatRecordService.getGroupContentIdList(groupId, PageReq.chatPage());
-        return chatContentService.list(contentIdList);
+        List<ContentDTO> contentList = chatContentService.list(contentIdList);
+        ChatCache.saveChatGroupTemp(new GroupCacheDTO(groupId, contentList));
+        return contentList;
     }
 
     private void setSceneSystem(ChatDTO chat) {

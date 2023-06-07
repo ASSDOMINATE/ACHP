@@ -23,5 +23,5 @@ public interface IBaseCardService extends IService<BaseCard> {
      */
     List<CardDTO> enableList();
 
-    BaseCard findCardForRenew(String productCode);
+    BaseCard findCardForProduct(String productCode);
 }

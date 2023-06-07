@@ -2,7 +2,9 @@ package org.dominate.achp.common.helper;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
+import com.auth0.jwt.JWT;
+import com.auth0.jwt.algorithms.Algorithm;
+import com.auth0.jwt.interfaces.DecodedJWT;
 import com.hwja.tool.utils.HttpUtil;
 import com.hwja.tool.utils.JsonUtil;
 import com.hwja.tool.utils.LoadUtil;
@@ -13,6 +15,13 @@ import org.dominate.achp.common.enums.ExceptionType;
 import org.dominate.achp.entity.dto.AppleNoticeDTO;
 import org.dominate.achp.sys.exception.BusinessException;
 
+import java.io.ByteArrayInputStream;
+import java.security.PublicKey;
+import java.security.cert.CertificateException;
+import java.security.cert.CertificateFactory;
+import java.security.cert.X509Certificate;
+import java.security.interfaces.ECPublicKey;
+import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -29,16 +38,32 @@ public class ApplePayHelper {
     private static final String VERIFY_URL_SANDBOX = "https://sandbox.itunes.apple.com/verifyReceipt";
 
     private static final String REQUEST_RECEIPT_DATA = "receipt-data";
+    private static final String REQUEST_PASSWORD = "password";
+
+    private static final String CERT_FACTORY_X5C = "X.509";
+
+    private static final String RESPONSE_NOTICE_CERT_X5C = "x5c";
+    private static final String RESPONSE_NOTICE_SIGNED_PAYLOAD = "signedPayload";
+    private static final String RESPONSE_NOTICE_DATA = "data";
+    private static final String RESPONSE_NOTICE_SIGNED_TRANSACTION_INFO = "signedTransactionInfo";
+    private static final String RESPONSE_NOTICE_ORG_TRANSACTION_ID = "originalTransactionId";
+    private static final String RESPONSE_NOTICE_TRANSACTION_ID = "transactionId";
+    private static final String RESPONSE_NOTICE_PRODUCT_ID = "productId";
+    private static final String RESPONSE_NOTICE_EXPIRES_DATE = "expiresTime";
+    private static final String RESPONSE_NOTICE_NOTIFICATION_TYPE = "notificationType";
+    private static final String RESPONSE_NOTICE_SUBTYPE = "subtype";
+    private static final String RESPONSE_NOTICE_BUNDLE_ID = "bundleId";
+
     private static final String[] RESPONSE_STATUS = {"status"};
     private static final String[] RESPONSE_APP_LIST = {"receipt", "in_app"};
     private static final String[] RESPONSE_BUNDLE = {"receipt", "bundle_id"};
     private static final String RESPONSE_ORG_TRANSACTION_ID = "original_transaction_id";
-    private static final String RESPONSE_TRANSACTION_ID = "transaction_id";
     private static final String RESPONSE_PRODUCT_ID = "product_id";
 
     private static final String SUCCESS_STATUS_CODE = "0";
     private static final String CHECK_ON_SANDBOX_CODE = "21007";
 
+    private static final String APPLE_PASSWORD = LoadUtil.getProperty("apple.pay.password");
     private static final String BUNDLE_ID = LoadUtil.getProperty("apple.pay.bundle-id");
     private static final boolean USE_SANDBOX = LoadUtil.getBooleanProperty("apple.pay.sandbox");
 
@@ -106,55 +131,80 @@ public class ApplePayHelper {
         throw BusinessException.create(ExceptionType.PAY_ORDER_NOT_FOUND);
     }
 
-
-    private static final String RESPONSE_NOTIFICATION_TYPE = "notification_type";
-    private static final String RESPONSE_UNIFIED_RECEIPT = "unified_receipt";
-    private static final String RESPONSE_LATEST_RECEIPT_INFO = "latest_receipt_info";
-
-    private static final String RESULT_DID_RENEW = "DID_RENEW";
-    private static final String RESULT_CANCEL = "CANCEL";
-
-    public static AppleNoticeDTO notice(String requestData) {
-        JSONObject data = JSONObject.parseObject(requestData);
-        // 原始transaction_id
-        String originalTransactionId = data.getString(RESPONSE_ORG_TRANSACTION_ID);
-        AppleNoticeDTO notice = new AppleNoticeDTO();
-        notice.setOrgTransactionId(originalTransactionId);
-        // 获取订阅通知类型
-        String notificationType = data.getString(RESPONSE_NOTIFICATION_TYPE);
-        log.info("renewal notify: [ original_transaction_id: {} ], [ notification_type: {} ]", originalTransactionId, notificationType);
-        // 回调收据信息
-        JSONObject unifiedReceipt = data.getJSONObject(RESPONSE_UNIFIED_RECEIPT);
-        JSONArray latestReceiptInfo = unifiedReceipt.getJSONArray(RESPONSE_LATEST_RECEIPT_INFO);
-        if (CollectionUtils.isEmpty(latestReceiptInfo)) {
-            notice.setType(AppleNoticeType.INVALID);
+    public static AppleNoticeDTO notice(String request) {
+        String signedPayload = JsonUtil.parseResponseValueForString(request, RESPONSE_NOTICE_SIGNED_PAYLOAD);
+        DecodedJWT decodedJWT = JWT.decode(signedPayload);
+        String header = new String(Base64.getDecoder().decode(decodedJWT.getHeader()));
+        String x5c = JSONObject.parseObject(header).getJSONArray(RESPONSE_NOTICE_CERT_X5C).getString(0);
+        // 获取公钥
+        try {
+            PublicKey publicKey = getPublicKeyByX5c(x5c);
+            // 验证 token
+            Algorithm algorithm = Algorithm.ECDSA256((ECPublicKey) publicKey, null);
+            algorithm.verify(decodedJWT);
+            // 解析数据
+            AppleNoticeDTO notice = new AppleNoticeDTO();
+            JSONObject payload = parseBase64String(decodedJWT.getPayload());
+            JSONObject data = payload.getJSONObject(RESPONSE_NOTICE_DATA);
+            if (!BUNDLE_ID.equals(data.getString(RESPONSE_NOTICE_BUNDLE_ID))) {
+                notice.setType(AppleNoticeType.NO_FOLLOW_UP);
+                return notice;
+            }
+            String notificationType = payload.getString(RESPONSE_NOTICE_NOTIFICATION_TYPE);
+            String subType = payload.getString(RESPONSE_NOTICE_SUBTYPE);
+            // parse notificationType and subType set notice.type
+            System.out.println("notificationType " + notificationType);
+            System.out.println("subType " + subType);
+            switch (notificationType) {
+                case "REFUND":
+                    notice.setType(AppleNoticeType.REFUND);
+                    break;
+                case "DID_RENEW":
+                    notice.setType(AppleNoticeType.DID_RENEW);
+                    break;
+                case "DID_CHANGE_RENEWAL_STATUS":
+                    if ("AUTO_RENEW_DISABLED".equals(subType)) {
+                        notice.setType(AppleNoticeType.REFUND);
+                        break;
+                    }
+                    notice.setType(AppleNoticeType.NO_FOLLOW_UP);
+                    break;
+                default:
+                    notice.setType(AppleNoticeType.NO_FOLLOW_UP);
+                    break;
+            }
+            JSONObject transactionInfo = parseJwsPayload(data.getString(RESPONSE_NOTICE_SIGNED_TRANSACTION_INFO));
+            notice.setOrgTransactionId(transactionInfo.getString(RESPONSE_NOTICE_ORG_TRANSACTION_ID));
+            notice.setTransactionId(transactionInfo.getString(RESPONSE_NOTICE_TRANSACTION_ID));
+            notice.setCardProductCode(transactionInfo.getString(RESPONSE_NOTICE_PRODUCT_ID));
+            notice.setExpiresTime(transactionInfo.getLong(RESPONSE_NOTICE_EXPIRES_DATE));
             return notice;
+        } catch (Exception e) {
+            log.error("ApplePayHelper parse notice failed ,{} ,{}", request, e.getMessage());
+            throw BusinessException.create(ExceptionType.PARAM_ERROR);
         }
-        JSONObject receipt = latestReceiptInfo.getJSONObject(0);
-        String productId = receipt.getString(RESPONSE_PRODUCT_ID);
-        notice.setCardProductCode(productId);
-        String transactionId = receipt.getString(RESPONSE_TRANSACTION_ID);
-        notice.setTransactionId(transactionId);
-        // 处理自动续订成功
-        if (RESULT_DID_RENEW.equals(notificationType)) {
-            // 新增卡密
-            notice.setType(AppleNoticeType.RENEW);
-            return notice;
-        }
-        // 退款
-        if (RESULT_CANCEL.equals(notificationType)) {
-            // 禁用卡密
-            notice.setType(AppleNoticeType.CANCEL_BUY);
-            return notice;
-        }
-        notice.setType(AppleNoticeType.INVALID);
-        return notice;
     }
 
+
+    private static JSONObject parseJwsPayload(String jws) {
+        return parseBase64String(JWT.decode(jws).getPayload());
+    }
+
+    private static JSONObject parseBase64String(String base64String) {
+        return JSONObject.parseObject(new String(Base64.getDecoder().decode(base64String)));
+    }
+
+    private static PublicKey getPublicKeyByX5c(String x5c) throws CertificateException {
+        byte[] x5c0Bytes = Base64.getDecoder().decode(x5c);
+        CertificateFactory fact = CertificateFactory.getInstance(CERT_FACTORY_X5C);
+        X509Certificate cer = (X509Certificate) fact.generateCertificate(new ByteArrayInputStream(x5c0Bytes));
+        return cer.getPublicKey();
+    }
 
     private static String sendVerify(String receiptDate, boolean onSandbox) {
         Map<String, Object> params = new HashMap<>(1);
         params.put(REQUEST_RECEIPT_DATA, receiptDate);
+        params.put(REQUEST_PASSWORD, APPLE_PASSWORD);
         return HttpUtil.sendPost(onSandbox ? VERIFY_URL_SANDBOX : VERIFY_URL, params, true);
     }
 

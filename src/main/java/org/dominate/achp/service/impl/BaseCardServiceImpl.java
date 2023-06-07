@@ -3,7 +3,6 @@ package org.dominate.achp.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.hwja.tool.utils.SqlUtil;
-import org.dominate.achp.common.enums.BuyType;
 import org.dominate.achp.common.enums.State;
 import org.dominate.achp.entity.BaseCard;
 import org.dominate.achp.entity.dto.CardDTO;
@@ -33,10 +32,9 @@ public class BaseCardServiceImpl extends ServiceImpl<BaseCardMapper, BaseCard> i
     }
 
     @Override
-    public BaseCard findCardForRenew(String productCode) {
+    public BaseCard findCardForProduct(String productCode) {
         QueryWrapper<BaseCard> query = new QueryWrapper<>();
         query.lambda().eq(BaseCard::getProductCode, productCode)
-                .eq(BaseCard::getBuyType, BuyType.APPLE_SUB.getCode())
                 .last(SqlUtil.limitOne());
         return getOne(query);
     }

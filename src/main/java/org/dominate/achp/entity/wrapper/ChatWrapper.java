@@ -6,6 +6,7 @@ import org.dominate.achp.entity.dto.ContentDTO;
 import org.dominate.achp.entity.dto.GroupDTO;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -41,6 +42,9 @@ public class ChatWrapper {
         dto.setLastId(entity.getLastId());
         dto.setSentence(entity.getSentence());
         dto.setReply(entity.getReply());
+        if (null == entity.getCreateTime()) {
+            entity.setCreateTime(new Date());
+        }
         dto.setCreateTime(entity.getCreateTime().getTime());
         return dto;
     }

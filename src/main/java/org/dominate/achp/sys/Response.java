@@ -90,6 +90,15 @@ public class Response<T> implements Serializable {
      *
      * @return 成功返回体
      */
+    public static <T> Response<T> success(String message) {
+        return msg(ResponseType.SUCCESS.getCode(), message, ResponseType.SUCCESS.isSuccess());
+    }
+
+    /**
+     * 返回默认成功
+     *
+     * @return 成功返回体
+     */
     public static <T> Response<T> success() {
         return msg(ResponseType.SUCCESS.getCode(), ResponseType.SUCCESS.getMsg(), ResponseType.SUCCESS.isSuccess());
     }

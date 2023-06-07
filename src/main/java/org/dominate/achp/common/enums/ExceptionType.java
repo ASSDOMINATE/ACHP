@@ -22,6 +22,10 @@ public enum ExceptionType {
     ERROR(ResponseType.ERROR.getCode(), "请求异常"),
     EMPTY_ERROR(ResponseType.ERROR.getCode(), ""),
 
+    APPLE_ORDER_USED(ResponseType.ERROR.getCode(), "当前订单已被其他账号使用"),
+    APPLE_ORDER_PRODUCT_WRONG(ResponseType.ERROR.getCode(), "当前订单绑定的商品有误"),
+
+
     HAS_CARD_BINDING(ResponseType.ERROR.getCode(), "存在已绑定的会员卡"),
     NOT_FOUND_CARD(ResponseType.ERROR.getCode(), "无效的会员卡"),
 

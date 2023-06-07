@@ -10,9 +10,11 @@ public enum AppleNoticeType {
     /**
      * 购买类型
      */
-    INVALID("无效",0),
-    CANCEL_BUY("取消购买", 1),
-    RENEW("订阅续费", 2),
+    NO_FOLLOW_UP("无后续行动",0),
+
+    REFUND("取消购买", 1),
+    DID_RENEW("订阅续费", 2),
+    RENEW_DISABLED("订阅取消",3)
     ;
 
     final String name;
@@ -29,7 +31,7 @@ public enum AppleNoticeType {
                 return value;
             }
         }
-        return INVALID;
+        return NO_FOLLOW_UP;
     }
 
     public String getName() {

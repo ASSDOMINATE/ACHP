@@ -40,4 +40,6 @@ public class AppleNoticeDTO implements Serializable {
     private String orgTransactionId;
 
     private AppleNoticeType type;
+
+    private Long expiresTime;
 }

@@ -58,6 +58,8 @@ public class ChatDTO implements Serializable {
      */
     private Integer accountId;
 
+    public ChatDTO(){}
+
     public ChatDTO(String chatGroupId, String sentence, int sceneId) {
         this.chatGroupId = chatGroupId;
         this.sentence = sentence;

@@ -57,4 +57,5 @@ public class ChatSceneServiceImpl extends ServiceImpl<ChatSceneMapper, ChatScene
         List<ChatScene> sceneList = list(query);
         return SceneWrapper.build().entitySceneDTO(sceneList);
     }
+
 }

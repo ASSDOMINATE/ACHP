@@ -17,6 +17,7 @@ import org.dominate.achp.sys.Response;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
+import java.util.Date;
 
 /**
  * 对话记录相关接口
@@ -38,15 +39,16 @@ public class ApiExternalController {
      *
      * @param data 通知数据
      */
-    @GetMapping(path = "apple/notice")
+    @PostMapping(path = "apple/notice")
     @ResponseBody
     public Response<Boolean> appleNotice(
             @RequestBody String data
     ) {
+        System.out.println(data);
         AppleNoticeDTO notice = ApplePayHelper.notice(data);
         BasePaymentRecord findPayment;
         switch (notice.getType()) {
-            case RENEW:
+            case DID_RENEW:
                 // 续费
                 // 1.查询第一次购买的订单
                 String orgPartyOrder = notice.getOrgTransactionId();
@@ -55,7 +57,7 @@ public class ApiExternalController {
                     break;
                 }
                 // 2.查询到初次生成的卡密套餐
-                BaseCard card = baseCardService.findCardForRenew(notice.getCardProductCode());
+                BaseCard card = baseCardService.findCardForProduct(notice.getCardProductCode());
                 String partyOrder = notice.getTransactionId();
                 // 3.确认不会重复购买
                 if (!basePaymentRecordService.isUniqueOrder(partyOrder, PayType.APPLE.getDbCode())) {
@@ -65,7 +67,22 @@ public class ApiExternalController {
                 int cardRecordId = baseCardRecordService.bindRecord(findPayment.getAccountId(), card);
                 basePaymentRecordService.save(findPayment.getAccountId(), partyOrder, PayType.APPLE, card, cardRecordId);
                 break;
-            case CANCEL_BUY:
+            case RENEW_DISABLED:
+                // 订阅退订
+                // 1.查询生效的订单
+                String renewPartyOrder = notice.getTransactionId();
+                findPayment = basePaymentRecordService.find(PayType.APPLE, renewPartyOrder);
+                if (null == findPayment || PaymentTargetType.CARD.getCode() != findPayment.getTargetType()) {
+                    break;
+                }
+                // 2.设置卡密的结束时间
+                BaseCardRecord expiresRecord = new BaseCardRecord();
+                expiresRecord.setId(findPayment.getTargetId());
+                expiresRecord.setExpireTime(new Date(notice.getExpiresTime()));
+                baseCardRecordService.updateById(expiresRecord);
+                ChatCache.removeUsingCard(findPayment.getAccountId());
+                break;
+            case REFUND:
                 // 取消购买
                 // 1.查询生效的订单
                 String cancelPartyOrder = notice.getTransactionId();
@@ -85,7 +102,7 @@ public class ApiExternalController {
                 cancelPayment.setPrice(BigDecimal.ZERO);
                 basePaymentRecordService.updateById(cancelPayment);
                 break;
-            case INVALID:
+            case NO_FOLLOW_UP:
             default:
                 break;
         }

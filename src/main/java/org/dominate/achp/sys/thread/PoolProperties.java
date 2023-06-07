@@ -21,7 +21,7 @@ public class PoolProperties {
     /**
      * 最大线程数
      */
-    private int maxPoolSize = Runtime.getRuntime().availableProcessors() * 2;
+    private int maxPoolSize = Runtime.getRuntime().availableProcessors() * 10;
     /**
      * 允许线程空闲时间（单位：默认为秒）
      */

@@ -3,8 +3,10 @@ package org.dominate.achp.controller;
 import com.hwja.tool.utils.StringUtil;
 import lombok.AllArgsConstructor;
 import org.dominate.achp.common.cache.PayOrderCache;
+import org.dominate.achp.common.enums.BuyType;
 import org.dominate.achp.common.enums.ExceptionType;
 import org.dominate.achp.common.enums.PayType;
+import org.dominate.achp.common.enums.ResponseType;
 import org.dominate.achp.common.helper.AliPayHelper;
 import org.dominate.achp.common.helper.ApplePayHelper;
 import org.dominate.achp.common.helper.AuthHelper;
@@ -12,6 +14,7 @@ import org.dominate.achp.common.helper.WeChatPayHelper;
 import org.dominate.achp.common.utils.UniqueCodeUtil;
 import org.dominate.achp.entity.BaseCard;
 import org.dominate.achp.entity.BaseCardRecord;
+import org.dominate.achp.entity.BasePaymentRecord;
 import org.dominate.achp.entity.dto.CardDTO;
 import org.dominate.achp.entity.dto.CardRecordDTO;
 import org.dominate.achp.entity.dto.PayOrderDTO;
@@ -19,6 +22,7 @@ import org.dominate.achp.entity.dto.PayResultDTO;
 import org.dominate.achp.entity.req.ExchangeReq;
 import org.dominate.achp.entity.req.PayOrderReq;
 import org.dominate.achp.entity.req.PayReq;
+import org.dominate.achp.entity.req.ResumeAppleReq;
 import org.dominate.achp.service.CardService;
 import org.dominate.achp.service.IBaseCardRecordService;
 import org.dominate.achp.service.IBaseCardService;
@@ -28,6 +32,7 @@ import org.dominate.achp.sys.exception.BusinessException;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -48,9 +53,20 @@ public class ApiCardController {
 
     @GetMapping(path = "getEnableCard")
     @ResponseBody
-    public Response<List<CardDTO>> getEnableCard() {
+    public Response<List<CardDTO>> getEnableCard(
+            @RequestParam(value = "all", defaultValue = "false", required = false) Boolean all
+    ) {
         List<CardDTO> cardList = baseCardService.enableList();
-        return Response.data(cardList);
+        if (all) {
+            return Response.data(cardList);
+        }
+        List<CardDTO> commonCardList = new ArrayList<>(cardList.size());
+        for (CardDTO card : cardList) {
+            if (BuyType.COMMON.getCode() == card.getBuyType()) {
+                commonCardList.add(card);
+            }
+        }
+        return Response.data(commonCardList);
     }
 
     @GetMapping(path = "getUserCard")
@@ -147,12 +163,36 @@ public class ApiCardController {
         }
         int accountId = AuthHelper.parseWithValidForId(token);
         String sysOrderCode = UniqueCodeUtil.createPayOrder(payReq.getPayType());
+        if (null == payReq.getCardId()) {
+            BaseCard card = baseCardService.findCardForProduct(payReq.getProductCode());
+            payReq.setCardId(card.getId());
+        }
         PayOrderDTO order = new PayOrderDTO(payReq);
         order.setAccountId(accountId);
         order.setSysOrderCode(sysOrderCode);
         order.setPartyOrderCode(payReq.getOrderCode());
         PayOrderCache.save(order);
         return Response.success();
+    }
+
+    @PostMapping(path = "resumeApple")
+    @ResponseBody
+    public Response<Boolean> resumeApple(
+            @RequestHeader String token,
+            @Validated @RequestBody ResumeAppleReq resumeAppleReq
+    ) {
+        int accountId = AuthHelper.parseWithValidForId(token);
+        BasePaymentRecord paymentRecord = basePaymentRecordService.find(PayType.ALIPAY, resumeAppleReq.getOrderCode());
+        if (null == paymentRecord) {
+            return Response.code(ResponseType.NEED_RESUME);
+        }
+        if (accountId != paymentRecord.getAccountId()) {
+            throw BusinessException.create(ExceptionType.APPLE_ORDER_USED);
+        }
+        if (resumeAppleReq.getCardId().equals(paymentRecord.getId())) {
+            throw BusinessException.create(ExceptionType.APPLE_ORDER_USED);
+        }
+        return Response.success("该订单已成功购买商品");
     }
 
     @PostMapping(path = "checkPayOrder")
@@ -187,7 +227,7 @@ public class ApiCardController {
                 throw BusinessException.create(ExceptionType.PARAM_ERROR);
         }
         if (!basePaymentRecordService.isUniqueOrder(cacheOrder)) {
-            throw BusinessException.create(ExceptionType.PAY_ORDER_NOT_FOUND);
+            throw BusinessException.create(ExceptionType.PAY_NOT_COMPLETED);
         }
         int cardRecordId = baseCardRecordService.bindRecord(accountId, card);
         if (cardRecordId != 0) {
@@ -196,7 +236,6 @@ public class ApiCardController {
             return Response.success();
         }
         return Response.failed();
-
     }
 
     @PostMapping(path = "exchangeCard")

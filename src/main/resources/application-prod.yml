@@ -58,7 +58,7 @@ apple:
   pay:
     bundle-id: com.jd.aiSuperCreation
     sandbox: true
-
+    password: 6017dbaa2fc34ea09f969234f84b5c8a
 openai:
   proxy:
     url: http://8.140.48.133/
