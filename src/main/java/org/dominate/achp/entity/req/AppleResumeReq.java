@@ -17,18 +17,10 @@ import java.io.Serializable;
 @Data
 @EqualsAndHashCode(callSuper = false)
 @Accessors(chain = true)
-public class ResumeAppleReq implements Serializable {
+public class AppleResumeReq implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
-    /**
-     * 支付卡密ID
-     */
-    private Integer cardId;
-
-    /**
-     * 支付编码
-     */
-    private String orderCode;
+    private String receiptDate;
 
 }

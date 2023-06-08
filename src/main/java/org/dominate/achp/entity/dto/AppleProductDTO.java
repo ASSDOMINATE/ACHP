@@ -9,7 +9,7 @@ import java.io.Serializable;
 
 /**
  * <p>
- * 对话组
+ * APPLE 产品信息
  * </p>
  *
  * @author dominate
@@ -19,16 +19,17 @@ import java.io.Serializable;
 @Setter
 @Accessors(chain = true)
 @ToString
-public class GroupDTO implements Serializable {
+public class AppleProductDTO implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
-    /**
-     * 由程序生产唯一值
-     */
-    private String id;
+    private String transactionId;
 
-    private String title;
+    private String orgTransactionId;
+
+    private String productCode;
+
+    private Long expiresTime;
 
 
 }

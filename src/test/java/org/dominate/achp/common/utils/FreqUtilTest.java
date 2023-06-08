@@ -9,7 +9,7 @@ public class FreqUtilTest {
         String key = "key";
         for (int i = 0; i < 10000; i++) {
             if (i % 10 == 0) {
-                FreqUtil.releaseApiKeyDelay(key);
+                FreqUtil.addFreqApiKey(key,1);
                 System.out.println("延迟释放一次Key");
             } else {
                 boolean isAvailable = FreqUtil.waitFreqForApiKey(key);

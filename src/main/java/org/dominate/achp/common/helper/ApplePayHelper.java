@@ -10,9 +10,11 @@ import com.hwja.tool.utils.JsonUtil;
 import com.hwja.tool.utils.LoadUtil;
 import com.hwja.tool.utils.StringUtil;
 import lombok.extern.slf4j.Slf4j;
+import org.dominate.achp.common.cache.PayOrderCache;
 import org.dominate.achp.common.enums.AppleNoticeType;
 import org.dominate.achp.common.enums.ExceptionType;
 import org.dominate.achp.entity.dto.AppleNoticeDTO;
+import org.dominate.achp.entity.dto.AppleProductDTO;
 import org.dominate.achp.sys.exception.BusinessException;
 
 import java.io.ByteArrayInputStream;
@@ -21,9 +23,7 @@ import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.security.interfaces.ECPublicKey;
-import java.util.Base64;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 /**
  * 苹果支付工具
@@ -42,6 +42,7 @@ public class ApplePayHelper {
 
     private static final String CERT_FACTORY_X5C = "X.509";
 
+    // TODO change DTO object
     private static final String RESPONSE_NOTICE_CERT_X5C = "x5c";
     private static final String RESPONSE_NOTICE_SIGNED_PAYLOAD = "signedPayload";
     private static final String RESPONSE_NOTICE_DATA = "data";
@@ -54,10 +55,14 @@ public class ApplePayHelper {
     private static final String RESPONSE_NOTICE_SUBTYPE = "subtype";
     private static final String RESPONSE_NOTICE_BUNDLE_ID = "bundleId";
 
+    // TODO change DTO object
     private static final String[] RESPONSE_STATUS = {"status"};
     private static final String[] RESPONSE_APP_LIST = {"receipt", "in_app"};
     private static final String[] RESPONSE_BUNDLE = {"receipt", "bundle_id"};
     private static final String RESPONSE_ORG_TRANSACTION_ID = "original_transaction_id";
+    private static final String RESPONSE_EXPIRES_DATE_MS = "expires_date_ms";
+
+    private static final String RESPONSE_TRANSACTION_ID = "transaction_id";
     private static final String RESPONSE_PRODUCT_ID = "product_id";
 
     private static final String SUCCESS_STATUS_CODE = "0";
@@ -83,6 +88,36 @@ public class ApplePayHelper {
      * @throws BusinessException 未抛出异常代表成功，否则在异常里返回失败原因
      */
     public static void verifyPay(String receiptDate, String orderCode, String productCode) throws BusinessException {
+        // 发送平台验证
+        String response = verifyReceipt(receiptDate);
+        // 验证支付订单号及产品
+        JSONArray apps = JsonUtil.parseResponseValueForJsonArray(response, RESPONSE_APP_LIST);
+        for (int i = 0; i < apps.size(); ++i) {
+            JSONObject app = apps.getJSONObject(i);
+            String resultOrderCode = app.getString(RESPONSE_ORG_TRANSACTION_ID);
+            if (!orderCode.equals(resultOrderCode)) {
+                resultOrderCode = app.getString(RESPONSE_TRANSACTION_ID);
+                if (!orderCode.equals(resultOrderCode)) {
+                    continue;
+                }
+            }
+            // 检查当前订单号
+            String resultProductId = app.getString(RESPONSE_PRODUCT_ID);
+            // 产品ID确认
+            if (productCode.equals(resultProductId)) {
+                return;
+            }
+            // 产品ID不对
+            log.error("苹果验证订单错误，有刷单嫌疑，产品编码不一致，请求订单号 [{}]，请求产品ID [{}]，苹果产品ID [{}]", orderCode, productCode, resultProductId);
+            throw BusinessException.create(ExceptionType.PAY_ORDER_NOT_FOUND);
+        }
+        // 凭证中无该订单号
+        log.error(apps.toString());
+        log.error("苹果验证订单错误，有刷单嫌疑，凭证中未找到订单号，请求订单号 [{}]", orderCode);
+        throw BusinessException.create(ExceptionType.PAY_ORDER_NOT_FOUND);
+    }
+
+    public static String verifyReceipt(String receiptDate){
         //1.发送平台验证
         String response = ApplePayHelper.sendVerify(receiptDate, false);
         // 苹果服务器没有返回验证结果
@@ -105,30 +140,32 @@ public class ApplePayHelper {
         // 4.验证支付来源
         String bundleId = JsonUtil.parseResponseValueForString(response, RESPONSE_BUNDLE);
         if (!BUNDLE_ID.equals(bundleId)) {
-            log.error("苹果验证订单错误，有刷单嫌疑，请求订单号 [{}]，请求 BUNDLE ID [{}]", orderCode, bundleId);
+            log.error("苹果验证订单错误，有刷单嫌疑，系统ID不一致，请求 BUNDLE ID [{}]", bundleId);
             throw BusinessException.create(ExceptionType.PAY_ORDER_NOT_FOUND);
         }
-        // 5.验证支付订单号及产品
+        return response;
+    }
+
+
+    public static List<AppleProductDTO> parseProductList(String receiptDate) throws BusinessException {
+        String response = verifyReceipt(receiptDate);
         JSONArray apps = JsonUtil.parseResponseValueForJsonArray(response, RESPONSE_APP_LIST);
+        List<AppleProductDTO> productList = new ArrayList<>(apps.size());
         for (int i = 0; i < apps.size(); ++i) {
             JSONObject app = apps.getJSONObject(i);
-            String resultOrderCode = app.getString(RESPONSE_ORG_TRANSACTION_ID);
-            if (!orderCode.equals(resultOrderCode)) {
-                continue;
+            AppleProductDTO product = new AppleProductDTO();
+            product.setProductCode(app.getString(RESPONSE_PRODUCT_ID));
+            product.setTransactionId(app.getString(RESPONSE_TRANSACTION_ID));
+            product.setOrgTransactionId(app.getString(RESPONSE_ORG_TRANSACTION_ID));
+            String expiresTimeStr = app.getString(RESPONSE_EXPIRES_DATE_MS);
+            if (StringUtil.isNotEmpty(expiresTimeStr)) {
+                product.setExpiresTime(Long.decode(expiresTimeStr));
+            } else {
+                product.setExpiresTime(0L);
             }
-            // 检查当前订单号
-            String resultProductId = app.getString(RESPONSE_PRODUCT_ID);
-            // 产品ID确认
-            if (productCode.equals(resultProductId)) {
-                return;
-            }
-            // 产品ID不对
-            log.error("苹果验证订单错误，有刷单嫌疑，请求订单号 [{}]，请求产品ID [{}]，苹果产品ID [{}]", orderCode, productCode, resultProductId);
-            throw BusinessException.create(ExceptionType.PAY_ORDER_NOT_FOUND);
+            productList.add(product);
         }
-        // 凭证中无该订单号
-        log.error("苹果验证订单错误，有刷单嫌疑，请求订单号 [{}]", orderCode);
-        throw BusinessException.create(ExceptionType.PAY_ORDER_NOT_FOUND);
+        return productList;
     }
 
     public static AppleNoticeDTO notice(String request) {
@@ -153,8 +190,8 @@ public class ApplePayHelper {
             String notificationType = payload.getString(RESPONSE_NOTICE_NOTIFICATION_TYPE);
             String subType = payload.getString(RESPONSE_NOTICE_SUBTYPE);
             // parse notificationType and subType set notice.type
-            System.out.println("notificationType " + notificationType);
-            System.out.println("subType " + subType);
+            log.info("Apple notice request notificationType {} ", notificationType);
+            log.info("Apple notice request subType {} ", subType);
             switch (notificationType) {
                 case "REFUND":
                     notice.setType(AppleNoticeType.REFUND);
@@ -181,6 +218,7 @@ public class ApplePayHelper {
             return notice;
         } catch (Exception e) {
             log.error("ApplePayHelper parse notice failed ,{} ,{}", request, e.getMessage());
+            PayOrderCache.saveFailedNotice(request);
             throw BusinessException.create(ExceptionType.PARAM_ERROR);
         }
     }

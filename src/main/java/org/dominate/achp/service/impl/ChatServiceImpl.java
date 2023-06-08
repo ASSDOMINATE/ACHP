@@ -6,6 +6,7 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.dominate.achp.common.cache.ChatCache;
+import org.dominate.achp.common.enums.ChatFailedType;
 import org.dominate.achp.common.enums.ChatRoleType;
 import org.dominate.achp.common.helper.ChatGptHelper;
 import org.dominate.achp.common.utils.FreqUtil;
@@ -101,11 +102,10 @@ public class ChatServiceImpl implements ChatService {
         if (!FreqUtil.waitFreqForApiKey(apiKey)) {
             // 等待后仍然超过频率限制
             try {
-                sseEmitter.send(ChatGptHelper.createMessage("当前请求过多，已达服务器限制，请稍后再试", false));
+                sseEmitter.send(ChatGptHelper.createMessage(ChatFailedType.MODEL_OVERLOADED.getResult(), false));
             } catch (IOException e) {
                 log.error("ChatService.sendFreqLimit Client SSE is closed {}", e.getMessage());
             } finally {
-                FreqUtil.releaseApiKey(apiKey);
                 sseEmitter.complete();
             }
             return;
@@ -114,24 +114,27 @@ public class ChatServiceImpl implements ChatService {
         List<ContentDTO> contentList = loadGroupContentList(chat.getChatGroupId());
         // 5.设置场景的系统角色 from DB
         setSceneSystem(chat);
+        int sendToken = 0;
         try {
             // 6.发送 -> ChatGPT返回消息，时间较长
             ReplyDTO reply = ChatGptHelper.send(sseEmitter, contentList, apiKey, chat);
+            sendToken = reply.getSendTokens();
             // 7.保存结果到数据库 to DB
             int contentId = recordContent(chat, reply.getReply());
             // 8.发送 -> 本次会话ID
             sseEmitter.send(ChatGptHelper.createMessage(String.valueOf(contentId), ChatRoleType.CONTENT_CODE));
         } catch (Exception e) {
             log.error("ChatService.startChat send error ", e);
+            String errorMessage = ChatFailedType.parseSign(e.getMessage());
             try {
                 // 把ChatGPT的报错消息发送到前端
-                sseEmitter.send(ChatGptHelper.createMessage(e.getMessage(), false));
+                sseEmitter.send(ChatGptHelper.createMessage(errorMessage, false));
             } catch (IOException ex) {
-                log.error("ChatService.sendError Client SSE is closed {}", e.getMessage());
+                log.error("ChatService.sendError Client SSE is closed {}", errorMessage);
             }
         } finally {
-            // 9.释放 ApiKey 的频率
-            FreqUtil.releaseApiKeyDelay(apiKey);
+            // 9.增加 ApiKey 的频率
+            FreqUtil.addFreqApiKey(apiKey, sendToken);
             sseEmitter.complete();
         }
     }
@@ -146,6 +149,7 @@ public class ChatServiceImpl implements ChatService {
             log.error("ChatService.sendStartSign Client SSE is closed {}", e.getMessage());
         }
     }
+
 
     private List<ContentDTO> loadGroupContentList(String groupId) {
         GroupCacheDTO groupCache = ChatCache.getChatGroup(groupId);

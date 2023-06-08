@@ -16,8 +16,10 @@ public class FreqUtil {
     private static final LinkedHashMap<String, Integer> API_KEY_FREQ_RECORD_MAP = new LinkedHashMap<>();
     /**
      * ApiKey 每分钟频率限制
+     * <p>
+     * 每分钟限制 90000 个 tokens
      */
-    private static final int API_KEY_MINUTE_FREQ = 3000;
+    private static final int API_KEY_MINUTE_FREQ = 90000;
     /**
      * ApiKey 释放时间分钟
      */
@@ -57,29 +59,24 @@ public class FreqUtil {
             }
             freq = API_KEY_FREQ_RECORD_MAP.getOrDefault(apiKey, 0);
         }
-        API_KEY_FREQ_RECORD_MAP.put(apiKey, freq + 1);
         return true;
     }
 
     /**
-     * 释放Apikey
+     * 增加Apikey频率
      * 在使用完后执行，将在频率设定时间后执行释放次数
      *
      * @param apiKey ApiKey
      */
-    public static void releaseApiKeyDelay(String apiKey) {
+    public static synchronized void addFreqApiKey(String apiKey, int count) {
         if (!API_KEY_FREQ_RECORD_MAP.containsKey(apiKey)) {
             return;
         }
+        API_KEY_FREQ_RECORD_MAP.put(apiKey, API_KEY_FREQ_RECORD_MAP.getOrDefault(apiKey, 0) + count);
         Executors.newSingleThreadScheduledExecutor().schedule(() -> {
-            releaseApiKey(apiKey);
+            int freq = API_KEY_FREQ_RECORD_MAP.getOrDefault(apiKey, 0);
+            API_KEY_FREQ_RECORD_MAP.put(apiKey, freq > count ? freq - count : 0);
         }, API_KEY_RELEASE_MINUTE, TimeUnit.MINUTES);
     }
 
-    public static synchronized void releaseApiKey(String apiKey) {
-        int freq = API_KEY_FREQ_RECORD_MAP.getOrDefault(apiKey, 0);
-        if (freq > 0) {
-            API_KEY_FREQ_RECORD_MAP.put(apiKey, freq - 1);
-        }
-    }
 }

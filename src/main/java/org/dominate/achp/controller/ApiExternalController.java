@@ -2,6 +2,7 @@ package org.dominate.achp.controller;
 
 import lombok.AllArgsConstructor;
 import org.dominate.achp.common.cache.ChatCache;
+import org.dominate.achp.common.cache.PayOrderCache;
 import org.dominate.achp.common.enums.CardRecordState;
 import org.dominate.achp.common.enums.PayType;
 import org.dominate.achp.common.enums.PaymentTargetType;
@@ -44,7 +45,6 @@ public class ApiExternalController {
     public Response<Boolean> appleNotice(
             @RequestBody String data
     ) {
-        System.out.println(data);
         AppleNoticeDTO notice = ApplePayHelper.notice(data);
         BasePaymentRecord findPayment;
         switch (notice.getType()) {
@@ -54,6 +54,7 @@ public class ApiExternalController {
                 String orgPartyOrder = notice.getOrgTransactionId();
                 findPayment = basePaymentRecordService.find(PayType.APPLE, orgPartyOrder);
                 if (null == findPayment || PaymentTargetType.CARD.getCode() != findPayment.getTargetType()) {
+                    PayOrderCache.saveFailedNotice(data);
                     break;
                 }
                 // 2.查询到初次生成的卡密套餐
@@ -61,6 +62,7 @@ public class ApiExternalController {
                 String partyOrder = notice.getTransactionId();
                 // 3.确认不会重复购买
                 if (!basePaymentRecordService.isUniqueOrder(partyOrder, PayType.APPLE.getDbCode())) {
+                    PayOrderCache.saveFailedNotice(data);
                     break;
                 }
                 // 4.创建新的购买信息
@@ -73,6 +75,7 @@ public class ApiExternalController {
                 String renewPartyOrder = notice.getTransactionId();
                 findPayment = basePaymentRecordService.find(PayType.APPLE, renewPartyOrder);
                 if (null == findPayment || PaymentTargetType.CARD.getCode() != findPayment.getTargetType()) {
+                    PayOrderCache.saveFailedNotice(data);
                     break;
                 }
                 // 2.设置卡密的结束时间
@@ -88,6 +91,7 @@ public class ApiExternalController {
                 String cancelPartyOrder = notice.getTransactionId();
                 findPayment = basePaymentRecordService.find(PayType.APPLE, cancelPartyOrder);
                 if (null == findPayment || PaymentTargetType.CARD.getCode() != findPayment.getTargetType()) {
+                    PayOrderCache.saveFailedNotice(data);
                     break;
                 }
                 // 2.设置订单的卡密禁用

@@ -14,15 +14,11 @@ import org.dominate.achp.common.helper.WeChatPayHelper;
 import org.dominate.achp.common.utils.UniqueCodeUtil;
 import org.dominate.achp.entity.BaseCard;
 import org.dominate.achp.entity.BaseCardRecord;
-import org.dominate.achp.entity.BasePaymentRecord;
-import org.dominate.achp.entity.dto.CardDTO;
-import org.dominate.achp.entity.dto.CardRecordDTO;
-import org.dominate.achp.entity.dto.PayOrderDTO;
-import org.dominate.achp.entity.dto.PayResultDTO;
+import org.dominate.achp.entity.dto.*;
+import org.dominate.achp.entity.req.AppleResumeReq;
 import org.dominate.achp.entity.req.ExchangeReq;
 import org.dominate.achp.entity.req.PayOrderReq;
 import org.dominate.achp.entity.req.PayReq;
-import org.dominate.achp.entity.req.ResumeAppleReq;
 import org.dominate.achp.service.CardService;
 import org.dominate.achp.service.IBaseCardRecordService;
 import org.dominate.achp.service.IBaseCardService;
@@ -179,20 +175,21 @@ public class ApiCardController {
     @ResponseBody
     public Response<Boolean> resumeApple(
             @RequestHeader String token,
-            @Validated @RequestBody ResumeAppleReq resumeAppleReq
+            @Validated @RequestBody AppleResumeReq resumeReq
     ) {
         int accountId = AuthHelper.parseWithValidForId(token);
-        BasePaymentRecord paymentRecord = basePaymentRecordService.find(PayType.ALIPAY, resumeAppleReq.getOrderCode());
-        if (null == paymentRecord) {
-            return Response.code(ResponseType.NEED_RESUME);
+        List<AppleProductDTO> productList = ApplePayHelper.parseProductList(resumeReq.getReceiptDate());
+        // 一般不凭证中不会有多个产品，故只会循环1次暂时不用优化数据库操作
+        for (AppleProductDTO product : productList) {
+            BaseCard card = baseCardService.findCardForProduct(product.getProductCode());
+            String partyOrder = product.getTransactionId();
+            if (!basePaymentRecordService.isUniqueOrder(partyOrder, PayType.APPLE.getDbCode())) {
+                continue;
+            }
+            int cardRecordId = baseCardRecordService.bindRecord(accountId, card);
+            basePaymentRecordService.save(accountId, partyOrder, PayType.APPLE, card, cardRecordId);
         }
-        if (accountId != paymentRecord.getAccountId()) {
-            throw BusinessException.create(ExceptionType.APPLE_ORDER_USED);
-        }
-        if (resumeAppleReq.getCardId().equals(paymentRecord.getId())) {
-            throw BusinessException.create(ExceptionType.APPLE_ORDER_USED);
-        }
-        return Response.success("该订单已成功购买商品");
+        return Response.code(ResponseType.RESUME_SUCCESS);
     }
 
     @PostMapping(path = "checkPayOrder")

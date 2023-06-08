@@ -71,8 +71,8 @@ public class BasePaymentRecordServiceImpl extends ServiceImpl<BasePaymentRecordM
     @Override
     public BasePaymentRecord find(PayType payType, String partyOrder) {
         QueryWrapper<BasePaymentRecord> query = new QueryWrapper<>();
-        query.lambda().eq(BasePaymentRecord::getPartyCode, payType.getDbCode())
-                .eq(BasePaymentRecord::getType, partyOrder)
+        query.lambda().eq(BasePaymentRecord::getPartyCode, partyOrder)
+                .eq(BasePaymentRecord::getType, payType.getDbCode())
                 .last(SqlUtil.limitOne());
         return getOne(query);
     }

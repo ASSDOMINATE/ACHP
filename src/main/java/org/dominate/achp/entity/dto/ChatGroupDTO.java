@@ -1,10 +1,12 @@
 package org.dominate.achp.entity.dto;
 
+import com.theokanning.openai.completion.chat.ChatMessage;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 
 import java.io.Serializable;
+import java.util.List;
 
 /**
  * 回复对象
@@ -15,23 +17,16 @@ import java.io.Serializable;
 @Data
 @EqualsAndHashCode(callSuper = false)
 @Accessors(chain = true)
-public class ReplyDTO implements Serializable {
+public class ChatGroupDTO implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
-
-    private String modelId;
-
-    private String sentence;
-
-    private String reply;
+    private List<ChatMessage>  messageList;
 
     private int sendTokens;
 
-    public ReplyDTO(String modelId, String sentence, String reply, int sendTokens) {
-        this.modelId = modelId;
-        this.sentence = sentence;
-        this.reply = reply;
+    public ChatGroupDTO(List<ChatMessage> messageList, int sendTokens) {
+        this.messageList = messageList;
         this.sendTokens = sendTokens;
     }
 }

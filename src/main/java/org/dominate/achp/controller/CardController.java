@@ -84,17 +84,22 @@ public class CardController {
         save.setName(keyReq.getName());
         save.setDesr(keyReq.getDesr());
         save.setBalance(keyReq.getBalance());
-        save.setProductCode(keyReq.getProductCode());
-        save.setType(keyReq.getType());
-        save.setCountLimit(keyReq.getCountLimit());
-        save.setDayLimit(keyReq.getDayLimit());
         save.setStock(keyReq.getStock());
         save.setState(keyReq.getState());
-        save.setBuyType(keyReq.getBuyType());
         save.setSeq(keyReq.getSeq());
         save.setOrgBalance(keyReq.getOrgBalance());
         save.setTag(keyReq.getTag());
         save.setUpdateBy(accountId);
+
+        // 只有新增时可以设置的参数
+        if (null == keyReq.getId()) {
+            save.setBuyType(keyReq.getBuyType());
+            save.setProductCode(keyReq.getProductCode());
+            save.setType(keyReq.getType());
+            save.setCountLimit(keyReq.getCountLimit());
+            save.setDayLimit(keyReq.getDayLimit());
+        }
+
         if (null == keyReq.getId()) {
             save.setCreateBy(accountId);
             return Response.data(baseCardService.save(save));

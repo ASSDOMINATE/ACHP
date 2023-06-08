@@ -7,11 +7,13 @@ import com.theokanning.openai.completion.chat.ChatCompletionResult;
 import com.theokanning.openai.completion.chat.ChatMessage;
 import com.theokanning.openai.model.Model;
 import lombok.extern.slf4j.Slf4j;
+import org.dominate.achp.common.enums.ChatFailedType;
 import org.dominate.achp.common.enums.ChatRoleType;
 import org.dominate.achp.common.enums.ExceptionType;
 import org.dominate.achp.common.enums.GptModelType;
 import org.dominate.achp.common.utils.ChatTokenUtil;
 import org.dominate.achp.entity.dto.ChatDTO;
+import org.dominate.achp.entity.dto.ChatGroupDTO;
 import org.dominate.achp.entity.dto.ContentDTO;
 import org.dominate.achp.entity.dto.ReplyDTO;
 import org.dominate.achp.sys.exception.BusinessException;
@@ -84,7 +86,8 @@ public final class ChatGptHelper {
     public static ReplyDTO send(SseEmitter sseEmitter, List<ContentDTO> contentList, String apiKey, String sentence, String system, String modelId,
                                 int resultTokens, Double temperature) {
         OpenAiService service = new OpenAiService(apiKey, DEFAULT_DURATION);
-        ChatCompletionRequest request = createChatRequest(modelId, resultTokens, temperature, parseMessages(contentList, sentence, system, modelId, resultTokens), true);
+        ChatGroupDTO group = parseMessages(contentList, sentence, system, modelId, resultTokens);
+        ChatCompletionRequest request = createChatRequest(modelId, resultTokens, temperature, group.getMessageList(), true);
         StringBuilder reply = new StringBuilder();
         service.streamChatCompletion(request).blockingForEach((result) -> {
             ChatMessage message = result.getChoices().get(FIRST_ANSWER_INDEX).getMessage();
@@ -99,12 +102,12 @@ public final class ChatGptHelper {
             } catch (Exception e) {
                 log.info("ChatGptHelper.send SSE closed , so shutdown Chat-GPT stream , {}", e.getMessage());
                 // 抛异常即可中断 blockingForEach
-                throw BusinessException.create(ExceptionType.EMPTY_ERROR);
+                throw BusinessException.create(ExceptionType.ERROR, ChatFailedType.CLIENT_CLOSE.getResult());
             }
             reply.append(message.getContent());
         });
         service.shutdownExecutor();
-        return new ReplyDTO(modelId, sentence, reply.toString());
+        return new ReplyDTO(modelId, sentence, reply.toString(), group.getSendTokens());
     }
 
     /**
@@ -150,11 +153,12 @@ public final class ChatGptHelper {
      */
     public static ReplyDTO send(String sentence, String system, List<ContentDTO> contentList, String modelId, int resultTokens, double temperature, String apiKey) {
         OpenAiService service = new OpenAiService(apiKey, DEFAULT_DURATION);
-        ChatCompletionRequest request = createChatRequest(modelId, resultTokens, temperature, parseMessages(contentList, sentence, system, modelId, resultTokens), false);
+        ChatGroupDTO group = parseMessages(contentList, sentence, system, modelId, resultTokens);
+        ChatCompletionRequest request = createChatRequest(modelId, resultTokens, temperature, group.getMessageList(), false);
         ChatCompletionResult result = service.createChatCompletion(request);
         String content = result.getChoices().get(FIRST_ANSWER_INDEX).getMessage().getContent();
         service.shutdownExecutor();
-        return new ReplyDTO(modelId, sentence, content);
+        return new ReplyDTO(modelId, sentence, content, group.getSendTokens());
     }
 
     /**
@@ -221,7 +225,7 @@ public final class ChatGptHelper {
      * @param resultTokens 返回结果的Tokens限制
      * @return 对话消息列表
      */
-    public static List<ChatMessage> parseMessages(List<ContentDTO> contentList, String sentence, String system, String modelId, int resultTokens) {
+    public static ChatGroupDTO parseMessages(List<ContentDTO> contentList, String sentence, String system, String modelId, int resultTokens) {
         if (CollectionUtils.isEmpty(contentList)) {
             // 无上下文
             List<ChatMessage> messageList = new ArrayList<>(2);
@@ -231,7 +235,8 @@ public final class ChatGptHelper {
             }
             // 2.本次提问
             messageList.add(createMessage(sentence, true));
-            return messageList;
+            int tokens = ChatTokenUtil.tokens(modelId, messageList);
+            return new ChatGroupDTO(messageList, tokens);
         }
         List<ChatMessage> messageList = new ArrayList<>(contentList.size() * 2);
         if (StringUtil.isNotEmpty(system)) {
@@ -249,12 +254,11 @@ public final class ChatGptHelper {
         int tokens = ChatTokenUtil.tokens(modelId, messageList);
         int limitTokens = GptModelType.getModelType(modelId).getTokenLimit() - resultTokens - TOKEN_RESERVE;
         if (limitTokens >= tokens) {
-            return messageList;
+            return new ChatGroupDTO(messageList, tokens);
         }
         log.info("需过滤连续对话，最大发送Token {}, 本次请求Token {}", limitTokens, tokens);
-        return filter(messageList, modelId, tokens - limitTokens);
+        return filter(messageList, modelId, tokens, limitTokens);
     }
-
 
     /**
      * prompt: 指定与Chatbot进行交互的初始提示。这可以是一个问题、一句话或一段文本。
@@ -285,26 +289,27 @@ public final class ChatGptHelper {
                 .build();
     }
 
-    private static List<ChatMessage> filter(List<ChatMessage> messageList, String modelId, int deleteTokens) {
+    private static ChatGroupDTO filter(List<ChatMessage> messageList, String modelId, int tokens, int limitTokens) {
         Iterator<ChatMessage> iterator = messageList.listIterator();
-        int totalTokens = 0;
+        int targetTokens = tokens - limitTokens;
+        int deleteTokens = 0;
         log.info("本次连续会话条数 {}", messageList.size());
         while (iterator.hasNext()) {
             ChatMessage message = iterator.next();
-            totalTokens += ChatTokenUtil.token(modelId, message);
+            deleteTokens += ChatTokenUtil.token(modelId, message);
             if (ChatRoleType.SYS.getRole().equals(message.getRole())) {
                 continue;
             }
             iterator.remove();
-            if (totalTokens >= deleteTokens) {
-                log.info("需过滤Token {}, 已过滤Token {}, 过滤后会话条数 {} ", deleteTokens, totalTokens, messageList.size());
+            if (deleteTokens >= targetTokens) {
+                log.info("需过滤Token {}, 已过滤Token {}, 过滤后会话条数 {} ", targetTokens, deleteTokens, messageList.size());
                 if (CollectionUtils.isEmpty(messageList)) {
-                    throw BusinessException.create(ExceptionType.ERROR, "请求内容超过长度限制，请调整后发送");
+                    throw BusinessException.create(ExceptionType.ERROR, ChatFailedType.CONTENT_TO_LONG.getResult());
                 }
-                return messageList;
+                return new ChatGroupDTO(messageList, tokens - deleteTokens);
             }
         }
-        return messageList;
+        return new ChatGroupDTO(messageList, tokens - deleteTokens);
     }
 
 

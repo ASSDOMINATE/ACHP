@@ -6,6 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.dominate.achp.entity.dto.PayOrderDTO;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -19,6 +20,12 @@ public final class PayOrderCache {
 
     /**
      * 哈希缓存
+     * 苹果通知失败数据
+     */
+    private static final String CACHE_APPLE_NOTICE_DATA_FAILED_LIST = "cache:apple:notice:failed:list";
+
+    /**
+     * 哈希缓存
      * 支付订单信息
      */
     private static final String CACHE_PAY_ORDER_INFO_HASH_KEY = "cache:pay:order:info:hash";
@@ -27,6 +34,16 @@ public final class PayOrderCache {
      * 支付订单号
      */
     private static final String CACHE_PAY_ORDER_CODE_HEADER_KEY = "cache:pay:order:code:";
+
+    public static void saveFailedNotice(String data) {
+        log.info("Apple failed notice count {} ", RedisClient.listLength(CACHE_APPLE_NOTICE_DATA_FAILED_LIST));
+        RedisClient.leftPush(CACHE_APPLE_NOTICE_DATA_FAILED_LIST, data);
+    }
+
+    public static List<String> getAllFailedNotice() {
+        long total = RedisClient.listLength(CACHE_APPLE_NOTICE_DATA_FAILED_LIST);
+        return RedisClient.listRange(CACHE_APPLE_NOTICE_DATA_FAILED_LIST, 0, total - 1, String.class);
+    }
 
     /**
      * 更新检查时间

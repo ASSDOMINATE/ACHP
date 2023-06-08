@@ -15,7 +15,7 @@ public enum ResponseType {
     SUCCESS(200, "请求成功", true),
 
 
-    NEED_RESUME(202,"该订单还未使用，可以重新发起购买验证",true),
+    RESUME_SUCCESS(200,"已恢复全部购买信息",true),
     /**
      * code:400
      * 异常

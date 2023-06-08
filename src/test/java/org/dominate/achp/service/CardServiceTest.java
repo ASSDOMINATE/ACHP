@@ -31,6 +31,13 @@ public class CardServiceTest {
     private static CardRecordDTO cardRecord = null;
 
     @Test
+    public void cardInfo(){
+        CardRecordDTO record = cardService.checkUserRecord(132476);
+        String waitRecordInfo = baseCardRecordService.getRecordWaitInfo(132476);
+        System.out.println(record.getInfo() + " " + waitRecordInfo);
+    }
+
+    @Test
     public void cardCheckTest() {
         int accountId = 132492;
         // 1.缓存中有记录，检查是否过期
