@@ -58,7 +58,7 @@ public class OpenAiService {
     private final OpenAiApi api;
     private final ExecutorService executorService;
 
-    private static String loadServerUrl() {
+    public static String loadServerUrl() {
         String serverUrl = LoadUtil.getProperty("openai.proxy.url");
         if (StringUtil.isNotEmpty(serverUrl)) {
             return serverUrl;

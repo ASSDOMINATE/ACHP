@@ -1,5 +1,7 @@
 package org.dominate.achp.common.helper;
 
+import com.hwja.tool.utils.HttpUtil;
+import com.hwja.tool.utils.JsonUtil;
 import com.hwja.tool.utils.StringUtil;
 import com.openai.theokanning.OpenAiService;
 import com.theokanning.openai.completion.chat.ChatCompletionRequest;
@@ -21,6 +23,8 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.time.Duration;
+import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 
 /**
@@ -100,7 +104,7 @@ public final class ChatGptHelper {
             try {
                 sseEmitter.send(message);
             } catch (Exception e) {
-                log.info("ChatGptHelper.send SSE closed , so shutdown Chat-GPT stream , {}", e.getMessage());
+                log.info("ChatGptHelper.send Client SSE closed , so shutdown Chat-GPT stream , => {}", e.getMessage());
                 // 抛异常即可中断 blockingForEach
                 throw BusinessException.create(ExceptionType.ERROR, ChatFailedType.CLIENT_CLOSE.getResult());
             }
@@ -258,6 +262,37 @@ public final class ChatGptHelper {
         }
         log.info("需过滤连续对话，最大发送Token {}, 本次请求Token {}", limitTokens, tokens);
         return filter(messageList, modelId, tokens, limitTokens);
+    }
+
+    public static String requestWallet(int day, String apiKey) {
+        String url = OpenAiService.loadServerUrl() + "/v1/dashboard/billing/usage";
+        LocalDate date = LocalDate.now();
+        String uri = HttpUtil.createParamUri(new String[]{"start_date", "end_date"},
+                new String[]{date.minus(day, ChronoUnit.DAYS).toString(), date.toString()});
+        String response = HttpUtil.sendGetSetHeader(url + "?" + uri, createBillingHeader(apiKey));
+        String totalUsage = JsonUtil.parseResponseValueForString(response, "total_usage");
+        if (StringUtil.isNotEmpty(totalUsage)) {
+            String limitDollar = requestLimitDollar(apiKey);
+            return day + "天内已使用 " + totalUsage + "美分，当前限制额度 " + limitDollar + "美元";
+        }
+        return JsonUtil.parseResponseValueForString(response, "error", "message");
+    }
+
+    private static String requestLimitDollar(String apiKey) {
+        String url = OpenAiService.loadServerUrl() + "/v1/dashboard/billing/subscription";
+        String response = HttpUtil.sendGetSetHeader(url, createBillingHeader(apiKey));
+        String limitUsd = JsonUtil.parseResponseValueForString(response, "hard_limit_usd");
+        if (StringUtil.isNotEmpty(limitUsd)) {
+            return limitUsd;
+        }
+        return JsonUtil.parseResponseValueForString(response, "error", "message");
+    }
+
+    private static Map<String, String> createBillingHeader(String apiKey) {
+        Map<String, String> headers = new HashMap<>();
+        headers.put("Authorization", "Bearer " + apiKey);
+        headers.put("Content-Type", "application/json");
+        return headers;
     }
 
     /**

@@ -37,5 +37,7 @@ public class SceneInfoDTO extends SceneDTO implements Serializable {
 
     private ChatSceneCategory[] categories;
 
+    private ContentDTO[] contents;
+
 
 }

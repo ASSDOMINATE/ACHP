@@ -104,7 +104,7 @@ public class ChatServiceImpl implements ChatService {
             try {
                 sseEmitter.send(ChatGptHelper.createMessage(ChatFailedType.MODEL_OVERLOADED.getResult(), false));
             } catch (IOException e) {
-                log.error("ChatService.sendFreqLimit Client SSE is closed {}", e.getMessage());
+                log.error("ChatService.sendFreqLimit Client SSE is closed => {}", e.getMessage());
             } finally {
                 sseEmitter.complete();
             }
@@ -124,13 +124,13 @@ public class ChatServiceImpl implements ChatService {
             // 8.发送 -> 本次会话ID
             sseEmitter.send(ChatGptHelper.createMessage(String.valueOf(contentId), ChatRoleType.CONTENT_CODE));
         } catch (Exception e) {
-            log.error("ChatService.startChat send error ", e);
+            log.error("ChatService.startChat send error => {}", e.getMessage());
             String errorMessage = ChatFailedType.parseSign(e.getMessage());
             try {
                 // 把ChatGPT的报错消息发送到前端
                 sseEmitter.send(ChatGptHelper.createMessage(errorMessage, false));
             } catch (IOException ex) {
-                log.error("ChatService.sendError Client SSE is closed {}", errorMessage);
+                log.error("ChatService.sendError Client SSE is closed => {}", errorMessage);
             }
         } finally {
             // 9.增加 ApiKey 的频率
@@ -146,10 +146,9 @@ public class ChatServiceImpl implements ChatService {
                 sseEmitter.send(message);
             }
         } catch (IOException e) {
-            log.error("ChatService.sendStartSign Client SSE is closed {}", e.getMessage());
+            log.error("ChatService.sendStartSign Client SSE is closed => {}", e.getMessage());
         }
     }
-
 
     private List<ContentDTO> loadGroupContentList(String groupId) {
         GroupCacheDTO groupCache = ChatCache.getChatGroup(groupId);

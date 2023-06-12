@@ -90,17 +90,27 @@ public class BaseCardRecordServiceImpl extends ServiceImpl<BaseCardRecordMapper,
         query.lambda().eq(BaseCardRecord::getAccountId, accountId)
                 .eq(BaseCardRecord::getState, CardRecordState.USING.getCode())
                 .last(SqlUtil.limitOne());
-        // 当前有启用的卡，设置为待使用
-        if (count(query) > 0) {
-            BaseCardRecord record = getOne(query);
-            if (CardType.checkRecordUsed(record.getCardType(), record.getExpireTime().getTime(), record.getRemainCount())) {
-                BaseCardRecord update = new BaseCardRecord();
-                update.setId(id);
-                update.setAccountId(accountId);
-                update.setState(CardRecordState.WAIT.getCode());
-                return updateById(update);
-            }
+        // 当前没有启用的卡
+        if (count(query) == 0) {
+            return saveRecordUsing(accountId, id, card);
         }
+        // 检查下当前启用的卡状态
+        CardRecordDTO cardRecord = ChatCache.getUsingCard(accountId);
+        if (cardRecord == null) {
+            // 缓存没有就使用数据库中的
+            cardRecord = CardWrapper.build().entityDTO(getOne(query));
+        }
+        // 当前使用卡可用，该卡就设置为待使用
+        if (!CardType.checkRecordUsed(cardRecord.getCardTypeCode(), cardRecord.getExpireTime(), cardRecord.getRemainCount())) {
+            BaseCardRecord update = new BaseCardRecord();
+            update.setId(id);
+            update.setAccountId(accountId);
+            update.setState(CardRecordState.WAIT.getCode());
+            return updateById(update);
+        }
+        // 设置当前启用卡为过期
+        saveRecordUsed(accountId, cardRecord.getId(), cardRecord.getRequestCount(), cardRecord.getRemainCount());
+        // 启用新的卡
         return saveRecordUsing(accountId, id, card);
     }
 

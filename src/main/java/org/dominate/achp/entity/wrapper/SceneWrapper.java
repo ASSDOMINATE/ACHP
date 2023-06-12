@@ -42,6 +42,7 @@ public class SceneWrapper {
         dto.setTitle(entity.getTitle());
         dto.setSystem(entity.getSetSystem());
         dto.setImgSrc(entity.getImgSrc());
+        // TODO 放大算法
         dto.setChatCount(entity.getChatCount());
         dto.setReadCount(entity.getReadCount());
         dto.setSendCount(entity.getSendCount());

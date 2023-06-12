@@ -57,4 +57,9 @@ public class SceneInfoReq implements Serializable {
 
     private Integer[] categoryIds;
 
+    private String sentence;
+
+    private String reply;
+
+
 }

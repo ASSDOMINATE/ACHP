@@ -6,12 +6,11 @@ import com.hwja.tool.utils.StringUtil;
 import lombok.AllArgsConstructor;
 import org.dominate.achp.common.cache.RecommendCache;
 import org.dominate.achp.common.helper.AuthHelper;
-import org.dominate.achp.entity.ChatScene;
-import org.dominate.achp.entity.ChatSceneCategory;
-import org.dominate.achp.entity.ChatSceneConf;
-import org.dominate.achp.entity.ChatSceneItem;
+import org.dominate.achp.entity.*;
+import org.dominate.achp.entity.dto.ContentDTO;
 import org.dominate.achp.entity.dto.SceneInfoDTO;
 import org.dominate.achp.entity.req.*;
+import org.dominate.achp.entity.wrapper.ChatWrapper;
 import org.dominate.achp.entity.wrapper.SceneWrapper;
 import org.dominate.achp.service.*;
 import org.dominate.achp.sys.Response;
@@ -36,6 +35,7 @@ public class SceneController {
     private final IChatSceneRelateService chatSceneRelateService;
     private final IChatSceneItemService chatSceneItemService;
     private final IChatSceneConfService chatSceneConfService;
+    private final IChatContentService chatContentService;
 
     private final SceneService sceneService;
 
@@ -69,6 +69,12 @@ public class SceneController {
         List<ChatSceneConf> confList = chatSceneConfService.list(info.getId());
         List<Integer> categoryIdList = chatSceneRelateService.getCategoryIdList(info.getId());
         List<ChatSceneCategory> categoryList = chatSceneCategoryService.list(categoryIdList);
+        if (0 != scene.getContentId()) {
+            ContentDTO content = ChatWrapper.build().entityDTO(chatContentService.getById(scene.getContentId()));
+            info.setContents(new ContentDTO[]{content});
+        } else {
+            info.setContents(new ContentDTO[0]);
+        }
         info.setItems(itemList.toArray(new ChatSceneItem[0]));
         info.setConfigs(confList.toArray(new ChatSceneConf[0]));
         info.setCategories(categoryList.toArray(new ChatSceneCategory[0]));
@@ -91,6 +97,11 @@ public class SceneController {
         saveScene.setUpdateBy(accountId);
         saveScene.setImgSrc(infoReq.getImgSrc());
         saveScene.setSetSystem(infoReq.getSystem());
+        int contentId = 0;
+        if (StringUtil.isNotEmpty(infoReq.getReply()) || StringUtil.isNotEmpty(infoReq.getSentence())) {
+            contentId = saveContent(infoReq.getSentence(), infoReq.getReply());
+        }
+        saveScene.setContentId(contentId);
         if (null == infoReq.getId()) {
             saveScene.setCreateBy(accountId);
             if (!chatSceneService.save(saveScene)) {
@@ -213,6 +224,15 @@ public class SceneController {
         return Response.data(chatSceneCategoryService.updateById(save));
     }
 
+    private int saveContent(String sentence, String reply) {
+        ChatContent content = new ChatContent();
+        content.setReply(reply);
+        content.setSentence(sentence);
+        content.setModelId(StringUtil.EMPTY);
+        content.setLastId(0);
+        chatContentService.save(content);
+        return content.getId();
+    }
 
     private void setItemAndConfigDel(int sceneId, int accountId) {
         ChatSceneItem item = new ChatSceneItem();

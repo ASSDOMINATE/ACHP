@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 import lombok.experimental.Accessors;
 
 import java.io.Serializable;
@@ -23,6 +24,7 @@ import java.util.Date;
 @Setter
 @Accessors(chain = true)
 @TableName("chat_scene")
+@ToString
 public class ChatScene implements Serializable {
 
     private static final long serialVersionUID = 1L;

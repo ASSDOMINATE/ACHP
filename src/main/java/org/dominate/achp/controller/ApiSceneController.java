@@ -3,6 +3,8 @@ package org.dominate.achp.controller;
 import com.theokanning.openai.model.Model;
 import lombok.AllArgsConstructor;
 import org.dominate.achp.common.cache.RecommendCache;
+import org.dominate.achp.common.cache.StatisticCache;
+import org.dominate.achp.common.enums.SceneCountType;
 import org.dominate.achp.common.helper.AuthHelper;
 import org.dominate.achp.common.helper.ChatGptHelper;
 import org.dominate.achp.entity.dto.SceneCategoryDTO;
@@ -118,6 +120,7 @@ public class ApiSceneController {
             @RequestParam(name = "id") Integer id
     ) {
         SceneDetailDTO detail = sceneService.getSceneDetail(id);
+        StatisticCache.addSceneCount(id, SceneCountType.READ);
         return Response.data(detail);
     }
 
@@ -133,6 +136,7 @@ public class ApiSceneController {
             @Validated @RequestBody SendSceneReq sendSceneReq
     ) {
         String send = sceneService.parseSceneContent(sendSceneReq);
+        StatisticCache.addSceneCount(sendSceneReq.getSceneId(), SceneCountType.SEND);
         return Response.data(send);
     }
 

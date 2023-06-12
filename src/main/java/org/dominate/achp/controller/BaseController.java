@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import org.dominate.achp.common.cache.ConfigCache;
 import org.dominate.achp.common.cache.WallpaperCache;
 import org.dominate.achp.common.helper.AuthHelper;
+import org.dominate.achp.common.helper.ChatGptHelper;
 import org.dominate.achp.entity.BaseConfig;
 import org.dominate.achp.entity.BaseKey;
 import org.dominate.achp.entity.dto.AppConfigDTO;
@@ -94,6 +95,15 @@ public class BaseController {
         AuthHelper.checkAdminUser(token);
         List<BaseKey> keyList = baseKeyService.list();
         return Response.data(keyList);
+    }
+
+    @GetMapping(path = "keyWallet")
+    @ResponseBody
+    public Response<String> keyWallet(
+            @RequestParam String apikey,
+            @RequestParam(name = "day", defaultValue = "30", required = false) Integer day
+    ) {
+        return Response.data(ChatGptHelper.requestWallet(day, apikey));
     }
 
 
