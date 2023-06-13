@@ -6,6 +6,7 @@ import org.dominate.achp.entity.dto.SceneCategoryDTO;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 /**
  * <p>
@@ -26,9 +27,19 @@ public interface IChatSceneCategoryService extends IService<ChatSceneCategory> {
 
     /**
      * 获取分类列表
+     *
      * @param ids 分类ID列表
      * @return 分类列表
      */
     List<ChatSceneCategory> list(Collection<Integer> ids);
+
+    /**
+     * 获取分类Map
+     *
+     * @param groupCategoryIdMap 分组 分类ID Map
+     * @return 分类Map
+     */
+    Map<Integer, List<SceneCategoryDTO>> map(Map<Integer, List<Integer>> groupCategoryIdMap);
+
 
 }

@@ -8,6 +8,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.dominate.achp.common.enums.SceneItemType;
 import org.dominate.achp.entity.*;
 import org.dominate.achp.entity.dto.ContentDTO;
+import org.dominate.achp.entity.dto.SceneCategoryDTO;
 import org.dominate.achp.entity.dto.SceneDetailDTO;
 import org.dominate.achp.entity.dto.SceneItemBaseDTO;
 import org.dominate.achp.entity.req.SendSceneItemReq;
@@ -47,12 +48,14 @@ public class SceneServiceImpl implements SceneService {
     public SceneDetailDTO getSceneDetail(int sceneId) {
         ChatScene scene = chatSceneService.getById(sceneId);
         SceneDetailDTO detail = SceneWrapper.build().entityDetailDTO(scene);
+        // content
         if (0 != scene.getContentId()) {
             ContentDTO content = ChatWrapper.build().entityDTO(chatContentService.getById(scene.getContentId()));
             detail.setContents(new ContentDTO[]{content});
         } else {
             detail.setContents(new ContentDTO[0]);
         }
+        // item
         List<ChatSceneItem> itemList = chatSceneItemService.list(sceneId);
         List<SceneItemBaseDTO> items = new ArrayList<>(itemList.size());
         for (ChatSceneItem item : itemList) {
@@ -61,6 +64,10 @@ public class SceneServiceImpl implements SceneService {
             items.add(baseItem);
         }
         detail.setItems(items.toArray(new SceneItemBaseDTO[0]));
+        // category
+        List<Integer> categoryIdList = chatSceneRelateService.getCategoryIdList(sceneId);
+        List<ChatSceneCategory> categoryList = chatSceneCategoryService.list(categoryIdList);
+        detail.setCategories(SceneWrapper.build().entityCategoryDTO(categoryList).toArray(new SceneCategoryDTO[0]));
         return detail;
     }
 

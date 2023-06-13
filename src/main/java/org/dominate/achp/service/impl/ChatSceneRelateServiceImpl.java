@@ -10,7 +10,9 @@ import org.dominate.achp.service.IChatSceneRelateService;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * <p>
@@ -51,6 +53,23 @@ public class ChatSceneRelateServiceImpl extends ServiceImpl<ChatSceneRelateMappe
             categoryIdList.add(relate.getCategoryId());
         }
         return categoryIdList;
+    }
+
+    @Override
+    public Map<Integer, List<Integer>> getCategoryIdMap(List<Integer> sceneIdList) {
+        QueryWrapper<ChatSceneRelate> query = new QueryWrapper<>();
+        query.lambda().in(ChatSceneRelate::getSceneId, sceneIdList)
+                .eq(ChatSceneRelate::getDel, false)
+                .select(ChatSceneRelate::getCategoryId, ChatSceneRelate::getSceneId);
+        List<ChatSceneRelate> relateList = list(query);
+        Map<Integer, List<Integer>> categoryIdMap = new HashMap<>();
+        for (ChatSceneRelate relate : relateList) {
+            if (!categoryIdMap.containsKey(relate.getSceneId())) {
+                categoryIdMap.put(relate.getSceneId(), new ArrayList<>());
+            }
+            categoryIdMap.get(relate.getSceneId()).add(relate.getCategoryId());
+        }
+        return categoryIdMap;
     }
 
     @Override

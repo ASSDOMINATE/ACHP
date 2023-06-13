@@ -5,6 +5,7 @@ import org.dominate.achp.entity.ChatSceneRelate;
 import org.dominate.achp.entity.req.PageReq;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * <p>
@@ -32,6 +33,14 @@ public interface IChatSceneRelateService extends IService<ChatSceneRelate> {
      * @return 分类ID列表
      */
     List<Integer> getCategoryIdList(int sceneId);
+
+    /**
+     * 获取场景的分类ID列表
+     *
+     * @param sceneIdList 场景ID列表
+     * @return 分类ID列表
+     */
+    Map<Integer, List<Integer>> getCategoryIdMap(List<Integer> sceneIdList);
 
     /**
      * 获取关联列表
