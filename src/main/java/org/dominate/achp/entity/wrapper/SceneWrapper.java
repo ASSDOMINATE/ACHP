@@ -70,6 +70,7 @@ public class SceneWrapper {
         dto.setId(entity.getId());
         dto.setName(entity.getName());
         dto.setDesr(entity.getDesr());
+        dto.setInfo(entity.getInfo());
         SceneCategoryType type = SceneCategoryType.getValueByCode(entity.getType());
         dto.setTypeCode(type.getCode());
         dto.setTypeName(type.getName());

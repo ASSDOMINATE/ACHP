@@ -61,7 +61,6 @@ public class SceneDTO implements Serializable {
 
     private Integer seq;
 
-
-
+    private SceneCategoryDTO[] categories;
 
 }

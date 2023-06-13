@@ -1,6 +1,7 @@
 package org.dominate.achp.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.hwja.tool.utils.SqlUtil;
 import org.dominate.achp.entity.ChatSceneRelate;
@@ -9,10 +10,7 @@ import org.dominate.achp.mapper.ChatSceneRelateMapper;
 import org.dominate.achp.service.IChatSceneRelateService;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * <p>
@@ -57,6 +55,9 @@ public class ChatSceneRelateServiceImpl extends ServiceImpl<ChatSceneRelateMappe
 
     @Override
     public Map<Integer, List<Integer>> getCategoryIdMap(List<Integer> sceneIdList) {
+        if(CollectionUtils.isEmpty(sceneIdList)){
+            return Collections.emptyMap();
+        }
         QueryWrapper<ChatSceneRelate> query = new QueryWrapper<>();
         query.lambda().in(ChatSceneRelate::getSceneId, sceneIdList)
                 .eq(ChatSceneRelate::getDel, false)

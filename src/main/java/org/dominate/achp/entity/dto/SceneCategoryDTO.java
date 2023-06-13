@@ -41,5 +41,7 @@ public class SceneCategoryDTO implements Serializable {
      */
     private String desr;
 
+    private String info;
+
 
 }

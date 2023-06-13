@@ -1,5 +1,6 @@
 package org.dominate.achp.controller;
 
+import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.theokanning.openai.model.Model;
 import lombok.AllArgsConstructor;
 import org.dominate.achp.common.cache.RecommendCache;
@@ -17,10 +18,7 @@ import org.dominate.achp.sys.Response;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * 场景相关接口
@@ -67,10 +65,12 @@ public class ApiSceneController {
     ) {
         if (0 == categoryId) {
             List<SceneDTO> sceneList = chatSceneService.list(pageReq);
+            fillCategory(sceneList);
             return Response.data(sceneList);
         }
         List<Integer> sceneIdList = chatSceneRelateService.getSceneIdList(categoryId, pageReq);
         List<SceneDTO> sceneList = chatSceneService.list(sceneIdList);
+        fillCategory(sceneList, sceneIdList);
         return Response.data(sorted(sceneIdList, sceneList));
     }
 
@@ -91,6 +91,7 @@ public class ApiSceneController {
         int accountId = AuthHelper.parseWithValidForId(token);
         List<Integer> sceneIdList = chatRecordService.getUserSceneIdList(accountId, pageReq);
         List<SceneDTO> sceneList = chatSceneService.list(sceneIdList);
+        fillCategory(sceneList, sceneIdList);
         return Response.data(sorted(sceneIdList, sceneList));
     }
 
@@ -104,6 +105,7 @@ public class ApiSceneController {
     public Response<List<SceneDTO>> getRecommendSceneList() {
         List<Integer> sceneIdList = RecommendCache.getSceneIdList();
         List<SceneDTO> sceneList = chatSceneService.list(sceneIdList);
+        fillCategory(sceneList, sceneIdList);
         return Response.data(sorted(sceneIdList, sceneList));
     }
 
@@ -159,5 +161,31 @@ public class ApiSceneController {
             target.add(sceneMap.get(id));
         }
         return target;
+    }
+
+    private void fillCategory(List<SceneDTO> sceneList) {
+        fillCategory(sceneList, Collections.emptyList());
+    }
+
+    private void fillCategory(List<SceneDTO> sceneList, List<Integer> sceneIdList) {
+        // TODO 暂时不启用
+        if (true) {
+            return;
+        }
+        if (CollectionUtils.isEmpty(sceneIdList)) {
+            sceneIdList = new ArrayList<>();
+            for (SceneDTO scene : sceneList) {
+                sceneIdList.add(scene.getId());
+            }
+        }
+        Map<Integer, List<Integer>> sceneCategoryIdMap = chatSceneRelateService.getCategoryIdMap(sceneIdList);
+        Map<Integer, List<SceneCategoryDTO>> sceneCategoryMap = chatSceneCategoryService.map(sceneCategoryIdMap);
+        for (SceneDTO scene : sceneList) {
+            if (!sceneCategoryMap.containsKey(scene.getId())) {
+                scene.setCategories(new SceneCategoryDTO[0]);
+                continue;
+            }
+            scene.setCategories(sceneCategoryMap.get(scene.getId()).toArray(new SceneCategoryDTO[0]));
+        }
     }
 }

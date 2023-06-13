@@ -8,6 +8,7 @@ import org.dominate.achp.common.cache.RecommendCache;
 import org.dominate.achp.common.helper.AuthHelper;
 import org.dominate.achp.entity.*;
 import org.dominate.achp.entity.dto.ContentDTO;
+import org.dominate.achp.entity.dto.SceneCategoryDTO;
 import org.dominate.achp.entity.dto.SceneInfoDTO;
 import org.dominate.achp.entity.req.*;
 import org.dominate.achp.entity.wrapper.ChatWrapper;
@@ -77,7 +78,7 @@ public class SceneController {
         }
         info.setItems(itemList.toArray(new ChatSceneItem[0]));
         info.setConfigs(confList.toArray(new ChatSceneConf[0]));
-        info.setCategories(categoryList.toArray(new ChatSceneCategory[0]));
+        info.setCategories(SceneWrapper.build().entityCategoryDTO(categoryList).toArray(new SceneCategoryDTO[0]));
         return Response.data(info);
     }
 

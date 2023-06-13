@@ -69,7 +69,7 @@ public class ApplePayHelper {
     private static final String CHECK_ON_SANDBOX_CODE = "21007";
 
     private static final String APPLE_PASSWORD = LoadUtil.getProperty("apple.pay.password");
-    private static final String BUNDLE_ID = LoadUtil.getProperty("apple.pay.bundle-id");
+    private static final String[] BUNDLE_IDS = LoadUtil.getArrayProperty("apple.pay.bundle-ids");
     private static final boolean USE_SANDBOX = LoadUtil.getBooleanProperty("apple.pay.sandbox");
 
     /**
@@ -117,7 +117,7 @@ public class ApplePayHelper {
         throw BusinessException.create(ExceptionType.PAY_ORDER_NOT_FOUND);
     }
 
-    public static String verifyReceipt(String receiptDate){
+    public static String verifyReceipt(String receiptDate) {
         //1.发送平台验证
         String response = ApplePayHelper.sendVerify(receiptDate, false);
         // 苹果服务器没有返回验证结果
@@ -139,12 +139,13 @@ public class ApplePayHelper {
         }
         // 4.验证支付来源
         String bundleId = JsonUtil.parseResponseValueForString(response, RESPONSE_BUNDLE);
-        if (!BUNDLE_ID.equals(bundleId)) {
+        if (isErrorBundleId(bundleId)) {
             log.error("苹果验证订单错误，有刷单嫌疑，系统ID不一致，请求 BUNDLE ID [{}]", bundleId);
-            throw BusinessException.create(ExceptionType.PAY_ORDER_NOT_FOUND);
         }
         return response;
     }
+
+
 
 
     public static List<AppleProductDTO> parseProductList(String receiptDate) throws BusinessException {
@@ -183,7 +184,8 @@ public class ApplePayHelper {
             AppleNoticeDTO notice = new AppleNoticeDTO();
             JSONObject payload = parseBase64String(decodedJWT.getPayload());
             JSONObject data = payload.getJSONObject(RESPONSE_NOTICE_DATA);
-            if (!BUNDLE_ID.equals(data.getString(RESPONSE_NOTICE_BUNDLE_ID))) {
+
+            if (isErrorBundleId(data.getString(RESPONSE_NOTICE_BUNDLE_ID))) {
                 notice.setType(AppleNoticeType.NO_FOLLOW_UP);
                 return notice;
             }
@@ -244,6 +246,15 @@ public class ApplePayHelper {
         params.put(REQUEST_RECEIPT_DATA, receiptDate);
         params.put(REQUEST_PASSWORD, APPLE_PASSWORD);
         return HttpUtil.sendPost(onSandbox ? VERIFY_URL_SANDBOX : VERIFY_URL, params, true);
+    }
+
+    private static boolean isErrorBundleId(String bundleId) {
+        for (String oneBundleId : BUNDLE_IDS) {
+            if (oneBundleId.equals(bundleId)) {
+                return false;
+            }
+        }
+        return true;
     }
 
 }

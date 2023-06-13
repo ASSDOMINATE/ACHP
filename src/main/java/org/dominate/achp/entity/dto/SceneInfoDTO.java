@@ -4,7 +4,6 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 import lombok.experimental.Accessors;
-import org.dominate.achp.entity.ChatSceneCategory;
 import org.dominate.achp.entity.ChatSceneConf;
 import org.dominate.achp.entity.ChatSceneItem;
 
@@ -34,8 +33,6 @@ public class SceneInfoDTO extends SceneDTO implements Serializable {
     private ChatSceneItem[] items;
 
     private ChatSceneConf[] configs;
-
-    private ChatSceneCategory[] categories;
 
     private ContentDTO[] contents;
 

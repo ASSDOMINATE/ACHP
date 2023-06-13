@@ -36,7 +36,7 @@ public class SceneDetailDTO extends SceneDTO implements Serializable {
      */
     private SceneItemBaseDTO[] items;
 
-    private SceneCategoryDTO[] categories;
+
 
 
 }

@@ -51,6 +51,9 @@ public class ChatSceneCategory implements Serializable {
     @TableField("seq")
     private Integer seq;
 
+    @TableField("info")
+    private String info;
+
     @TableField("create_time")
     private Date createTime;
 

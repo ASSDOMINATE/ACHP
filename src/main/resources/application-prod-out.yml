@@ -56,7 +56,7 @@ wechat:
     callback: https://www.thadhff.site/
 apple:
   pay:
-    bundle-id: com.jd.aiSuperCreation
+    bundle-ids: com.jd.aiSuperCreation
     sandbox: true
     password: 6017dbaa2fc34ea09f969234f84b5c8a
 openai:
