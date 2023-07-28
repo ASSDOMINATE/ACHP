@@ -146,8 +146,6 @@ public class ApplePayHelper {
     }
 
 
-
-
     public static List<AppleProductDTO> parseProductList(String receiptDate) throws BusinessException {
         String response = verifyReceipt(receiptDate);
         JSONArray apps = JsonUtil.parseResponseValueForJsonArray(response, RESPONSE_APP_LIST);

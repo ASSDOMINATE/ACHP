@@ -17,6 +17,14 @@ import java.util.List;
 public class ChatGptHelperTest {
 
     @Test
+    public void testWallet(){
+        String s = ChatGptHelper.requestWallet(30,"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");
+        System.out.println(s);
+        s = ChatGptHelper.requestWallet(30,"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");
+        System.out.println(s);
+    }
+
+    @Test
     public void testGPT() {
         String result = ChatGptHelper.send("简单解释下超弦定理").getReply();
         System.out.println(result);

@@ -45,6 +45,8 @@ public class SceneCategoryReq implements Serializable {
 
     private Integer seq;
 
+    private String info;
+
 
 
 }

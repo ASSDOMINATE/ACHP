@@ -52,6 +52,8 @@ public class PayOrderDTO implements Serializable {
      */
     private String auth;
 
+    private String password;
+
     private Long createTime;
 
     private Long checkedTime;

@@ -1,6 +1,7 @@
 package org.dominate.achp.common.cache;
 
 import com.hwja.tool.clients.redis.RedisClient;
+import com.hwja.tool.utils.LoadUtil;
 import com.hwja.tool.utils.StringUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.dominate.achp.entity.dto.PayOrderDTO;
@@ -11,6 +12,7 @@ import java.util.Map;
 
 /**
  * 支付订单缓存
+ * 添加服务器标记
  *
  * @author dominate
  * @since 2023-04-24
@@ -19,21 +21,26 @@ import java.util.Map;
 public final class PayOrderCache {
 
     /**
+     * 服务器标记
+     */
+    private static final String SERVER_SIGN = LoadUtil.getProperty("server.sign");
+
+    /**
      * 哈希缓存
      * 苹果通知失败数据
      */
-    private static final String CACHE_APPLE_NOTICE_DATA_FAILED_LIST = "cache:apple:notice:failed:list";
+    private static final String CACHE_APPLE_NOTICE_DATA_FAILED_LIST = SERVER_SIGN + ":cache:apple:notice:failed:list";
 
     /**
      * 哈希缓存
      * 支付订单信息
      */
-    private static final String CACHE_PAY_ORDER_INFO_HASH_KEY = "cache:pay:order:info:hash";
+    private static final String CACHE_PAY_ORDER_INFO_HASH_KEY = SERVER_SIGN + ":cache:pay:order:info:hash";
     /**
      * 键值缓存
      * 支付订单号
      */
-    private static final String CACHE_PAY_ORDER_CODE_HEADER_KEY = "cache:pay:order:code:";
+    private static final String CACHE_PAY_ORDER_CODE_HEADER_KEY = SERVER_SIGN + ":cache:pay:order:code:";
 
     public static void saveFailedNotice(String data) {
         log.info("Apple failed notice count {} ", RedisClient.listLength(CACHE_APPLE_NOTICE_DATA_FAILED_LIST));

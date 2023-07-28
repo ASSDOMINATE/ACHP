@@ -61,6 +61,7 @@ public class ApiChatController {
         cardService.checkSendLimit(accountId);
         BaseConfig config = baseConfigService.current();
         ChatDTO chat = new ChatDTO(chatId, sentence, sceneId, config);
+        chat.setAccountId(accountId);
         // 记录请求次数
         cardService.addUserRequestRecord(accountId);
         return chatService.startChat(chat);
@@ -78,6 +79,7 @@ public class ApiChatController {
         cardService.checkSendLimit(accountId);
         BaseConfig config = baseConfigService.current();
         ChatDTO chat = new ChatDTO(preSendReq, config);
+        chat.setAccountId(accountId);
         // 记录请求次数
         cardService.addUserRequestRecord(accountId);
         return Response.data(ChatCache.saveChatSendTemp(chat));

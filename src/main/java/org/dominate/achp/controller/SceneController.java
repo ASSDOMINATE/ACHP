@@ -216,6 +216,7 @@ public class SceneController {
         save.setName(categoryReq.getName());
         save.setDesr(categoryReq.getDesr());
         save.setDel(categoryReq.getDel());
+        save.setInfo(categoryReq.getInfo());
         save.setUpdateBy(accountId);
         if (null == categoryReq.getId()) {
             save.setCreateBy(accountId);

@@ -1,7 +1,7 @@
 spring:
   redis:
-    # 外网 8.140.48.133
-    host: 8.140.48.133
+    # 外网 8.140.48.133 192.168.0.199
+    host: 192.168.0.199
     port: 6379
     password: KIDeq@dw253
     database: 1
@@ -13,7 +13,7 @@ spring:
         max-active: 500
   datasource:
     # 外网 8.140.48.133
-    url: jdbc:mysql://8.140.48.133:3306/achp?useSSL=false&useUnicode=true&characterEncoding=utf-8&zeroDateTimeBehavior=convertToNull&transformedBitIsBoolean=true&serverTimezone=GMT%2B8&nullCatalogMeansCurrent=true&allowPublicKeyRetrieval=true&allowMultiQueries=true&autoReconnect=true&failOverReadOnly=false
+    url: jdbc:mysql://192.168.0.199:3306/achp?useSSL=false&useUnicode=true&characterEncoding=utf-8&zeroDateTimeBehavior=convertToNull&transformedBitIsBoolean=true&serverTimezone=GMT%2B8&nullCatalogMeansCurrent=true&allowPublicKeyRetrieval=true&allowMultiQueries=true&autoReconnect=true&failOverReadOnly=false
     username: root
     password: Doiwq@31283
 jwt:
@@ -56,11 +56,11 @@ wechat:
     callback: https://www.thadhff.site/
 apple:
   pay:
-    bundle-ids: com.jd.aiSuperCreation
+    bundle-ids: com.aizhushou.ai
     sandbox: true
-    password: 6017dbaa2fc34ea09f969234f84b5c8a
+    password: a47765a9c4fb44388471da32afaa4ab0
 openai:
   proxy:
-    url: https://api.openai.com/
+    url: http://8.140.48.133/
 server:
-  sign: 0
+  sign: 3

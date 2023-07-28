@@ -62,3 +62,5 @@ apple:
 openai:
   proxy:
     url: http://8.140.48.133/
+server:
+  sign: 1

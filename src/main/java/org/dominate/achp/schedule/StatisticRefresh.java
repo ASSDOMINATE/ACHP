@@ -1,6 +1,7 @@
 package org.dominate.achp.schedule;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.hwja.tool.utils.LoadUtil;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.dominate.achp.common.cache.StatisticCache;
@@ -25,6 +26,9 @@ public class StatisticRefresh {
 
     @Scheduled(cron = "0 30 * * * ?")
     public void saveSceneCount() {
+        if (!LoadUtil.onProd()) {
+            return;
+        }
         Map<Integer, StatisticSceneDTO> statisticSceneMap = new HashMap<>();
         parseSceneCount(statisticSceneMap, SceneCountType.SEND);
         parseSceneCount(statisticSceneMap, SceneCountType.CHAT);

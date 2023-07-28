@@ -19,18 +19,65 @@ import org.junit.Test;
 import org.springframework.util.CollectionUtils;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.*;
 
 public class DemoTest {
 
 
     @Test
-    public void request() {
-        String apiKey = "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";
-        String result = ChatGptHelper.requestWallet(30,apiKey);
+    public void forGPS() {
+        //举个例子给你说明吧北纬N39°34′14.95″东经E116°34′52.18″
+        // 化为小数点的度为：39.5708181173,116.5811614825
+        // 具体化法：39+34÷60+14.95÷3600=39.5708181173
+        //        0.0221875,40.251475
+        String basePosition = "N40°15'16.4 E116°07'15.6";
+        String[] positions = basePosition.split(" ");
+        StringBuilder result = new StringBuilder();
+        int east;
+
+        int north;
+        if (positions[0].startsWith("E")) {
+            east = 0;
+            north = 1;
+        } else {
+            east = 1;
+            north = 0;
+        }
+        result.append(transformPosition(positions[east].replace("E", "")));
+        result.append(",");
+        result.append(transformPosition(positions[north].replace("N", "")));
         System.out.println(result);
     }
 
+    private static String transformPosition(String position) {
+        String[] first = position.split("°");
+        BigDecimal result = formatNumberStr(first[0]);
+        String[] second = first[1].split("'");
+        result = result.add(formatNumberStr(second[0]).divide(new BigDecimal("60"),12,RoundingMode.UP));
+        result = result.add(formatNumberStr(second[1]).divide(new BigDecimal("3600"),12,RoundingMode.UP));
+        return result.toString();
+    }
+
+    private static BigDecimal formatNumberStr(String number){
+        if(number.startsWith("0")){
+            return new BigDecimal(number.replace("0", ""));
+        }
+        return new BigDecimal(number);
+    }
+
+    @Test
+    public void testNumber(){
+        System.out.println(new BigDecimal("2.36").divide(new BigDecimal("3600"),8,RoundingMode.UP));
+    }
+
+
+    @Test
+    public void request() {
+        String apiKey = "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";
+        String result = ChatGptHelper.requestWallet(30, apiKey);
+        System.out.println(result);
+    }
 
 
     @Test
@@ -45,6 +92,7 @@ public class DemoTest {
             System.out.println(RandomUtil.getStringRandom(12));
         }
     }
+
 
     @Test
     public void showCacheOrder() {
